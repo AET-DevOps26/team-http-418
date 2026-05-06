@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+
+# AI
+.claude/
+.ai/
+
+# Server
+.gradle/
+build/
+*.jar
+out/
+
+# Client
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
