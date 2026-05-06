@@ -20,7 +20,7 @@ cleanup() {
   fi
   wait 2>/dev/null || true
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
 
 echo "Starting Spring Boot server on :$SERVER_PORT..."
 (cd "$SCRIPT_DIR/server" && ./gradlew bootRun --console=plain) &
