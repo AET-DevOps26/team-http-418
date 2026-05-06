@@ -1,13 +1,13 @@
-package com.example.server;
+package tum.devops.http418;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ServerApplication {
+public class Http418Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ServerApplication.class, args);
+		SpringApplication.run(Http418Application.class, args);
 	}
 
 }
