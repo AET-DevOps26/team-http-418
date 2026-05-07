@@ -12,8 +12,6 @@ The app should provide smart mapping and personalized recommendations based on c
 
 ### User Stories
 
-Describe some scenarios how your app will function?
-
 **1. Academic Tracking:** As a student, I want to upload or sync my completed course transcript, so that the system can automatically track my fulfilled credits and identify my remaining degree requirements.
 **2. Profile & Recommendations:** As a student, I want to receive personalized course recommendations based on my completed modules, career goals, and interests, so that I can choose electives that strategically align with my future plans.
 **3. Centralized Search:** As a student, I want to search and filter the entire TUM catalog in one centralized platform that merges main university data with individual chair websites, so that I can easily find interdisciplinary options without navigating fragmented systems.
@@ -62,13 +60,13 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 *   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances.
 *   It serves as the single source of truth, securely accessed and updated exclusively by the Spring Boot server.
 
-# 📚 Project Diagrams
+## 📚 Project Diagrams
 
-## 🏗️ Subsystem Decomposition Diagramm
+### 🏗️ Subsystem Decomposition Diagramm
 ![Subsystem Decomposition Diagramm](./docs/SubsystemDecomposition.png)
 
-## ⚙️ Use Case Diagram
+### ⚙️ Use Case Diagram
 ![Use Case Diagram](./docs/UseCaseDiagramm.png)
 
-## 🧩 Analysis Object Model (Domain Model)
+### 🧩 Analysis Object Model (Domain Model)
 ![Analysis Object Model (Domain Model)](./docs/DomainModel.png)
