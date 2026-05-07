@@ -64,6 +64,11 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 # 📚 Project Diagrams
 
-* 🏗️ [Subsystem Decomposition Diagramm](./docs/SubsystemDecomposition.png)
-* ⚙️ [Use Case Diagram](./docs/UseCaseDiagramm.png)
-* 🧩 [Analysis Object Model (Domain Model)](./docs/DomainModel.png)
+## 🏗️ Subsystem Decomposition Diagramm
+![Subsystem Decomposition Diagramm](./docs/SubsystemDecomposition.png)
+
+## ⚙️ Use Case Diagram
+![Use Case Diagram](./docs/UseCaseDiagramm.png)
+
+## 🧩 Analysis Object Model (Domain Model)
+![Analysis Object Model (Domain Model)](./docs/DomainModel.png)
