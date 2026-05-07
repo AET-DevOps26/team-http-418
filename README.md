@@ -61,3 +61,9 @@ To isolate heavy computational tasks and leverage the best ecosystem for artific
 Data persistence is managed using PostgreSQL, a highly reliable and scalable relational database system.
 *   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances.
 *   It serves as the single source of truth, securely accessed and updated exclusively by the Spring Boot server.
+
+# 📚 Project Diagrams
+
+* 🏗️ [Subsystem Decomposition Diagramm](./docs/SubsystemDecomposition.png)
+* ⚙️ [Use Case Diagram](./docs/UseCaseDiagramm.png)
+* 🧩 [Analysis Object Model (Domain Model)](./docs/DomainModel.png)
