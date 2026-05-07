@@ -1,0 +1,598 @@
+{
+  "id": "f769472f-e6a3-449a-8f1c-338f7a576332",
+  "version": "4.0.0",
+  "title": "Component Diagram",
+  "type": "ComponentDiagram",
+  "nodes": [
+    {
+      "id": "bde62538-e722-4449-9659-7241314fbe0e",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 920,
+        "y": 370
+      },
+      "data": {
+        "name": "Client",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "53ad8998-0746-4dff-9242-c6dfb113c6c2",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 1240,
+        "y": 470
+      },
+      "data": {
+        "name": "Academic Advisor Service"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "width": 1030,
+      "height": 760,
+      "type": "componentSubsystem",
+      "position": {
+        "x": 450,
+        "y": 580
+      },
+      "data": {
+        "name": "Server",
+        "isComponentSubsystemHeaderShown": true
+      },
+      "measured": {
+        "width": 1030,
+        "height": 760
+      }
+    },
+    {
+      "id": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 710,
+        "y": 90
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Planning Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 130,
+        "y": 70
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Student Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 130,
+        "y": 220
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Catalog Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "258f605d-40bd-4ec5-b182-275cb0795c64",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 300,
+        "y": 510
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "GenAI",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 630,
+        "y": 550
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Ingestion Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
+      "width": 530,
+      "height": 340,
+      "type": "componentSubsystem",
+      "position": {
+        "x": 590,
+        "y": 1490
+      },
+      "data": {
+        "name": "Database",
+        "isComponentSubsystemHeaderShown": true
+      },
+      "measured": {
+        "width": 530,
+        "height": 340
+      }
+    },
+    {
+      "id": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 40,
+        "y": 130
+      },
+      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
+      "data": {
+        "name": "Relational DB",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 320,
+        "y": 130
+      },
+      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
+      "data": {
+        "name": "Vector DB",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "653f1935-e71a-4e16-9bb1-f1124632846b",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 470,
+        "y": 130
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Internal Student API"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "59854146-75d2-4b0e-9604-611bdd2c906b",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 480,
+        "y": 290
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Internal Catalog API"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "c23aa4ef-f171-4404-b5cb-c94dc9b00424",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 220,
+        "y": 420
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "AI Service"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "eb9057e5-00bf-44d4-b74a-0c16a661773f",
+      "width": 180,
+      "height": 120,
+      "type": "componentSubsystem",
+      "position": {
+        "x": 1550,
+        "y": 970
+      },
+      "data": {
+        "name": "TUMonline",
+        "isComponentSubsystemHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "a98892b1-d2e4-435f-8637-b16c5ca078e2",
+      "width": 180,
+      "height": 120,
+      "type": "componentSubsystem",
+      "position": {
+        "x": 1550,
+        "y": 1230
+      },
+      "data": {
+        "name": "Chair Website",
+        "isComponentSubsystemHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 830,
+        "y": 1420
+      },
+      "data": {
+        "name": "Memory Service"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "9e38f378-3350-4e8d-8055-37fa6defd250",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 720,
+        "y": 340
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Browsing Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "8af7dd6c-503f-4018-9161-2336e040fe9d",
+      "source": "bde62538-e722-4449-9659-7241314fbe0e",
+      "target": "53ad8998-0746-4dff-9242-c6dfb113c6c2",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "right",
+      "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "13288edb-37d5-450c-ac79-e410cd0d7990",
+      "source": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "target": "53ad8998-0746-4dff-9242-c6dfb113c6c2",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "top",
+      "targetHandle": "bottom",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "75d4e044-6209-47ba-b256-8fe797e35726",
+      "source": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "target": "653f1935-e71a-4e16-9bb1-f1124632846b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "a4f98ccf-057f-4605-8d84-fc127c4a4515",
+      "source": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "target": "59854146-75d2-4b0e-9604-611bdd2c906b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "bottom-mid-left",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "31e7f223-56c9-4c1a-a844-f1a6ff428bae",
+      "source": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
+      "target": "eb9057e5-00bf-44d4-b74a-0c16a661773f",
+      "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "410c4001-dc68-4b73-b825-9835a76b981b",
+      "source": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
+      "target": "a98892b1-d2e4-435f-8637-b16c5ca078e2",
+      "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "0b205bb0-7b5f-4f24-9f0f-dc5e8d3c59f4",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "653f1935-e71a-4e16-9bb1-f1124632846b",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "99f8de0d-ab13-4e82-a85d-2efaeeaa8cc8",
+      "source": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "top",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "2bf79678-86c7-4b9a-ad79-da0dfd9ca346",
+      "source": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "top",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "16ceaec1-10ca-458d-a57c-6c24e439e4ea",
+      "source": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "target": "59854146-75d2-4b0e-9604-611bdd2c906b",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "c2da03b9-7048-46a2-9a1b-a11b9bf02f92",
+      "source": "c23aa4ef-f171-4404-b5cb-c94dc9b00424",
+      "target": "258f605d-40bd-4ec5-b182-275cb0795c64",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "99b76637-682d-4653-908b-76326d933325",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "top",
+      "data": {
+        "points": [
+          {
+            "x": 579,
+            "y": 710
+          },
+          {
+            "x": 549,
+            "y": 710
+          },
+          {
+            "x": 549,
+            "y": 1313.83203125
+          },
+          {
+            "x": 845,
+            "y": 1313.83203125
+          },
+          {
+            "x": 845,
+            "y": 1415
+          }
+        ]
+      }
+    },
+    {
+      "id": "b01ec446-2994-4c8e-adc6-76cab4a1a772",
+      "source": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "top",
+      "data": {
+        "points": [
+          {
+            "x": 579,
+            "y": 860
+          },
+          {
+            "x": 549,
+            "y": 860
+          },
+          {
+            "x": 549,
+            "y": 1312.55859375
+          },
+          {
+            "x": 845,
+            "y": 1312.55859375
+          },
+          {
+            "x": 845,
+            "y": 1415
+          }
+        ]
+      }
+    },
+    {
+      "id": "71922192-63b2-4839-82c9-b23d3a7ec6ce",
+      "source": "258f605d-40bd-4ec5-b182-275cb0795c64",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "6eabec21-d621-46f9-9811-9c58c649cd3f",
+      "source": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "points": [
+          {
+            "x": 1170,
+            "y": 1251
+          },
+          {
+            "x": 1170,
+            "y": 1313.62890625
+          },
+          {
+            "x": 845,
+            "y": 1313.62890625
+          },
+          {
+            "x": 845,
+            "y": 1415
+          }
+        ]
+      }
+    },
+    {
+      "id": "cf499783-cd0d-4c79-9404-79cb22bdafe3",
+      "source": "9e38f378-3350-4e8d-8055-37fa6defd250",
+      "target": "59854146-75d2-4b0e-9604-611bdd2c906b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "bottom",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "dc24665b-ada7-4d3e-99ef-c59d31dfc3ee",
+      "source": "9e38f378-3350-4e8d-8055-37fa6defd250",
+      "target": "53ad8998-0746-4dff-9242-c6dfb113c6c2",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "right",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "d9d169a9-1ab6-441a-83c4-d76a80d6231b",
+      "source": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "target": "c23aa4ef-f171-4404-b5cb-c94dc9b00424",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    }
+  ],
+  "assessments": {}
+}

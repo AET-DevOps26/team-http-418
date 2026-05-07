@@ -1,0 +1,248 @@
+{
+  "id": "1bf45531-1489-47cb-95f9-b953bf365e05",
+  "version": "4.0.0",
+  "title": "Use Case Diagram",
+  "type": "UseCaseDiagram",
+  "nodes": [
+    {
+      "id": "956283d3-8525-4509-9755-6081063693d2",
+      "width": 600,
+      "height": 880,
+      "type": "useCaseSystem",
+      "position": {
+        "x": 860,
+        "y": 200
+      },
+      "data": {
+        "name": "Academic Navigator"
+      },
+      "measured": {
+        "width": 600,
+        "height": 880
+      }
+    },
+    {
+      "id": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "width": 130,
+      "height": 160,
+      "type": "useCaseActor",
+      "position": {
+        "x": 600,
+        "y": 540
+      },
+      "data": {
+        "name": "TUM Student\n"
+      },
+      "measured": {
+        "width": 130,
+        "height": 160
+      }
+    },
+    {
+      "id": "3a5ef74d-2f2f-4794-8093-707f975dbc77",
+      "width": 160,
+      "height": 90,
+      "type": "useCase",
+      "position": {
+        "x": 70,
+        "y": 60
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Track study progress"
+      },
+      "measured": {
+        "width": 160,
+        "height": 90
+      }
+    },
+    {
+      "id": "ba2ef922-c586-408c-b81f-c5b989166f0e",
+      "width": 290,
+      "height": 100,
+      "type": "useCase",
+      "position": {
+        "x": 180,
+        "y": 170
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Receive personalized course recommendations"
+      },
+      "measured": {
+        "width": 290,
+        "height": 100
+      }
+    },
+    {
+      "id": "1c9c13bc-01f4-46d4-9c28-9a592328c83b",
+      "width": 310,
+      "height": 100,
+      "type": "useCase",
+      "position": {
+        "x": 170,
+        "y": 300
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Search for courses in centralized catalogue"
+      },
+      "measured": {
+        "width": 310,
+        "height": 100
+      }
+    },
+    {
+      "id": "d64317f4-2602-4e50-a43f-361b7d645e45",
+      "width": 270,
+      "height": 100,
+      "type": "useCase",
+      "position": {
+        "x": 190,
+        "y": 430
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Observe course prerequisites"
+      },
+      "measured": {
+        "width": 270,
+        "height": 100
+      }
+    },
+    {
+      "id": "380f3288-d58f-45a1-ae3d-e1eb32d385b5",
+      "width": 280,
+      "height": 90,
+      "type": "useCase",
+      "position": {
+        "x": 190,
+        "y": 570
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Set personal scheduling constraints"
+      },
+      "measured": {
+        "width": 280,
+        "height": 90
+      }
+    },
+    {
+      "id": "6b5bd4b1-67b7-4118-92df-25c0fe5ca38c",
+      "width": 280,
+      "height": 100,
+      "type": "useCase",
+      "position": {
+        "x": 190,
+        "y": 700
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "View interactive semester roadmap"
+      },
+      "measured": {
+        "width": 280,
+        "height": 100
+      }
+    },
+    {
+      "id": "d62fbe32-6c3f-442a-9aed-afebb1f78c3a",
+      "width": 200,
+      "height": 90,
+      "type": "useCase",
+      "position": {
+        "x": 360,
+        "y": 60
+      },
+      "parentId": "956283d3-8525-4509-9755-6081063693d2",
+      "data": {
+        "name": "Identify remaining study requirements"
+      },
+      "measured": {
+        "width": 200,
+        "height": 90
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "63578790-255a-4961-af27-5f6e70071193",
+      "source": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "target": "3a5ef74d-2f2f-4794-8093-707f975dbc77",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "6f2dd26f-de66-4603-ab06-458181857e06",
+      "source": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "target": "ba2ef922-c586-408c-b81f-c5b989166f0e",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "a2f902d3-90e1-4ee9-9808-8cb600c7b3bc",
+      "source": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "target": "1c9c13bc-01f4-46d4-9c28-9a592328c83b",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "6c08ebc3-3344-4f2a-93d9-ab9ad6afefc9",
+      "source": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "target": "d64317f4-2602-4e50-a43f-361b7d645e45",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "953bdfdd-d3f6-4a51-8e3c-4d10fe6fec24",
+      "source": "380f3288-d58f-45a1-ae3d-e1eb32d385b5",
+      "target": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "bcabe021-b04c-46af-bad8-6283b9b28d7a",
+      "source": "6b5bd4b1-67b7-4118-92df-25c0fe5ca38c",
+      "target": "b3fc1d63-882f-48c8-8450-6f543681c6fe",
+      "type": "UseCaseAssociation",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "bc09e7bf-fc13-4170-990b-52a3e8eca49f",
+      "source": "d62fbe32-6c3f-442a-9aed-afebb1f78c3a",
+      "target": "3a5ef74d-2f2f-4794-8093-707f975dbc77",
+      "type": "UseCaseInclude",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    }
+  ],
+  "assessments": {}
+}

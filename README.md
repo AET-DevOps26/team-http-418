@@ -35,3 +35,29 @@ Describe some scenarios how your app will function?
 | **AIDAN 6** | Prerequisite Mapping | `Minor` | Essential for ensuring the recommendations are actually usable and prevent registration errors. |
 | **AIDAN 7** | Scheduling Preferences | `Minor` | Highly useful for personalization, but the app can still deliver its core academic pathway without time-of-day constraints initially. |
 | **AIDAN 8** | Conflict Resolution | `Minor` | A great quality-of-life feature to warn about schedule overlaps, but secondary to actually generating the core pathway. |
+
+---
+
+### Initial System Structure
+
+The application follows a modern, decoupled client-server architecture with a dedicated microservice for AI processing. This separation of concerns ensures scalability, maintainability, and optimal performance across different technological domains. The system is divided into the following four core components:
+
+#### Client: React (Vite + TanStack Router) Frontend
+The user interface is built as a Single Page Application (SPA) using React, providing a highly responsive and dynamic experience for students navigating complex course maps.
+*   **Vite** is utilized as the build tool to guarantee lightning-fast server starts and Hot Module Replacement (HMR) during development, as well as highly optimized static assets for production.
+*   **TanStack Router** is implemented for robust, type-safe routing. This is critical for managing the application's complex nested views (e.g., navigating between interactive semester roadmaps, centralized search, and user profile settings) while maintaining a reliable UI state.
+
+#### Server: Spring Boot REST API
+The core business logic, user management, and data orchestration are handled by a Spring Boot backend.
+*   This server acts as the primary API gateway for the React client, exposing secure, well-documented RESTful endpoints.
+*   It handles traditional backend responsibilities such as authentication, data validation, and CRUD operations. Furthermore, it acts as an orchestrator, securely routing complex analytical requests to the GenAI microservice and aggregating the results before sending them back to the client.
+
+#### GenAI Service: Python & LangChain Microservice
+To isolate heavy computational tasks and leverage the best ecosystem for artificial intelligence, all AI-driven features (such as smart course recommendations and prerequisite mapping) are offloaded to a dedicated Python microservice.
+*   **LangChain** is used to orchestrate interactions with the underlying Large Language Models (LLMs), allowing the system to intelligently parse unstructured course data from chair websites and match it against student career goals.
+*   By decoupling this from the Spring Boot server, the main backend remains highly performant and avoids being bottlenecked by AI processing latency. Communication between the Spring Boot server and this microservice is handled via internal REST or gRPC calls.
+
+#### Database: PostgreSQL
+Data persistence is managed using PostgreSQL, a highly reliable and scalable relational database system.
+*   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances.
+*   It serves as the single source of truth, securely accessed and updated exclusively by the Spring Boot server.
