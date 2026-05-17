@@ -28,6 +28,8 @@ services:
 
   scraper:
     build: ./scraper
+    profiles:
+      - scraper
     environment:
       - DB_HOST=db
       - DB_USER=postgres
