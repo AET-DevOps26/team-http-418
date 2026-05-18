@@ -758,19 +758,6 @@
 ```
 </details>
 
----
-
-## Endpoint Summary
-
-| Priority | Count | Backlog items covered |
-| :--- | :---: | :--- |
-| **Must Have** | 18 | Auth, AIDAN 1, AIDAN 2, Health |
-| **Should Have** | 19 | AIDAN 3, AIDAN 4, AIDAN 5, AIDAN 6, Dashboard, Advisor, Schedule view |
-| **Could Have** | 6 | AIDAN 7, AIDAN 8, Recommendation feedback, Advisor extras |
-| **Total** | **43** | |
-
----
-
 ## Implementation Phasing
 
 ### Sprint 1–2 — Must Have
