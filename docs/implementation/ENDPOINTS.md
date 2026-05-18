@@ -209,7 +209,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; add `ai=true` for AI-powered semantic search (Vector DB) | Browsing Service + AI Service |
+| [ ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against the Vector DB instead of a keyword filter | Browsing Service + AI Service |
 | [ ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
 | [ ] | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
 | [ ] | `GET` | `/study-programs` | Query: `departmentId` | 200 | Study programs, optionally filtered by department | Catalog Service |
@@ -757,6 +757,8 @@
 ]
 ```
 </details>
+
+---
 
 ## Implementation Phasing
 
