@@ -101,20 +101,20 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
-| [ ] | `GET` | `/students/me/courses/completed` | Query: `page, size, sort` | 200 | Paginated list of completed courses with grades | Student Service |
-| [ ] | `POST` | `/students/me/courses/completed` | Body: `{ courseId, grade, semester }` | 201 | Mark a course as completed | Student Service |
-| [ ] | `DELETE` | `/students/me/courses/completed/{courseId}` | — | 204 | Remove a completion record | Student Service |
-| [ ] | `GET` | `/students/me/courses/enrolled` | Query: `page, size, sort` | 200 | Paginated list of currently enrolled courses | Student Service |
-| [ ] | `POST` | `/students/me/courses/enrolled` | Body: `{ courseId, semester }` | 201 | Enroll in a course for a given semester | Student Service |
-| [ ] | `DELETE` | `/students/me/courses/enrolled/{courseId}` | — | 204 | Drop an enrolled course | Student Service |
-| [ ] | `GET` | `/students/me/requirements` | Query: `studyProgramId` | 200 | Degree requirement breakdown — fulfilled vs. missing | Student Service + Catalog Service |
-| [ ] | `POST` | `/students/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
+| [ ] | `GET` | `/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
+| [ ] | `GET` | `/me/courses/completed` | Query: `page, size, sort` | 200 | Paginated list of completed courses with grades | Student Service |
+| [ ] | `POST` | `/me/courses/completed` | Body: `{ courseId, grade, semester }` | 201 | Mark a course as completed | Student Service |
+| [ ] | `DELETE` | `/me/courses/completed/{courseId}` | — | 204 | Remove a completion record | Student Service |
+| [ ] | `GET` | `/me/courses/enrolled` | Query: `page, size, sort` | 200 | Paginated list of currently enrolled courses | Student Service |
+| [ ] | `POST` | `/me/courses/enrolled` | Body: `{ courseId, semester }` | 201 | Enroll in a course for a given semester | Student Service |
+| [ ] | `DELETE` | `/me/courses/enrolled/{courseId}` | — | 204 | Drop an enrolled course | Student Service |
+| [ ] | `GET` | `/me/requirements` | Query: `studyProgramId` | 200 | Degree requirement breakdown — fulfilled vs. missing | Student Service + Catalog Service |
+| [ ] | `POST` | `/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
 
 <details>
 <summary>Response schemas</summary>
 
-**`GET /students/me/progress` — `AcademicProgress`**
+**`GET /me/progress` — `AcademicProgress`**
 ```json
 {
   "totalCreditsEarned": 90,
@@ -133,7 +133,7 @@
 }
 ```
 
-**`CompletedCourse`** *(single item in paginated list)*
+**`GET /me/courses/completed` — `CompletedCourse`** *(single item in paginated list)*
 ```json
 {
   "courseId": "uuid",
@@ -146,7 +146,7 @@
 }
 ```
 
-**`EnrolledCourse`** *(single item in paginated list)*
+**`GET /me/courses/enrolled` — `EnrolledCourse`** *(single item in paginated list)*
 ```json
 {
   "courseId": "uuid",
@@ -160,7 +160,7 @@
 }
 ```
 
-**`GET /students/me/requirements` — `DegreeRequirements`**
+**`GET /me/requirements` — `DegreeRequirements`**
 ```json
 {
   "studyProgram": { "id": "uuid", "name": "Informatics M.Sc." },
@@ -190,7 +190,7 @@
 }
 ```
 
-**`POST /students/me/transcript/upload` — `TranscriptImportResult`**
+**`POST /me/transcript/upload` — `TranscriptImportResult`**
 ```json
 {
   "importedCount": 15,
@@ -209,8 +209,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId` | 200 | Paginated, filtered course listing | Browsing Service |
-| [ ] | `GET` | `/courses/search` | Query: `q, page, size` | 200 | Semantic search over the catalog (Vector DB via AI Service) | Browsing Service + AI Service |
+| [ ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; add `ai=true` for AI-powered semantic search (Vector DB) | Browsing Service + AI Service |
 | [ ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
 | [ ] | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
 | [ ] | `GET` | `/study-programs` | Query: `departmentId` | 200 | Study programs, optionally filtered by department | Catalog Service |
@@ -220,7 +219,7 @@
 <details>
 <summary>Response schemas</summary>
 
-**`CourseSummary`** *(used in paginated list and search results)*
+**`GET /courses` — `CourseSummary`** *(used in paginated list and search results)*
 ```json
 {
   "id": "uuid",
@@ -267,7 +266,7 @@
 }
 ```
 
-**`StudyProgramDetail`**
+**`GET /study-programs/{programId}` — `StudyProgramDetail`**
 ```json
 {
   "id": "uuid",
@@ -295,14 +294,14 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me` | — | 200 | Get the authenticated student's full profile | Student Service |
-| [ ] | `PUT` | `/students/me` | Body: `StudentProfileUpdate` | 200 | Replace profile fields (career goals, interests, workload) | Student Service |
-| [ ] | `PATCH` | `/students/me` | Body: partial `StudentProfileUpdate` | 200 | Partially update profile | Student Service |
+| [ ] | `GET` | `/me` | — | 200 | Get the authenticated student's full profile | Student Service |
+| [ ] | `PUT` | `/me` | Body: `StudentProfileUpdate` | 200 | Replace profile fields (career goals, interests, workload) | Student Service |
+| [ ] | `PATCH` | `/me` | Body: partial `StudentProfileUpdate` | 200 | Partially update profile | Student Service |
 
 <details>
 <summary>Request / response schemas</summary>
 
-**`GET /students/me` — `StudentProfile`**
+**`GET /me` — `StudentProfile`**
 ```json
 {
   "id": "uuid",
@@ -392,13 +391,13 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/recommendations` | Query: `limit, category, semester` | 200 | Personalized course recommendations based on profile + history | Planning Service + AI Service |
-| [ ] | `POST` | `/students/me/recommendations` | Body: `{ goals, interests, excludeCourseIds }` | 200 | On-demand recommendation with explicit context override | Planning Service + AI Service |
+| [ ] | `GET` | `/me/recommendations` | Query: `limit, category, semester` | 200 | Personalized course recommendations based on profile + history | Planning Service + AI Service |
+| [ ] | `POST` | `/me/recommendations` | Body: `{ goals, interests, excludeCourseIds }` | 200 | On-demand recommendation with explicit context override | Planning Service + AI Service |
 
 <details>
 <summary>Request / response schemas</summary>
 
-**`POST /students/me/recommendations` — request**
+**`POST /me/recommendations` — request**
 ```json
 {
   "goals": ["specialize in robotics"],
@@ -433,21 +432,21 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/roadmap` | — | 200 / 404 | Retrieve current roadmap with all semester plans | Planning Service |
-| [ ] | `POST` | `/students/me/roadmap/generate` | Body: `RoadmapGenerateRequest` | 200 / 202 | AI-generate (or regenerate) the full roadmap | Planning Service + AI Service |
-| [ ] | `PUT` | `/students/me/roadmap` | Body: `RoadmapUpdate` | 200 | Update roadmap aims / preferences / interests | Planning Service |
-| [ ] | `GET` | `/students/me/roadmap/semesters` | — | 200 | All semester plans in the roadmap | Planning Service |
-| [ ] | `GET` | `/students/me/roadmap/semesters/{semesterKey}` | — | 200 / 404 | Single semester plan detail | Planning Service |
-| [ ] | `PUT` | `/students/me/roadmap/semesters/{semesterKey}` | Body: `SemesterPlanUpdate` | 200 | Edit a semester plan manually | Planning Service |
-| [ ] | `POST` | `/students/me/roadmap/semesters/{semesterKey}/courses` | Body: `{ courseId }` | 201 | Add a course to a semester plan | Planning Service |
-| [ ] | `DELETE` | `/students/me/roadmap/semesters/{semesterKey}/courses/{courseId}` | — | 204 | Remove a course from a semester plan | Planning Service |
+| [ ] | `GET` | `/me/roadmap` | — | 200 / 404 | Retrieve current roadmap with all semester plans | Planning Service |
+| [ ] | `POST` | `/me/roadmap/generate` | Body: `RoadmapGenerateRequest` | 200 / 202 | AI-generate (or regenerate) the full roadmap | Planning Service + AI Service |
+| [ ] | `PUT` | `/me/roadmap` | Body: `RoadmapUpdate` | 200 | Update roadmap aims / preferences / interests | Planning Service |
+| [ ] | `GET` | `/me/roadmap/semesters` | — | 200 | All semester plans in the roadmap | Planning Service |
+| [ ] | `GET` | `/me/roadmap/semesters/{semesterKey}` | — | 200 / 404 | Single semester plan detail | Planning Service |
+| [ ] | `PUT` | `/me/roadmap/semesters/{semesterKey}` | Body: `SemesterPlanUpdate` | 200 | Edit a semester plan manually | Planning Service |
+| [ ] | `POST` | `/me/roadmap/semesters/{semesterKey}/courses` | Body: `{ courseId }` | 201 | Add a course to a semester plan | Planning Service |
+| [ ] | `DELETE` | `/me/roadmap/semesters/{semesterKey}/courses/{courseId}` | — | 204 | Remove a course from a semester plan | Planning Service |
 
 > **Note**: `/generate` may return `202 Accepted` with a status URL when the AI service takes > a few seconds. The client should poll or use SSE to retrieve the final result.
 
 <details>
 <summary>Request / response schemas</summary>
 
-**`POST /students/me/roadmap/generate` — `RoadmapGenerateRequest`**
+**`POST /me/roadmap/generate` — `RoadmapGenerateRequest`**
 ```json
 {
   "aims": ["graduate by SS2026", "specialize in AI"],
@@ -490,7 +489,7 @@
 }
 ```
 
-**`SemesterPlanDetail`**
+**`GET /me/roadmap/semesters/{semesterKey}` — `SemesterPlanDetail`**
 ```json
 {
   "semesterKey": "SS2025",
@@ -520,7 +519,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/dashboard` | — | 200 | Single aggregated response powering the Dashboard screen (KPIs, alerts, top recommendations, upcoming classes) | Planning Service |
+| [ ] | `GET` | `/me/dashboard` | — | 200 | Single aggregated response powering the Dashboard screen (KPIs, alerts, top recommendations, upcoming classes) | Planning Service |
 
 <details>
 <summary>Response schema</summary>
@@ -572,17 +571,17 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/advisor/conversations` | Query: `page, size` | 200 | List all past conversations | Planning Service |
-| [ ] | `POST` | `/students/me/advisor/conversations` | Body: `{ title? }` | 201 | Start a new conversation | Planning Service |
-| [ ] | `GET` | `/students/me/advisor/conversations/{conversationId}` | — | 200 / 404 | Full conversation with all messages | Planning Service |
-| [ ] | `POST` | `/students/me/advisor/conversations/{conversationId}/messages` | Body: `{ content }` | 200 / SSE | Send a user message; response streams via SSE or returns full JSON | Planning Service + AI Service |
+| [ ] | `GET` | `/me/advisor/conversations` | Query: `page, size` | 200 | List all past conversations | Planning Service |
+| [ ] | `POST` | `/me/advisor/conversations` | Body: `{ title? }` | 201 | Start a new conversation | Planning Service |
+| [ ] | `GET` | `/me/advisor/conversations/{conversationId}` | — | 200 / 404 | Full conversation with all messages | Planning Service |
+| [ ] | `POST` | `/me/advisor/conversations/{conversationId}/messages` | Body: `{ content }` | 200 / SSE | Send a user message; response streams via SSE or returns full JSON | Planning Service + AI Service |
 
 > **Streaming**: Send `Accept: text/event-stream` to receive incremental tokens (drives the typing indicator in the prototype). Default `Accept: application/json` returns the completed reply synchronously.
 
 <details>
 <summary>Request / response schemas</summary>
 
-**`POST /students/me/advisor/conversations/{id}/messages` — request**
+**`POST /me/advisor/conversations/{id}/messages` — request**
 ```json
 { "content": "What electives should I take next semester?" }
 ```
@@ -629,7 +628,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/schedule` | Query: `semester` | 200 | Weekly timetable of all enrolled courses for a semester | Planning Service + Student Service |
+| [ ] | `GET` | `/me/schedule` | Query: `semester` | 200 | Weekly timetable of all enrolled courses for a semester | Planning Service + Student Service |
 
 <details>
 <summary>Response schema</summary>
@@ -670,8 +669,8 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/preferences/scheduling` | — | 200 | Retrieve personal scheduling constraints | Student Service |
-| [ ] | `PUT` | `/students/me/preferences/scheduling` | Body: `SchedulingPreferences` | 200 | Replace scheduling constraints | Student Service |
+| [ ] | `GET` | `/me/preferences/scheduling` | — | 200 | Retrieve personal scheduling constraints | Student Service |
+| [ ] | `PUT` | `/me/preferences/scheduling` | Body: `SchedulingPreferences` | 200 | Replace scheduling constraints | Student Service |
 
 <details>
 <summary>Request / response schema</summary>
@@ -699,7 +698,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/students/me/schedule/conflicts` | Query: `semester` | 200 | All detected conflicts for the current semester plan | Planning Service |
+| [ ] | `GET` | `/me/schedule/conflicts` | Query: `semester` | 200 | All detected conflicts for the current semester plan | Planning Service |
 
 <details>
 <summary>Response schema</summary>
@@ -726,7 +725,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/students/me/recommendations/{courseId}/feedback` | Body: `{ action }` | 204 | Record student reaction to a recommendation (save / dismiss / enroll) | Student Service |
+| [ ] | `POST` | `/me/recommendations/{courseId}/feedback` | Body: `{ action }` | 204 | Record student reaction to a recommendation (save / dismiss / enroll) | Student Service |
 
 <details>
 <summary>Request schema</summary>
@@ -742,8 +741,8 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `DELETE` | `/students/me/advisor/conversations/{conversationId}` | — | 204 | Delete a conversation | Planning Service |
-| [ ] | `GET` | `/students/me/advisor/suggestions` | — | 200 | Suggested quick-prompt chips for the advisor screen | Planning Service + AI Service |
+| [ ] | `DELETE` | `/me/advisor/conversations/{conversationId}` | — | 204 | Delete a conversation | Planning Service |
+| [ ] | `GET` | `/me/advisor/suggestions` | — | 200 | Suggested quick-prompt chips for the advisor screen | Planning Service + AI Service |
 
 <details>
 <summary>Response schema</summary>
@@ -765,10 +764,10 @@
 
 | Priority | Count | Backlog items covered |
 | :--- | :---: | :--- |
-| **Must Have** | 19 | Auth, AIDAN 1, AIDAN 2, Health |
+| **Must Have** | 18 | Auth, AIDAN 1, AIDAN 2, Health |
 | **Should Have** | 19 | AIDAN 3, AIDAN 4, AIDAN 5, AIDAN 6, Dashboard, Advisor, Schedule view |
 | **Could Have** | 6 | AIDAN 7, AIDAN 8, Recommendation feedback, Advisor extras |
-| **Total** | **44** | |
+| **Total** | **43** | |
 
 ---
 
@@ -777,24 +776,24 @@
 ### Sprint 1–2 — Must Have
 1. Health endpoints — validates CI/CD pipeline end-to-end
 2. Auth endpoints — unblocks all authenticated work
-3. `GET /students/me` (basic profile) — foundational identity
-4. `GET /courses`, `GET /courses/search`, `GET /courses/{id}` — catalog browsing
+3. `GET /me` (basic profile) — foundational identity
+4. `GET /courses` (with `ai=true` for semantic search), `GET /courses/{id}` — catalog browsing
 5. `GET /departments`, `GET /study-programs*` — catalog metadata
-6. `GET /students/me/progress`, completed/enrolled CRUD — academic tracking
-7. `GET /students/me/requirements` — degree requirement check
-8. `POST /students/me/transcript/upload` — transcript import
+6. `GET /me/progress`, completed/enrolled CRUD — academic tracking
+7. `GET /me/requirements` — degree requirement check
+8. `POST /me/transcript/upload` — transcript import
 
 ### Sprint 3–4 — Should Have
-1. `PUT/PATCH /students/me` — full profile editing
+1. `PUT/PATCH /me` — full profile editing
 2. Prerequisite tree + check — AIDAN 6
-3. `GET/POST /students/me/recommendations` — AIDAN 4
+3. `GET/POST /me/recommendations` — AIDAN 4
 4. Roadmap CRUD + `/generate` — AIDAN 5
-5. `GET /students/me/dashboard` — dashboard aggregation
+5. `GET /me/dashboard` — dashboard aggregation
 6. Advisor conversations + message send (SSE) — chat UI
-7. `GET /students/me/schedule` — timetable view
+7. `GET /me/schedule` — timetable view
 
 ### Sprint 5+ — Could Have
 1. Scheduling preferences (`GET/PUT`)
-2. Conflict detection (`GET /students/me/schedule/conflicts`)
+2. Conflict detection (`GET /me/schedule/conflicts`)
 3. Recommendation feedback
 4. Advisor conversation deletion + suggestions
