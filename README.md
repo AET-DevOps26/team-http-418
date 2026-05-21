@@ -10,6 +10,17 @@ There is a critical need for an intelligent application that analyzes a studentâ
 
 The app should provide smart mapping and personalized recommendations based on career interests and individual user preferences, such as scheduling constraints, workload limits, or preferred learning formats. Acting as a bridge between academia and the professional world, this centralized system allows students to make faster, more informed decisions, preventing wasted tuition, delayed graduation, and registration errors. By offering a clear, interactive roadmap, the system optimizes credit fulfillment, bridges the skills gap, and empowers students to confidently take control of their academic journey.
 
+### Build Instructions
+
+required components:
+```bash
+docker compose up --build
+```
+start and run scraper:
+```bash
+docker compose up scraper --build
+```
+
 ### User Stories
 
 **1. Academic Tracking:** As a student, I want to upload or sync my completed course transcript, so that the system can automatically track my fulfilled credits and identify my remaining degree requirements.
