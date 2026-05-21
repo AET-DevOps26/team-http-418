@@ -1,5 +1,5 @@
 # Use the official PostgreSQL image as the base image
-FROM postgres:latest
+FROM postgres:17
 
 ENV POSTGRES_DB=aidan
 ENV POSTGRES_USER=postgres
