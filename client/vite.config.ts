@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
@@ -19,6 +20,9 @@ const config = defineConfig({
 				rewrite: (path) => path.replace(/^\/api/, ""),
 			},
 		},
+	},
+	test: {
+		environment: "jsdom",
 	},
 });
 

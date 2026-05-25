@@ -1,3 +1,4 @@
+import { apiFetch } from "#/api";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -6,11 +7,7 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
 	const { data: message, error } = useQuery({
 		queryKey: ["hello"],
-		queryFn: () =>
-			fetch("/api/hello").then((res) => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				return res.text();
-			}),
+		queryFn: () => apiFetch<string>("/hello", { responseType: "text" }),
 	});
 
 	return (

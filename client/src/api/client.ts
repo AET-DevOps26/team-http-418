@@ -17,22 +17,28 @@ export class ApiError extends Error {
 	}
 }
 
+export type ApiFetchOptions = RequestInit & {
+	responseType?: "json" | "text";
+};
+
 async function doFetch<T>(
 	path: string,
-	options?: RequestInit,
+	options?: ApiFetchOptions,
 	isRetry = false,
 ): Promise<T> {
 	const token = getAccessToken();
 	const hasBody = options?.body != null;
 
 	const headers = new Headers(options?.headers);
-	headers.set("Accept", "application/json");
+	headers.set("Accept", options?.responseType === "text" ? "text/plain" : "application/json");
 	if (hasBody) headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
 
 	const res = await fetch(`/api${path}`, { ...options, headers });
 
 	if (res.ok) {
+		if (res.status === 204) return undefined as T;
+		if (options?.responseType === "text") return res.text() as Promise<T>;
 		return res.json() as Promise<T>;
 	}
 
@@ -58,6 +64,6 @@ async function doFetch<T>(
 	throw new ApiError(res.status, problem);
 }
 
-export function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+export function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
 	return doFetch<T>(path, options);
 }
