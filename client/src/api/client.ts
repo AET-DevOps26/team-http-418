@@ -2,6 +2,7 @@ import {
 	clearAccessToken,
 	getAccessToken,
 	refreshAccessToken,
+	setAccessToken,
 } from "#/api/auth";
 import type { ProblemDetail } from "#/api/types";
 
@@ -45,6 +46,7 @@ async function doFetch<T>(
 	if (res.status === 401 && !isRetry) {
 		const newToken = await refreshAccessToken();
 		if (newToken != null) {
+			setAccessToken(newToken);
 			return doFetch<T>(path, options, true);
 		}
 		clearAccessToken();

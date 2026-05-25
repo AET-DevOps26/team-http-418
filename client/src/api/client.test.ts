@@ -5,6 +5,7 @@ vi.mock("#/api/auth", () => ({
 	getAccessToken: vi.fn(() => null),
 	refreshAccessToken: vi.fn(async () => null),
 	clearAccessToken: vi.fn(),
+	setAccessToken: vi.fn(),
 }));
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -120,5 +121,30 @@ describe("apiFetch", () => {
 
 		await expect(apiFetch("/items/999")).rejects.toBeInstanceOf(ApiError);
 		await expect(apiFetch("/items/999")).rejects.toMatchObject({ status: 404 });
+	});
+
+	it("retries with new token after 401 and refresh succeeds", async () => {
+		const { refreshAccessToken, setAccessToken } = await import("#/api/auth");
+		vi.mocked(refreshAccessToken).mockResolvedValueOnce("new-token");
+		vi.mocked(fetch)
+			.mockResolvedValueOnce(new Response(null, { status: 401 }))
+			.mockResolvedValueOnce(jsonResponse({ id: 1 }));
+
+		const result = await apiFetch<{ id: number }>("/items/1");
+
+		expect(result).toEqual({ id: 1 });
+		expect(setAccessToken).toHaveBeenCalledWith("new-token");
+		expect(fetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("clears token and throws after 401 when refresh returns null", async () => {
+		const { refreshAccessToken, clearAccessToken } = await import("#/api/auth");
+		vi.mocked(refreshAccessToken).mockResolvedValueOnce(null);
+		const problem = { type: "about:blank", title: "Unauthorized", status: 401 };
+		vi.mocked(fetch).mockResolvedValue(jsonResponse(problem, 401));
+
+		await expect(apiFetch("/items/1")).rejects.toMatchObject({ status: 401 });
+		expect(clearAccessToken).toHaveBeenCalled();
+		expect(fetch).toHaveBeenCalledTimes(1);
 	});
 });
