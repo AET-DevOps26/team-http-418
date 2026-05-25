@@ -1,0 +1,379 @@
+{
+  "id": "e30b22a3-ae5f-4265-a41f-1ae0333ea57d",
+  "version": "4.0.0",
+  "title": "DomainModel",
+  "type": "ClassDiagram",
+  "nodes": [
+    {
+      "id": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "width": 170,
+      "height": 160,
+      "type": "class",
+      "position": {
+        "x": 130,
+        "y": 670
+      },
+      "data": {
+        "name": "Student Profile",
+        "methods": [],
+        "attributes": [
+          {
+            "id": "0ebef939-b980-44cd-b803-55bf6b4a7d53",
+            "name": "semester"
+          },
+          {
+            "id": "f68571c7-47c3-480d-8699-999fc46fa15b",
+            "name": "credits"
+          },
+          {
+            "id": "8bcc5212-0a1f-4603-8dd7-e5c1c94f7409",
+            "name": "prefferedWorkload"
+          },
+          {
+            "id": "8f9a9f13-5527-40d7-a038-92c6337443ef",
+            "name": "schedule"
+          }
+        ]
+      },
+      "measured": {
+        "width": 170,
+        "height": 160
+      }
+    },
+    {
+      "id": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "width": 190,
+      "height": 220,
+      "type": "class",
+      "position": {
+        "x": -140,
+        "y": 150
+      },
+      "data": {
+        "name": "Course",
+        "methods": [
+          {
+            "id": "0ae87224-2093-4913-90ce-1ae61196bcac",
+            "name": "+ checkRequirements()"
+          }
+        ],
+        "attributes": [
+          {
+            "id": "a90a90a2-5f4c-47de-b063-849c361e97eb",
+            "name": "information"
+          },
+          {
+            "id": "788214e7-5b67-4ee5-94f9-b43b8dcfae0f",
+            "name": "generalRequirements"
+          },
+          {
+            "id": "edc19b15-6bf8-4ded-8b8e-9f602f6ebf48",
+            "name": "prefferedSemester"
+          },
+          {
+            "id": "4ebdb0f7-f4aa-4847-b5ac-248189efd775",
+            "name": "credits"
+          },
+          {
+            "id": "be01465b-7b35-406f-9d93-a28d93adc6cc",
+            "name": "schedule"
+          }
+        ]
+      },
+      "measured": {
+        "width": 190,
+        "height": 220
+      }
+    },
+    {
+      "id": "2f34a4ea-67df-4bf0-85cc-1bb530078991",
+      "width": 160,
+      "height": 70,
+      "type": "class",
+      "position": {
+        "x": 400,
+        "y": 230
+      },
+      "data": {
+        "name": "Study Programm",
+        "methods": [],
+        "attributes": [
+          {
+            "id": "afad3418-0ce6-484a-92f2-5872f0e1d92e",
+            "name": "description"
+          }
+        ]
+      },
+      "measured": {
+        "width": 160,
+        "height": 70
+      }
+    },
+    {
+      "id": "a02de86d-ce81-4c09-92b5-b6535fd6abba",
+      "width": 160,
+      "height": 70,
+      "type": "class",
+      "position": {
+        "x": 160,
+        "y": 10
+      },
+      "data": {
+        "name": "TUM",
+        "methods": [],
+        "attributes": [
+          {
+            "id": "0bb0ab9b-989a-407d-b41f-2852e708086f",
+            "name": "departments"
+          }
+        ]
+      },
+      "measured": {
+        "width": 160,
+        "height": 70
+      }
+    },
+    {
+      "id": "877cf2eb-4913-44ca-9837-a90a7b2705c7",
+      "width": 160,
+      "height": 160,
+      "type": "class",
+      "position": {
+        "x": 10,
+        "y": 430
+      },
+      "data": {
+        "name": "Roadmap",
+        "methods": [
+          {
+            "id": "2539040f-1448-45c3-acd0-79aad09d1f5c",
+            "name": "+ generate()"
+          }
+        ],
+        "attributes": [
+          {
+            "id": "57c0d1f9-7d31-4c62-bfb1-a26c9ea8e8ac",
+            "name": "aims"
+          },
+          {
+            "id": "2ef37ae8-fd4d-406a-881d-fdb595f5a772",
+            "name": "preferences"
+          },
+          {
+            "id": "2db66412-3257-4397-b779-e04ce47b472e",
+            "name": "interests"
+          }
+        ]
+      },
+      "measured": {
+        "width": 160,
+        "height": 160
+      }
+    },
+    {
+      "id": "1f4c6936-f055-4b0b-8931-92b0d10c32a1",
+      "width": 170,
+      "height": 100,
+      "type": "class",
+      "position": {
+        "x": 290,
+        "y": 430
+      },
+      "data": {
+        "name": "Semester Plan",
+        "methods": [
+          {
+            "id": "b1ab7f8a-b465-4397-bdbc-247e986a51d4",
+            "name": "+ generate()"
+          }
+        ],
+        "attributes": [
+          {
+            "id": "94ea551a-7d25-4b9f-aa48-73b22c02e464",
+            "name": "suggestedSchedule"
+          }
+        ]
+      },
+      "measured": {
+        "width": 170,
+        "height": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "8d7188c1-6f6d-45aa-a9a5-60e51479e6fe",
+      "source": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "target": "a02de86d-ce81-4c09-92b5-b6535fd6abba",
+      "type": "ClassAggregation",
+      "sourceHandle": "top-right",
+      "targetHandle": "bottom-left",
+      "data": {
+        "points": [],
+        "targetMultiplicity": "1",
+        "sourceMultiplicity": "*"
+      }
+    },
+    {
+      "id": "df32bf6d-9460-4839-80b7-5a74a93820fe",
+      "source": "2f34a4ea-67df-4bf0-85cc-1bb530078991",
+      "target": "a02de86d-ce81-4c09-92b5-b6535fd6abba",
+      "type": "ClassAggregation",
+      "sourceHandle": "top",
+      "targetHandle": "bottom-right",
+      "data": {
+        "points": [],
+        "sourceMultiplicity": "*",
+        "targetMultiplicity": "1"
+      }
+    },
+    {
+      "id": "fc2d3efa-b2cc-4d0b-9c59-e50dfc69a995",
+      "source": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "target": "2f34a4ea-67df-4bf0-85cc-1bb530078991",
+      "type": "ClassUnidirectional",
+      "sourceHandle": "right",
+      "targetHandle": "bottom",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "1..*",
+        "targetRole": "",
+        "sourceRole": "study",
+        "points": []
+      }
+    },
+    {
+      "id": "4f651fb8-5f49-416a-b89e-578434d63777",
+      "source": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "target": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "type": "ClassUnidirectional",
+      "sourceHandle": "left",
+      "targetHandle": "bottom-left",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "*",
+        "sourceRole": "enrolled",
+        "points": []
+      }
+    },
+    {
+      "id": "f05ec9f6-2619-445f-9575-d54dbf47119a",
+      "source": "2f34a4ea-67df-4bf0-85cc-1bb530078991",
+      "target": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "type": "ClassBidirectional",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "sourceMultiplicity": "*",
+        "targetMultiplicity": "*",
+        "sourceRole": "required/elective",
+        "points": []
+      }
+    },
+    {
+      "id": "5bb26a3c-6378-43f6-855e-a40b34ef243e",
+      "source": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "target": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "type": "ClassUnidirectional",
+      "sourceHandle": "left",
+      "targetHandle": "top-left",
+      "data": {
+        "targetRole": "requires",
+        "points": [
+          {
+            "x": -141,
+            "y": 260
+          },
+          {
+            "x": -268.88602050781253,
+            "y": 245
+          },
+          {
+            "x": -268.88602050781253,
+            "y": 79.64373046874994
+          },
+          {
+            "x": -100,
+            "y": 79.64373046874994
+          },
+          {
+            "x": -100,
+            "y": 149
+          }
+        ],
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "0..*"
+      }
+    },
+    {
+      "id": "e4952ece-fb6b-40c3-aaa8-c06fdbbbb493",
+      "source": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "target": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "type": "ClassUnidirectional",
+      "sourceHandle": "left-top",
+      "targetHandle": "bottom",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "*",
+        "sourceRole": "completed",
+        "points": []
+      }
+    },
+    {
+      "id": "32b1a13d-2f15-424a-9fc8-7073e578b0f5",
+      "source": "1f4c6936-f055-4b0b-8931-92b0d10c32a1",
+      "target": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "type": "ClassAggregation",
+      "sourceHandle": "bottom",
+      "targetHandle": "top-right",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "1",
+        "points": []
+      }
+    },
+    {
+      "id": "5559ca52-899f-41fd-883c-8475d19ac77e",
+      "source": "877cf2eb-4913-44ca-9837-a90a7b2705c7",
+      "target": "b2f767e1-c247-4428-80d6-960597b982b5",
+      "type": "ClassBidirectional",
+      "sourceHandle": "bottom",
+      "targetHandle": "top-left",
+      "data": {
+        "points": [],
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "1"
+      }
+    },
+    {
+      "id": "545fd68c-a04a-468c-9a8c-4f1f8c85acef",
+      "source": "877cf2eb-4913-44ca-9837-a90a7b2705c7",
+      "target": "1f4c6936-f055-4b0b-8931-92b0d10c32a1",
+      "type": "ClassUnidirectional",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "*",
+        "sourceRole": "have",
+        "points": []
+      }
+    },
+    {
+      "id": "765d772c-174f-4fdd-8e07-d6961f712b72",
+      "source": "1f4c6936-f055-4b0b-8931-92b0d10c32a1",
+      "target": "d890ed13-7699-4471-8763-81e6e8cbc823",
+      "type": "ClassBidirectional",
+      "sourceHandle": "top",
+      "targetHandle": "right-bottom",
+      "data": {
+        "sourceMultiplicity": "1",
+        "targetMultiplicity": "*",
+        "targetRole": "",
+        "sourceRole": "contains",
+        "points": []
+      }
+    }
+  ],
+  "assessments": {}
+}

@@ -1,0 +1,8 @@
+/client/node_modules
+/client/.vscode
+/client/README.md
+/server/.gradle
+/server/build
+/server/HELP.md
+/server/.gitattributes
+/server/.gitignore
