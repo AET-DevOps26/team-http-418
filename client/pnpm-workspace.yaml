@@ -1,4 +1,4 @@
-onlyBuiltDependencies:
-  - esbuild
-  - lightningcss
-  - msw
+allowBuilds:
+  esbuild: true
+  lightningcss: true
+  msw: true
