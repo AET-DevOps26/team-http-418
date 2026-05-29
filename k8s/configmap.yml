@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aidan-config
+  namespace: aidan
+data:
+  DB_NAME: "aidan"
+  DB_HOST: "postgres-service"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/aidan"
+  SPRING_DATASOURCE_USERNAME: "postgres"

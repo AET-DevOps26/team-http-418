@@ -1,0 +1,15 @@
+namespace: aidan
+
+image:
+  tag: latest # Overridden by CI/CD with git SHA
+
+ingress:
+  enabled: true
+  className: nginx
+  host: "aidan.aet.cit.tum.de"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+
+global:
+  imagePullSecrets:
+    - name: ghcr-pull-secret

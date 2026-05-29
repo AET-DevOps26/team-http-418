@@ -1,0 +1,41 @@
+---
+- name: Create app directory
+  file:
+    path: /opt/aidan
+    state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+
+- name: Login to GHCR
+  shell: echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
+  become_user: azureuser
+  no_log: true
+
+- name: Template docker-compose.prod.yml
+  template:
+    src: docker-compose.prod.yml.j2
+    dest: /opt/aidan/docker-compose.yml
+    owner: azureuser
+    group: azureuser
+    mode: '0644'
+
+- name: Template .env file
+  template:
+    src: .env.j2
+    dest: /opt/aidan/.env
+    owner: azureuser
+    group: azureuser
+    mode: '0600'
+
+- name: Pull latest images
+  shell: docker compose pull
+  args:
+    chdir: /opt/aidan
+  become_user: azureuser
+
+- name: Start application
+  shell: docker compose up -d --remove-orphans
+  args:
+    chdir: /opt/aidan
+  become_user: azureuser
