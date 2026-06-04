@@ -35,6 +35,7 @@ async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tupl
                 return course, resources[0]
             except Exception as e:
                 raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
+
 async def fetch_courses(semester_id: int, detailed: bool, debug: bool) -> list[tuple[ET.Element,ET.Element]]:
     stepsize = 20
     async with aiohttp.ClientSession() as session:
