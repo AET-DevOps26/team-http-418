@@ -1,5 +1,5 @@
 import asyncio
-from scraper.db_handler import update_database
+from db_handler import update_database
 from tumonline_scraper import fetch_courses
 from db_handler import DB
 

@@ -1,7 +1,7 @@
 import asyncio
 from xml.etree import ElementTree as ET
 import asyncpg
-from scraper.xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string
+from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string
 
 class AsyncAtomicInt:
     def __init__(self, value=0):
