@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# Local
+/.local/
+
 # IDE
 .idea/
 *.iml
@@ -28,3 +31,14 @@ dist-ssr/
 .output
 .vinxi
 __unconfig*
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfvars
+.terraform.lock.hcl
+
+# Ansible
+*.retry

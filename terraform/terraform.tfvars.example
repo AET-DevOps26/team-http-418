@@ -1,0 +1,6 @@
+subscription_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+prefix              = "aidan"
+location            = "germanywestcentral"
+vm_size             = "Standard_B2s"
+admin_username      = "azureuser"
+ssh_public_key_path = "~/.ssh/aidan_azure.pub"

@@ -1,0 +1,13 @@
+---
+- name: Deploy AIDAN application
+  hosts: aidan_vm
+  become: true
+  vars:
+    db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+    ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') }}"
+    image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
+    ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') | default('aet-devops26', true) }}"
+
+  roles:
+    - docker
+    - app
