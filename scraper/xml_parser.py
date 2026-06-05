@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from datetime import date
+from datetime import date, time, datetime
 
 
 def find_or(tree: ET.Element | None, key: str, other: ET.Element | None = None) -> ET.Element | None:
@@ -62,3 +62,20 @@ def xml_string(el: ET.Element | None) -> str | None:
     return ET.tostring(el).decode("utf-8")
 
 
+def time_from_text(value: str | None) -> time | None:
+    if not value:
+        return None
+    return time.fromisoformat(value)
+
+
+def time_at(tree: ET.Element | None, path: str) -> time | None:
+    value = text_at(tree, path)
+    if value is None:
+        return None
+
+    # Handles "08:15"
+    if len(value) == 5:
+        return time.fromisoformat(value)
+
+    # Handles "2026-04-14T08:15:00"
+    return datetime.fromisoformat(value).time()

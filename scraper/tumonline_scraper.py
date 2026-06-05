@@ -8,7 +8,7 @@ import aiohttp
 
 semaphore = asyncio.Semaphore(20)
 base_url = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courses"
-
+base_url_dates = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courseGroups/firstGroups"
 
 @dataclass
 class SimpleDescription:
@@ -56,7 +56,30 @@ async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tupl
             except Exception as e:
                 raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
 
-async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,ET.Element]]:
+
+async def fetch_dates(session: aiohttp.ClientSession, pair:tuple[ET.Element, ET.Element]):
+    try:
+        course, detailed = pair
+        lecture_id = course.find("id").text
+    except AttributeError as e:
+        raise AttributeError(f"lecture {pair[0]} has no id\n{e}") from e
+    async with semaphore:
+        async with session.get(f"{base_url_dates}/{lecture_id}") as response:
+            assert response.status == 200
+            text = await response.text()
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
+            try:
+                dates_xml = ET.fromstring(text)
+                return course, detailed, dates_xml
+            except Exception as e:
+                raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
+
+
+async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,ET.Element, ET.Element]]:
+    """
+    :param debug: if True, only fetch 20 courses for debugging
+    :return: a list of triples (course_info, detailed_course_info, dates)
+    """
     stepsize = 20
     async with aiohttp.ClientSession() as session:
         # get first page to get total number of courses
@@ -64,6 +87,7 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         xml = ET.fromstring(await page.text())
         total = int(xml.find("totalCount").text)
         print(f"expecting {total} courses{', ignoring because debug is set' if debug else ''}")
+
         # fetch all courses in parallel
         if debug: total = 20 # only fetch 20 courses for debugging
         tasks = [fetch_page(session, off, semester_id, stepsize) for off in range(0, total, stepsize)]
@@ -72,9 +96,16 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         assert len(flat) == total, f"only got {len(courses)} courses of {total}"
         unique = set(flat) # class wrapper is necessary to control comparison
         print(f"got all courses, {len(unique)} of which are unique")
+
         print(f"fetching detailed data for {len(unique)} courses")
         tasks = [fetch_details(session, course.xml) for course in unique]
-        result: list[tuple[ET.Element, ET.Element]] = await asyncio.gather(*tasks)
-    return result
+        detail_pairs: list[tuple[ET.Element, ET.Element]] = await asyncio.gather(*tasks)
+        print("fetching dates for courses")
+
+        tasks = [fetch_dates(session, pair) for pair in detail_pairs]
+        complete_course_info: list[tuple[ET.Element, ET.Element, ET.Element]] = await asyncio.gather(*tasks)
+
+        print("done fetching information")
+    return complete_course_info
 
 

@@ -1,9 +1,6 @@
-import asyncio
-from warnings import deprecated
 from xml.etree import ElementTree as ET
 import asyncpg
-from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string
-
+from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string, time_at
 
 DB_NAME = "aidan"
 DB_USER = "postgres"
@@ -152,7 +149,7 @@ class DB:
                                         title_en                   TEXT,
                                         identity_code_id           BIGINT,
                                         sws                        INT,  --semester weekly hours
-                                        dates                      DATE, --todo maybe use string here
+                                        --dates                      DATE, -- dates are stored in course_appointments
                                         description_ger            TEXT,
                                         description_en             TEXT,
                                         previous_knowledge_ger     TEXT,
@@ -187,8 +184,22 @@ class DB:
 
                                     )
                                     ''')
+            # course appointment table
+            await self.conn.execute('''
+                                    CREATE TABLE IF NOT EXISTS course_appointments
+                                    (
+                                        id              BIGINT PRIMARY KEY,
+                                        course_id       BIGINT NOT NULL REFERENCES courses (id) ON DELETE CASCADE,
+                                        weekday_key     TEXT,
+                                        time_from       TIME,
+                                        time_to         TIME,
+                                        place           TEXT,
+                                        is_series       BOOLEAN   DEFAULT false,
+                                        updated_at      TIMESTAMP DEFAULT now()
+                                    )
+                                    ''')
 
-def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element]]) -> dict:
+def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Element]]) -> dict:
     semesters = {}
     course_types = {}
     parent_org_ids = set()
@@ -196,9 +207,10 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element]]) -> di
     persons = {}
     courses = {}
     lectureships = {}
+    course_appointments = {}
 
     for data in courses_input:
-        simple_course_info, detailed_course_info_resource = data
+        simple_course_info, detailed_course_info_resource, dates = data
 
         detail_root = detailed_course_info_resource.find(".//cpCourseDetailDto")
         detailed_course = find_or(detail_root, "cpCourseDto", simple_course_info)
@@ -258,7 +270,56 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element]]) -> di
                 org_page,
             )
 
-        course_dates = None #todo
+        # Course appointment dates.
+        if dates is not None:
+            # First collect series ids so we can ignore appointmentDtos that belong to a series.
+            appointment_series_ids = {
+                int_at(series, "id")
+                for series in dates.findall(".//appointmentSeriesDtos")
+                if int_at(series, "id") is not None
+            }
+
+            # Store one row per appointment series.
+            for series in dates.findall(".//appointmentSeriesDtos"):
+                series_id = int_at(series, "id")
+                if series_id is None:
+                    continue
+
+                # Use negative ids only if your table id can safely be synthetic.
+                # Better: add a separate source_type column, but this is the minimal version.
+                appointment_id = -series_id
+
+                course_appointments[appointment_id] = (
+                    appointment_id,
+                    course_id,
+                    text_at(series, "weekday/key"),
+                    time_at(series, "seriesBeginTime"),
+                    time_at(series, "seriesEndTime"),
+                    text_at(series, "resourceName"),
+                    True,
+                )
+
+            # Store only standalone appointments, i.e. appointments not covered by a series.
+            for appointment in dates.findall(".//appointmentDtos"):
+                appointment_id = int_at(appointment, "id")
+                if appointment_id is None:
+                    continue
+
+                series_id = int_at(appointment, "appointmentSeriesId")
+                if series_id in appointment_series_ids:
+                    continue
+
+                appointment_course_id = int_at(appointment, "courseGroupDto/courseId") or course_id
+
+                course_appointments[appointment_id] = (
+                    appointment_id,
+                    appointment_course_id,
+                    text_at(appointment, "weekday/key"),
+                    time_at(appointment, "timestampFrom/value"),
+                    time_at(appointment, "timestampTo/value"),
+                    text_at(appointment, "resourceName"),
+                    False,
+                )
 
         courses[course_id] = (
             course_id,
@@ -273,7 +334,6 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element]]) -> di
             or int_at(simple_course_info, "identityCodeId"),
             int_at(detailed_course, "courseNormConfigs[key='SST']/value")
             or int_at(simple_course_info, "courseNormConfigs[key='SST']/value"),
-            course_dates,
             lang_text(description, "courseContent", "de"),
             lang_text(description, "courseContent", "en"),
             lang_text(description, "previousKnowledge", "de"),
@@ -340,6 +400,7 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element]]) -> di
         "persons": list(persons.values()),
         "courses": list(courses.values()),
         "lectureships": list(lectureships.values()),
+        "course_appointments": list(course_appointments.values())
     }
 
 
@@ -427,7 +488,6 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                              title_en,
                              identity_code_id,
                              sws,
-                             dates,
                              description_ger,
                              description_en,
                              previous_knowledge_ger,
@@ -446,8 +506,7 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                 $5, $6, $7, $8, $9,
                 $10, $11, $12, $13,
                 $14, $15, $16, $17,
-                $18, $19, $20,
-                $21::xml, $22::xml,
+                $18, $19, $20::xml, $21::xml,
                 now())
         ON CONFLICT (id) DO UPDATE SET semester_id                = EXCLUDED.semester_id,
                                        course_type_id             = EXCLUDED.course_type_id,
@@ -456,7 +515,6 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        title_en                   = EXCLUDED.title_en,
                                        identity_code_id           = EXCLUDED.identity_code_id,
                                        sws                        = EXCLUDED.sws,
-                                       dates                      = EXCLUDED.dates,
                                        description_ger            = EXCLUDED.description_ger,
                                        description_en             = EXCLUDED.description_en,
                                        previous_knowledge_ger     = EXCLUDED.previous_knowledge_ger,
@@ -487,4 +545,29 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        teaching_function = EXCLUDED.teaching_function
         """,
         batch["lectureships"],
+    )
+
+    await conn.executemany(
+        """
+        INSERT INTO course_appointments (
+            id,
+            course_id,
+            weekday_key,
+            time_from,
+            time_to,
+            place,
+            is_series,
+            updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, now())
+        ON CONFLICT (id) DO UPDATE SET
+                                       course_id = EXCLUDED.course_id,
+                                       weekday_key = EXCLUDED.weekday_key,
+                                       time_from = EXCLUDED.time_from,
+                                       time_to = EXCLUDED.time_to,
+                                       place = EXCLUDED.place,
+                                       is_series = EXCLUDED.is_series,
+                                       updated_at = now()
+        """,
+        batch["course_appointments"],
     )

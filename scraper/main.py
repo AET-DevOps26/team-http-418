@@ -1,6 +1,6 @@
 import asyncio
 from tumonline_scraper import fetch_courses
-from db_handler import DB, build_import_batch, bulk_update_database, update_database
+from db_handler import DB, build_import_batch, bulk_update_database
 
 DEBUG = False #todo
 
