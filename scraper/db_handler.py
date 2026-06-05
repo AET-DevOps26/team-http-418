@@ -1,13 +1,13 @@
 from xml.etree import ElementTree as ET
 import asyncpg
 from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string, time_at
+import os
 
-DB_NAME = "aidan"
-DB_USER = "postgres"
-DB_PASS = "postgres"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-
+DB_NAME = os.environ["DB_NAME"]
+DB_USER = os.environ["DB_USER"]
+DB_PASS = os.environ["DB_PASS"]
+DB_HOST = os.environ["DB_HOST"]
+DB_PORT = os.environ["DB_PORT"]
 
 class DB:
     conn: asyncpg.Connection
