@@ -2,4 +2,4 @@
 FROM postgres:17
 
 # Expose the PostgreSQL port
-EXPOSE ${DB_PORT}
+EXPOSE 5432

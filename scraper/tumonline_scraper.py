@@ -33,7 +33,7 @@ async def fetch_page(session: aiohttp.ClientSession, offset: int, semester_id: i
     url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip={offset}&$top={stepsize}"
     async with semaphore:
         async with session.get(url) as response:
-            assert response.status == 200
+            assert response.status == 200, f"could not fetch courselist page with offset {offset}, got {response.status}\n{url}"
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
         return ET.fromstring(text)
@@ -45,8 +45,9 @@ async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tupl
     except AttributeError as e:
         raise AttributeError(f"lecture {course} has no id\n{e}") from e
     async with semaphore:
-        async with session.get(f"{base_url}/{lecture_id}") as response:
-            assert response.status == 200
+        url = f"{base_url}/{lecture_id}"
+        async with session.get(url) as response:
+            assert response.status == 200, f"could not fetch course details for {lecture_id}, got {response.status}\n{url}"
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
             try:
@@ -64,8 +65,9 @@ async def fetch_dates(session: aiohttp.ClientSession, pair:tuple[ET.Element, ET.
     except AttributeError as e:
         raise AttributeError(f"lecture {pair[0]} has no id\n{e}") from e
     async with semaphore:
-        async with session.get(f"{base_url_dates}/{lecture_id}") as response:
-            assert response.status == 200
+        url = f"{base_url_dates}/{lecture_id}"
+        async with session.get(url) as response:
+            assert response.status == 200, f"could not fetch course dates for {lecture_id}, got {response.status}\n{url}"
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
             try:
@@ -83,7 +85,9 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
     stepsize = 20
     async with aiohttp.ClientSession() as session:
         # get first page to get total number of courses
-        page = await session.get(f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip=0")
+        url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip=0"
+        page = await session.get(url)
+        assert page.status == 200, f"could not fetch first page, got {page.status}\n{url}"
         xml = ET.fromstring(await page.text())
         total = int(xml.find("totalCount").text)
         print(f"expecting {total} courses{', ignoring because debug is set' if debug else ''}")

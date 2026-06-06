@@ -22,6 +22,7 @@ async def main():
     async with db.conn.transaction():
         await bulk_update_database(db.conn, batch)
 
+    await db.close_connection()
     print("\ndone")
 
 if __name__ == "__main__":

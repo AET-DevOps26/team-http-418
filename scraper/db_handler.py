@@ -30,8 +30,11 @@ class DB:
             user=DB_USER,
             password=DB_PASS,
             database=DB_NAME,
-            host=DB_HOST
+            host=DB_HOST,
+            port=DB_PORT
         )
+    async def close_connection(self):
+        await self.conn.close()
 
     async def setup_database(self):
         """
@@ -43,6 +46,7 @@ class DB:
             password=DB_PASS,
             database="postgres",
             host=DB_HOST,
+            port=DB_PORT
         )
 
         if self.debug:
