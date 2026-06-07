@@ -1,3 +1,4 @@
+import logging
 from xml.etree import ElementTree as ET
 import asyncpg
 from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string, time_at
@@ -50,34 +51,34 @@ class DB:
         )
 
         if self.debug:
-            print(f"DEBUG mode: Dropping database {DB_NAME} if it exists")
+            logging.info(f"DEBUG mode: Dropping database {DB_NAME} if it exists")
 
             await admin_conn.execute(  # force disconnect all connections to the database
-                """
+                '''
                 SELECT pg_terminate_backend(pid)
                 FROM pg_stat_activity
                 WHERE datname = $1
                   AND pid <> pg_backend_pid()
-                """,
+                ''',
                 DB_NAME,
             )
 
             await admin_conn.execute(f'DROP DATABASE IF EXISTS "{DB_NAME}"')
 
         exists = await admin_conn.fetchval(
-            """
+            '''
             SELECT 1
             FROM pg_catalog.pg_database
             WHERE datname = $1
-            """,
+            ''',
             DB_NAME,
         )
 
         if not exists:
-            print(f"Creating database {DB_NAME}...")
+            logging.info(f"Creating database {DB_NAME}...")
             await admin_conn.execute(f'CREATE DATABASE "{DB_NAME}"')
         else:
-            print(f"Database {DB_NAME} already exists.")
+            logging.info(f"Database {DB_NAME} already exists.")
 
         await admin_conn.close()
 
@@ -410,7 +411,7 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
 
 async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
     await conn.executemany(
-        """
+        '''
         INSERT INTO semesters (id,
                                semester_key,
                                academic_year_id,
@@ -425,31 +426,31 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        start_date          = EXCLUDED.start_date,
                                        end_date            = EXCLUDED.end_date
         WHERE semesters.id = EXCLUDED.id
-        """,
+        ''',
         batch["semesters"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO course_types (id, key, name)
         VALUES ($1, $2, $3)
         ON CONFLICT (key) DO UPDATE SET name = EXCLUDED.name
         WHERE course_types.id = EXCLUDED.id
-        """,
+        ''',
         batch["course_types"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO organizations (id)
         VALUES ($1)
         ON CONFLICT (id) DO NOTHING
-        """,
+        ''',
         batch["parent_org_ids"], #todo add more information about parent orgs, e.g. name
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO organizations (id,
                                    identification_name,
                                    name_ger,
@@ -462,12 +463,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        name_en             = EXCLUDED.name_en,
                                        parent_id           = EXCLUDED.parent_id,
                                        org_page_url        = EXCLUDED.org_page_url
-        """,
+        ''',
         batch["organizations"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO persons (id,
                              person_id,
                              first_name,
@@ -478,12 +479,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        first_name        = EXCLUDED.first_name,
                                        last_name         = EXCLUDED.last_name,
                                        business_card_url = EXCLUDED.business_card_url
-        """,
+        ''',
         batch["persons"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO courses (id,
                              semester_id,
                              course_type_id,
@@ -533,12 +534,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        raw_source_simple          = EXCLUDED.raw_source_simple,
                                        raw_source_detailed        = EXCLUDED.raw_source_detailed,
                                        updated_at                 = now()
-        """,
+        ''',
         batch["courses"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO lectureship (id,
                                  course_id,
                                  person_id,
@@ -547,12 +548,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
         ON CONFLICT (id) DO UPDATE SET course_id         = EXCLUDED.course_id,
                                        person_id         = EXCLUDED.person_id,
                                        teaching_function = EXCLUDED.teaching_function
-        """,
+        ''',
         batch["lectureships"],
     )
 
     await conn.executemany(
-        """
+        '''
         INSERT INTO course_appointments (
             id,
             course_id,
@@ -572,6 +573,6 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        place = EXCLUDED.place,
                                        is_series = EXCLUDED.is_series,
                                        updated_at = now()
-        """,
+        ''',
         batch["course_appointments"],
     )

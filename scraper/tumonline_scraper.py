@@ -1,5 +1,6 @@
 import asyncio
 import itertools
+import logging
 import re
 from dataclasses import dataclass
 from xml.etree import ElementTree as ET
@@ -90,7 +91,7 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         assert page.status == 200, f"could not fetch first page, got {page.status}\n{url}"
         xml = ET.fromstring(await page.text())
         total = int(xml.find("totalCount").text)
-        print(f"expecting {total} courses{', ignoring because debug is set' if debug else ''}")
+        logging.info(f"expecting {total} courses{', ignoring because debug is set' if debug else ''}")
 
         # fetch all courses in parallel
         if debug: total = 20 # only fetch 20 courses for debugging
@@ -99,17 +100,17 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         flat: list[SimpleDescription] = list(map(lambda x: SimpleDescription(x), itertools.chain(*(map(lambda tree: tree.findall("courses"), courses))))) #flatmap to course elements
         assert len(flat) == total, f"only got {len(courses)} courses of {total}"
         unique = set(flat) # class wrapper is necessary to control comparison
-        print(f"got all courses, {len(unique)} of which are unique")
+        logging.info(f"got all courses, {len(unique)} of which are unique")
 
-        print(f"fetching detailed data for {len(unique)} courses")
+        logging.info(f"fetching detailed data for {len(unique)} courses")
         tasks = [fetch_details(session, course.xml) for course in unique]
         detail_pairs: list[tuple[ET.Element, ET.Element]] = await asyncio.gather(*tasks)
-        print("fetching dates for courses")
+        logging.info("fetching dates for courses")
 
         tasks = [fetch_dates(session, pair) for pair in detail_pairs]
         complete_course_info: list[tuple[ET.Element, ET.Element, ET.Element]] = await asyncio.gather(*tasks)
 
-        print("done fetching information")
+        logging.info("done fetching information")
     return complete_course_info
 
 
