@@ -7,7 +7,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,11 @@ public class AuthService {
         this.refreshTokenStore = refreshTokenStore;
         this.passwordEncoder = passwordEncoder;
 
-        register("ga12abc", "string");
+        try {
+            register("ga12abc", "string"); // todo testuser, remove later
+        } catch (UserExistsException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public AuthResponse login(String tumId, String password) {
@@ -81,6 +84,9 @@ public class AuthService {
     }
 
     public AuthResponse register(@NotBlank String tumid, @NotBlank String password) {
+        if (userDetailsService.userExists(tumid)) {
+            throw new UserExistsException("User already exists");
+        }
         userDetailsService.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password + salt)).roles("USER").build());
         return login(tumid, password);
     }

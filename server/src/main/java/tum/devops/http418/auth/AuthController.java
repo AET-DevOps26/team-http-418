@@ -11,6 +11,7 @@ import tum.devops.http418.auth.dto.ErrorResponse;
 import tum.devops.http418.auth.dto.LoginRequest;
 import tum.devops.http418.auth.dto.RefreshRequest;
 import tum.devops.http418.auth.service.AuthService;
+import tum.devops.http418.auth.service.UserExistsException;
 
 @RestController
 @RequestMapping("/auth")
@@ -105,5 +106,10 @@ public class AuthController {
     public ResponseEntity<ErrorResponse> handleValidationError() {
         return ResponseEntity.badRequest()
                 .body(ErrorResponse.of("bad_request", "Missing or invalid request body"));
+    }
+    @ExceptionHandler(UserExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserExists() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("conflict", "User already exists"));
     }
 }
