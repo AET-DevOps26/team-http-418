@@ -26,7 +26,7 @@ The React client **never** communicates with the GenAI service directly. Spring 
 | **Fallback** | If GenAI is unavailable, Spring Boot degrades gracefully (e.g. keyword search instead of semantic search) |
 | **Streaming** | Chat endpoint streams via SSE. All other endpoints return synchronous JSON |
 | **Dates** | ISO-8601 UTC strings everywhere (`2025-05-13T10:00:00Z`) |
-| **Semester keys** | `WS2024` / `SS2025` — two-letter prefix + 4-digit year |
+| **Semester keys** | `24W` / `25S` — 2-digit year + semester letter (consistent with TUMonline) |
 
 ---
 
@@ -56,26 +56,18 @@ Possible values: `UP` (service running and ready) / `DOWN` (service unavailable)
 
 > Spring Boot endpoint: `GET /courses?ai=true` (Browsing Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
+| Impl | Method | Endpoint | Query Params | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses` | `{ query, limit, filters }` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
+| [ ] | `GET` | `/courses` | `query, limit, department, language, level` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
 
 Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
 
 <details>
 <summary>Request / response schemas</summary>
 
-**Request** *(Spring Boot sends)*
-```json
-{
-  "query": "machine learning for robotics",
-  "limit": 20,
-  "filters": {
-    "department": "Informatics",
-    "language": "EN",
-    "level": "MASTER"
-  }
-}
+**Request** *(Spring Boot sends as query params)*
+```
+GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics&language=EN&level=MASTER
 ```
 
 **Response**
@@ -95,18 +87,21 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
 
 ### Course Recommendations
 
-> Spring Boot endpoint: `GET /me/recommendations` (Planning Service) → calls this GenAI endpoint:
+> Spring Boot endpoints: `GET /me/recommendations` and `POST /me/recommendations` (Planning Service) → both call this single GenAI endpoint:
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, ... }` | 200 | Generate personalized course recommendations from student context | Planning Service |
+| [ ] | `POST` | `/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
 
-> **Note**: `POST /me/recommendations` (client-facing) is handled entirely by Spring Boot — it does **not** delegate to GenAI.
+**Always POST to GenAI** — both client-facing GET and POST flow here. GET sends complex student context as body (query params insufficient for arrays). POST adds optional override fields.
+
+- `overrideGoals` / `overrideInterests` **absent** → GenAI uses `student.careerGoals` / `student.interests` from stored profile (triggered by client `GET`)
+- `overrideGoals` / `overrideInterests` **present** → GenAI uses override values instead — ephemeral "what if" exploration, DB unchanged (triggered by client `POST`)
 
 <details>
 <summary>Request / response schemas</summary>
 
-**Request** *(Spring Boot assembles from DB)*
+**Request — profile-based** *(triggered by client `GET /me/recommendations`)*
 ```json
 {
   "student": {
@@ -127,11 +122,32 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
   ],
   "limit": 10,
   "category": "Elective",
-  "semester": "SS2025"
+  "semester": "25S"
 }
 ```
 
-**Response**
+**Request — override / "what if"** *(triggered by client `POST /me/recommendations`)*
+```json
+{
+  "student": {
+    "studyProgram": "Informatics M.Sc.",
+    "semester": 5,
+    "preferredWorkload": 30
+  },
+  "overrideGoals": ["specialize in robotics"],
+  "overrideInterests": ["motion planning", "computer vision"],
+  "excludeCourseIds": ["uuid-already-seen"],
+  "completedCourses": [
+    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "credits": 6 }
+  ],
+  "availableCourses": [
+    { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "description": "..." }
+  ],
+  "limit": 10
+}
+```
+
+**Response** *(same shape for both)*
 ```json
 {
   "recommendations": [
@@ -170,7 +186,7 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
   "student": {
     "studyProgram": "Informatics M.Sc.",
     "semester": 5,
-    "careerGoals": ["graduate by SS2026", "specialize in AI"],
+    "careerGoals": ["graduate by 26S", "specialize in AI"],
     "interests": ["machine learning", "computer vision"],
     "preferences": {
       "maxCreditsPerSemester": 30,
@@ -181,7 +197,7 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
     { "courseId": "uuid", "courseCode": "IN2346", "credits": 6, "category": "Elective" }
   ],
   "enrolledCourses": [
-    { "courseId": "uuid", "courseCode": "IN2349", "credits": 6, "semester": "SS2025" }
+    { "courseId": "uuid", "courseCode": "IN2349", "credits": 6, "semester": "25S" }
   ],
   "degreeRequirements": {
     "totalCreditsRequired": 120,
@@ -193,7 +209,7 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
     ]
   },
   "availableCourses": [
-    { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "preferredSemester": "WS", "hasPrerequisites": true }
+    { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "preferredSemester": "W", "hasPrerequisites": true }
   ]
 }
 ```
@@ -203,14 +219,14 @@ Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
 {
   "semesters": [
     {
-      "semesterKey": "WS2025",
+      "semesterKey": "25W",
       "totalCredits": 28,
       "courses": [
         { "courseId": "uuid", "courseCode": "IN2390", "reason": "Core AI elective aligned with robotics goal" }
       ]
     }
   ],
-  "summary": "2-semester plan to graduate by SS2026 with AI specialization",
+  "summary": "2-semester plan to graduate by 26S with AI specialization",
   "generatedAt": "2025-05-13T10:00:00Z"
 }
 ```
@@ -285,7 +301,7 @@ data: {"done": true, "fullContent": "Based on your completed ML courses..."}
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
+| [ ] | `POST` | `/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
 
 Sync JSON — no streaming. Shown on advisor page before student types anything.
 
@@ -301,7 +317,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
     "careerGoals": ["AI researcher"],
     "totalCreditsEarned": 90,
     "totalCreditsRequired": 120,
-    "currentSemester": "SS2025"
+    "currentSemester": "25S"
   },
   "completedCourses": [
     { "courseCode": "IN2346", "courseName": "Introduction to Deep Learning" }
@@ -313,7 +329,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 ```json
 [
   { "text": "What electives should I take next semester?", "category": "RECOMMENDATIONS" },
-  { "text": "Am I on track to graduate by SS2026?", "category": "SCHEDULE" },
+  { "text": "Am I on track to graduate by 26S?", "category": "SCHEDULE" },
   { "text": "What prerequisites am I still missing for my goals?", "category": "PREREQUISITES" },
   { "text": "Show me courses related to computer vision I haven't taken yet.", "category": "RECOMMENDATIONS" }
 ]
@@ -393,7 +409,7 @@ Spring Boot runs rule-based time overlap checks independently. This endpoint add
     }
   },
   "semesterPlan": {
-    "semesterKey": "SS2025",
+    "semesterKey": "25S",
     "totalCredits": 42,
     "courses": [
       {
