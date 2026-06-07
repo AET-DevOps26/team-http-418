@@ -1,10 +1,15 @@
 package tum.devops.http418.auth.service;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
 import tum.devops.http418.auth.dto.AuthResponse;
 import tum.devops.http418.auth.security.JwtTokenProvider;
@@ -13,25 +18,30 @@ import tum.devops.http418.auth.security.JwtTokenProvider;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+    private final InMemoryUserDetailsManager userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final InMemoryRefreshTokenStore refreshTokenStore;
+    private final PasswordEncoder passwordEncoder;
+    private final String salt = "1234567890";
 
     public AuthService(
             AuthenticationManager authenticationManager,
-            UserDetailsService userDetailsService,
+            InMemoryUserDetailsManager userDetailsService,
             JwtTokenProvider jwtTokenProvider,
-            InMemoryRefreshTokenStore refreshTokenStore
-    ) {
+            InMemoryRefreshTokenStore refreshTokenStore,
+            PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenStore = refreshTokenStore;
+        this.passwordEncoder = passwordEncoder;
+
+        register("ga12abc", "string");
     }
 
     public AuthResponse login(String tumId, String password) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(tumId, password)
+                new UsernamePasswordAuthenticationToken(tumId, password + salt)
         );
 
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
@@ -68,5 +78,10 @@ public class AuthService {
 
     public void logout(String refreshToken) {
         refreshTokenStore.revoke(refreshToken);
+    }
+
+    public AuthResponse register(@NotBlank String tumid, @NotBlank String password) {
+        userDetailsService.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password + salt)).roles("USER").build());
+        return login(tumid, password);
     }
 }

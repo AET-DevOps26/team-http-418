@@ -44,6 +44,27 @@ public class AuthController {
     }
 
     /**
+     * POST /auth/register
+     * Request:
+     * {
+     *   "tumId": "ga12abc",
+     *   "password": "string"
+     * }
+     *
+     * Response:
+     * {
+     *   "accessToken": "...",
+     *   "refreshToken": "...",
+     *   "expiresIn": 3600
+     * }
+     */
+
+    @PostMapping("/register")
+    public AuthResponse register(@Valid @RequestBody LoginRequest request) {
+        return authService.register(request.tumId(), request.password());
+    }
+
+    /**
      * POST /auth/refresh
      *
      * Request:
@@ -53,6 +74,7 @@ public class AuthController {
      *
      * Response has the same shape as login.
      */
+
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
         return authService.refresh(request.refreshToken());

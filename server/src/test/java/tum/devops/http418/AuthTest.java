@@ -1,4 +1,5 @@
 package tum.devops.http418;
+
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,15 @@ class AuthLifecycleTest {
 
     private static final String PROTECTED_ENDPOINT = "/api/hello";
 
-    /** test that:
+    /**
+     * test that:
      * 1. protected endpoint is not accessible without login
-     * 2. login works
-     * 3. refresh token works
-     * 4. logout works
-     * 5. refresh token is invalidated after logout
+     * 2. register works
+     * 3. logout works
+     * 4. login works
+     * 5. refresh token works
+     * 6. logout works
+     * 7. refresh token is invalidated after logout
      */
     @Test
     void authLifecycleWorks() throws Exception {
@@ -41,10 +45,34 @@ class AuthLifecycleTest {
 
         String loginJson = """
                 {
-                  "tumId": "ga12abc",
+                  "tumId": "ga12new",
                   "password": "string"
                 }
                 """;
+
+        String registerResponseJson = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        AuthResponse registerResponse = objectMapper.readValue(
+                registerResponseJson,
+                AuthResponse.class
+        );
+
+        assertThat(registerResponse.accessToken()).isNotBlank();
+        assertThat(registerResponse.refreshToken()).isNotBlank();
+        assertThat(registerResponse.expiresIn()).isEqualTo(3600);
+
+        mockMvc.perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new RefreshRequest(registerResponse.refreshToken())
+                        )))
+                .andExpect(status().isNoContent());
 
         String loginResponseJson = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
