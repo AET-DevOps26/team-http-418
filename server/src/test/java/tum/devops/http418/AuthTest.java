@@ -67,6 +67,11 @@ class AuthLifecycleTest {
         assertThat(registerResponse.refreshToken()).isNotBlank();
         assertThat(registerResponse.expiresIn()).isEqualTo(3600);
 
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isConflict());
+
         mockMvc.perform(post("/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
