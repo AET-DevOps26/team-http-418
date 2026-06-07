@@ -29,6 +29,15 @@ services:
     ports:
       - "3000:80"
 
+  genai:
+    build: ./genai
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   scraper:
     build: ./scraper
     profiles:
