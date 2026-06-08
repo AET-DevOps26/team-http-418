@@ -121,26 +121,33 @@ jobs:
               ? '0 (optional — author owns all changed domains)'
               : `**${minReviews}** (${reviewers.map(u => `@${u}`).join(', ')} must approve)`;
 
-            const body = `## PR Review Guide
+            const changedDomainLines = affectedDomains.length > 0
+              ? affectedDomains.map(d => `- \`${d}/\` → @${DOMAIN_OWNERS[d]}`).join('\n')
+              : '- _(none — treated as infra)_';
+            const infraLine = hasInfra ? '\n- infrastructure/common files detected' : '';
+            const openTime = tier === 'own-domain' ? '12 hours' : 'None (approval-gated)';
 
-**Category:** ${categoryLabel}
-**Required reviews:** ${requirementLine}
-**Minimum open time:** ${tier === 'own-domain' ? '12 hours' : 'None (approval-gated)'}
-**Requested reviewers:** ${reviewerMentions}
-
-### Review Rules
-| Change type | Min reviews | Open time |
-|---|---|---|
-| Own domain only | 0 (optional) | 12h |
-| Cross-domain | 1 per affected domain | Until approved |
-| Infrastructure / common | 2 | Until approved |
-| Infra + cross-domain | 2 (infra overrides) | Until approved |
-
-### Changed domains
-${affectedDomains.length > 0 ? affectedDomains.map(d => `- \`${d}/\` → @${DOMAIN_OWNERS[d]}`).join('\n') : '- _(none — treated as infra)_'}
-${hasInfra ? '- infrastructure/common files detected' : ''}
-
-> 💡 Need explicit feedback outside the rules? Add the \`needs-feedback\` label.`;
+            const body = [
+              '## PR Review Guide',
+              '',
+              `**Category:** ${categoryLabel}`,
+              `**Required reviews:** ${requirementLine}`,
+              `**Minimum open time:** ${openTime}`,
+              `**Requested reviewers:** ${reviewerMentions}`,
+              '',
+              '### Review Rules',
+              '| Change type | Min reviews | Open time |',
+              '|---|---|---|',
+              '| Own domain only | 0 (optional) | 12h |',
+              '| Cross-domain | 1 per affected domain | Until approved |',
+              '| Infrastructure / common | 2 | Until approved |',
+              '| Infra + cross-domain | 2 (infra overrides) | Until approved |',
+              '',
+              '### Changed domains',
+              changedDomainLines + infraLine,
+              '',
+              '> 💡 Need explicit feedback outside the rules? Add the `needs-feedback` label.',
+            ].join('\n');
 
             // Find existing bot comment
             const comments = await github.rest.issues.listComments({
