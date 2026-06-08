@@ -1,6 +1,8 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import JSONResponse
 
+from llm.provider import check_llm_health, get_provider_info
+
 app = FastAPI(title="AIDAN GenAI Service")
 
 router = APIRouter(prefix="/v1")
@@ -8,7 +10,15 @@ router = APIRouter(prefix="/v1")
 
 @router.get("/health")
 async def health():
-    return JSONResponse({"status": "UP"})
+    llm_status = check_llm_health()
+    provider_info = get_provider_info()
+    return JSONResponse({
+        "status": "UP",
+        "llm": {
+            "status": llm_status,
+            **provider_info,
+        }
+    })
 
 
 # ---------------------------------------------------------------------------
