@@ -4,7 +4,7 @@ metadata:
   name: aidan-config
   namespace: {{ .Values.namespace }}
 data:
-  DB_NAME: {{ .Values.postgres.database | quote }}
+  DB_USER: {{ .Values.postgres.database | quote }}
   DB_HOST: "postgres-service"
   SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d/%s" (.Values.postgres.port | int) .Values.postgres.database | quote }}
   SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
