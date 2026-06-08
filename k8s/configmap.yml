@@ -4,7 +4,7 @@ metadata:
   name: aidan-config
   namespace: aidan
 data:
-  DB_NAME: "aidan"
+  DB_USER: "postgres"
   DB_HOST: "postgres-service"
-  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/aidan"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432"
   SPRING_DATASOURCE_USERNAME: "postgres"
