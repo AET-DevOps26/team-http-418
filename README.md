@@ -93,7 +93,7 @@ docker compose up scraper --build
 ```
 do a clean scraper run, deleting the existing data first:
 ```bash
-docker compose run scraper --clean_run
+docker compose up scraper-clean
 ```
 ### Code Quality
 
