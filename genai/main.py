@@ -13,6 +13,7 @@ async def health():
 # Stub endpoints — returns 501 until implemented
 # ---------------------------------------------------------------------------
 
+
 @app.get("/courses")
 async def courses_search():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
