@@ -10,25 +10,20 @@ There is a critical need for an intelligent application that analyzes a student�
 
 The app should provide smart mapping and personalized recommendations based on career interests and individual user preferences, such as scheduling constraints, workload limits, or preferred learning formats. Acting as a bridge between academia and the professional world, this centralized system allows students to make faster, more informed decisions, preventing wasted tuition, delayed graduation, and registration errors. By offering a clear, interactive roadmap, the system optimizes credit fulfillment, bridges the skills gap, and empowers students to confidently take control of their academic journey.
 
-### Build Instructions
-
-required components:
-```bash
-docker compose up --build
-```
-start and run scraper:
-```bash
-docker compose up scraper --build
-```
-
 ### User Stories
 
 **1. Academic Tracking:** As a student, I want to upload or sync my completed course transcript, so that the system can automatically track my fulfilled credits and identify my remaining degree requirements.
+
 **2. Profile & Recommendations:** As a student, I want to receive personalized course recommendations based on my completed modules, career goals, and interests, so that I can choose electives that strategically align with my future plans.
+
 **3. Centralized Search:** As a student, I want to search and filter the entire TUM catalog in one centralized platform that merges main university data with individual chair websites, so that I can easily find interdisciplinary options without navigating fragmented systems.
+
 **4. Prerequisite Mapping:** As a student, I want to clearly see course prerequisite dependencies and receive proactive alerts for unmet requirements, so that I understand what I need to complete beforehand and avoid registration errors.
+
 **5. Scheduling Preferences:** As a student, I want to set personal scheduling constraints (e.g., maximum ECTS per semester, no morning classes), so that the app generates schedule options tailored to my availability and manageable workload capacity.
+
 **6. Conflict Resolution:** As a student, I want to receive immediate warnings about scheduling conflicts or excessive credit workloads when building my plan, so that I can avoid stressful or unrealistic semester combinations.
+
 **7. Pathway Visualization:** As a student, I want to view my recommended course pathway as a clear, interactive semester-by-semester roadmap, so that I can confidently track my progress toward graduation.
 
 
@@ -74,10 +69,73 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ## 📚 Project Diagrams
 
 ### 🏗️ Subsystem Decomposition Diagramm
-![Subsystem Decomposition Diagramm](./docs/SubsystemDecomposition.png)
+![Subsystem Decomposition Diagramm](./docs/diagrams/SubsystemDecomposition.png)
 
 ### ⚙️ Use Case Diagram
-![Use Case Diagram](./docs/UseCaseDiagramm.png)
+![Use Case Diagram](./docs/diagrams/UseCaseDiagramm.png)
 
 ### 🧩 Analysis Object Model (Domain Model)
-![Analysis Object Model (Domain Model)](./docs/DomainModel.png)
+![Analysis Object Model (Domain Model)](./docs/diagrams/DomainModel.png)
+
+### Build Instructions
+
+environment variables:
+```bash
+cp .env.example .env
+```
+required components:
+```bash
+docker compose up --build
+```
+start and run scraper:
+```bash
+docker compose up scraper --build
+```
+do a clean scraper run, deleting the existing data first:
+```bash
+docker compose up scraper-clean
+```
+### Code Quality
+
+Formatting and linting is enforced across all sub-projects.
+
+#### Client (`client/`) — Biome
+
+```bash
+cd client
+pnpm check          # check formatting + lint
+pnpm check --write  # auto-fix
+```
+
+#### Server (`server/`) — Spotless + Google Java Format
+
+```bash
+cd server
+./gradlew spotlessCheck  # check
+./gradlew spotlessApply  # auto-fix
+```
+
+#### Scraper & GenAI (`scraper/`, `genai/`) — Ruff
+
+```bash
+cd scraper  # or genai
+ruff format --check .  # check formatting
+ruff check .           # check lint
+ruff format .          # auto-fix formatting
+ruff check --fix .     # auto-fix lint
+```
+
+#### Pre-commit Hooks
+
+Install once to automatically format staged files before every commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Run manually against all files:
+
+```bash
+pre-commit run --all-files
+```

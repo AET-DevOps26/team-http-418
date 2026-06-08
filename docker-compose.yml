@@ -1,11 +1,11 @@
 services:
   db:
-    build: ./lectures_db
+    build: db
     ports:
       - "5432:5432"
     environment:
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -28,13 +28,37 @@ services:
     ports:
       - "3000:80"
 
+  genai:
+    build: ./genai
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   scraper:
     build: ./scraper
     profiles:
       - scraper
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # allow container to reach services on the host machine at host.docker.internal. only for linux compatibility
     depends_on:
       db:
         condition: service_healthy
+
+  scraper-clean:
+    build: ./scraper
+    command: ["--clean"]
+    profiles:
+      - scraper_clean
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # allow container to reach services on the host machine at host.docker.internal. only for linux compatibility
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
