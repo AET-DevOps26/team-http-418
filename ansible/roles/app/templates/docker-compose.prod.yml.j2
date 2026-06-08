@@ -3,7 +3,7 @@ services:
     image: postgres:17
     environment:
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: "aidan"
+      POSTGRES_USER: "postgres"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

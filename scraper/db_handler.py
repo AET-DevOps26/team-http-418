@@ -6,7 +6,7 @@ import asyncpg
 
 from xml_parser import date_at, find_or, int_at, lang_text, text_at, time_at, xml_string
 
-DB_NAME = os.environ["DB_NAME"]
+DB_NAME = os.environ["COURSES_DB_NAME"]
 DB_USER = os.environ["DB_USER"]
 DB_PASS = os.environ["DB_PASS"]
 DB_HOST = os.environ["DB_HOST"]
@@ -21,9 +21,14 @@ class DB:
         self.debug = debug
 
     @classmethod
-    async def create_instance(cls, debug: bool = False):
+    async def create_instance(cls, debug: bool = False, clean: bool = False):
+        """
+        :param debug: process only first page of courses and reset db
+        :param clean: reset db
+        :return:
+        """
         instance = cls(debug)
-        await instance.setup_database()
+        await instance.setup_database(clean)
         await instance.create_connection()  # must be after setup
         await instance.init_tables()
         return instance
@@ -37,16 +42,16 @@ class DB:
     async def close_connection(self):
         await self.conn.close()
 
-    async def setup_database(self):
+    async def setup_database(self, clean: bool = False):
         """
         creates the database if it doesn't exist.
-        If DEBUG is True, it drops the existing database first.
+        If DEBUG or clean is True, it drops the existing database first.
         """
         admin_conn = await asyncpg.connect(
             user=DB_USER, password=DB_PASS, database="postgres", host=DB_HOST, port=DB_PORT
         )
 
-        if self.debug:
+        if self.debug or clean:
             logging.info(f"DEBUG mode: Dropping database {DB_NAME} if it exists")
 
             await admin_conn.execute(  # force disconnect all connections to the database
