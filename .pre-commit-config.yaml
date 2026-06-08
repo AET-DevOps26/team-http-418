@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.4.5
+    hooks:
+      - id: biome-check
+        additional_dependencies: ["@biomejs/biome@2.4.5"]
+        files: ^client/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.13
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(scraper|genai)/
+      - id: ruff-format
+        files: ^(scraper|genai)/
+
+  - repo: local
+    hooks:
+      - id: spotless-java
+        name: Spotless Java
+        language: system
+        entry: bash -c 'cd server && ./gradlew spotlessApply'
+        files: \.java$
+        pass_filenames: false
