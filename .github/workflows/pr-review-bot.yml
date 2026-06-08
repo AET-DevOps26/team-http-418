@@ -1,0 +1,178 @@
+name: PR Review Bot
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review-bot:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+
+            // Fetch changed files
+            const filesResponse = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const files = filesResponse.data.map(f => f.filename);
+
+            // Domain owners
+            const DOMAIN_OWNERS = {
+              client: 'kirillinoz',
+              server: 'quarz12',
+              genai: 'khinevich',
+              scraper: 'quarz12',
+            };
+
+            const ALL_OWNERS = [...new Set(Object.values(DOMAIN_OWNERS))];
+
+            // Classify each file
+            function classifyFile(filename) {
+              if (filename.startsWith('client/')) return { type: 'domain', domain: 'client' };
+              if (filename.startsWith('server/')) return { type: 'domain', domain: 'server' };
+              if (filename.startsWith('genai/')) return { type: 'domain', domain: 'genai' };
+              if (filename.startsWith('scraper/')) return { type: 'infra' };
+              if (filename.startsWith('docs/')) return { type: 'infra' };
+              if (filename.startsWith('k8s/')) return { type: 'infra' };
+              if (filename.startsWith('helm/')) return { type: 'infra' };
+              if (filename.startsWith('terraform/')) return { type: 'infra' };
+              if (filename.startsWith('ansible/')) return { type: 'infra' };
+              if (filename.startsWith('.github/')) return { type: 'infra' };
+              if (filename.startsWith('docker-compose')) return { type: 'infra' };
+              // Root config files (no directory separator)
+              if (!filename.includes('/')) return { type: 'infra' };
+              return { type: 'infra' };
+            }
+
+            const classifications = files.map(classifyFile);
+            const hasInfra = classifications.some(c => c.type === 'infra');
+            const affectedDomains = [...new Set(
+              classifications.filter(c => c.type === 'domain').map(c => c.domain)
+            )];
+
+            // Determine tier
+            let tier, minReviews, reviewers, categoryLabel;
+
+            if (hasInfra) {
+              tier = 'infra';
+              minReviews = 2;
+              reviewers = ALL_OWNERS.filter(u => u !== author);
+              const infraDomains = affectedDomains.length > 0
+                ? ` + ${affectedDomains.join(', ')}`
+                : '';
+              categoryLabel = `Infrastructure${infraDomains}`;
+            } else if (affectedDomains.length === 0) {
+              tier = 'infra';
+              minReviews = 2;
+              reviewers = ALL_OWNERS.filter(u => u !== author);
+              categoryLabel = 'Infrastructure (unclassified files)';
+            } else {
+              const authorDomains = affectedDomains.filter(
+                d => DOMAIN_OWNERS[d] === author
+              );
+              const otherDomains = affectedDomains.filter(
+                d => DOMAIN_OWNERS[d] !== author
+              );
+
+              if (otherDomains.length === 0) {
+                tier = 'own-domain';
+                minReviews = 0;
+                reviewers = affectedDomains.map(d => DOMAIN_OWNERS[d]).filter(u => u !== author);
+                categoryLabel = `Own domain (${affectedDomains.join(', ')})`;
+              } else {
+                tier = 'cross-domain';
+                minReviews = otherDomains.length;
+                reviewers = [...new Set(otherDomains.map(d => DOMAIN_OWNERS[d]))].filter(u => u !== author);
+                categoryLabel = `Cross-domain (${affectedDomains.join(', ')})`;
+              }
+            }
+
+            // Request reviewers (ignore errors if user not collaborator etc.)
+            if (reviewers.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  reviewers: reviewers,
+                });
+              } catch (e) {
+                console.log('Could not request reviewers:', e.message);
+              }
+            }
+
+            // Build comment
+            const reviewerMentions = reviewers.length > 0
+              ? reviewers.map(u => `@${u}`).join(', ')
+              : '_none required_';
+
+            const requirementLine = tier === 'own-domain'
+              ? '0 (optional — author owns all changed domains)'
+              : `**${minReviews}** (${reviewers.map(u => `@${u}`).join(', ')} must approve)`;
+
+            const changedDomainLines = affectedDomains.length > 0
+              ? affectedDomains.map(d => `- \`${d}/\` → @${DOMAIN_OWNERS[d]}`).join('\n')
+              : '- _(none — treated as infra)_';
+            const infraLine = hasInfra ? '\n- infrastructure/common files detected' : '';
+            const openTime = tier === 'own-domain' ? '12 hours' : 'None (approval-gated)';
+
+            const body = [
+              '## PR Review Guide',
+              '',
+              `**Category:** ${categoryLabel}`,
+              `**Required reviews:** ${requirementLine}`,
+              `**Minimum open time:** ${openTime}`,
+              `**Requested reviewers:** ${reviewerMentions}`,
+              '',
+              '### Review Rules',
+              '| Change type | Min reviews | Open time |',
+              '|---|---|---|',
+              '| Own domain only | 0 (optional) | 12h |',
+              '| Cross-domain | 1 per affected domain | Until approved |',
+              '| Infrastructure / common | 2 | Until approved |',
+              '| Infra + cross-domain | 2 (infra overrides) | Until approved |',
+              '',
+              '### Changed domains',
+              changedDomainLines + infraLine,
+              '',
+              '> 💡 Need explicit feedback outside the rules? Add the `needs-feedback` label.',
+            ].join('\n');
+
+            // Find existing bot comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+
+            const marker = '## PR Review Guide';
+            const existing = comments.data.find(
+              c => c.user.type === 'Bot' && c.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
