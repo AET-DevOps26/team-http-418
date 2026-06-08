@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 
 from db_handler import DB, build_import_batch, bulk_update_database
 from tumonline_scraper import fetch_courses
@@ -7,9 +8,9 @@ from tumonline_scraper import fetch_courses
 DEBUG = False
 
 
-async def main():
+async def main(clean: bool = False):
     # Initialize database
-    db = await DB.create_instance(DEBUG)
+    db = await DB.create_instance(DEBUG, clean)
 
     semester_id = 206  # summer 2026, each semester adds 1 TODO optional: automate this
     courses = await fetch_courses(semester_id, debug=DEBUG)  # does not contain detailed descriptions
@@ -28,4 +29,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    clean_run = sys.argv[-1] == "--clean"
+    asyncio.run(main(clean_run))

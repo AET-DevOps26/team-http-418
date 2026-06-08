@@ -91,7 +91,10 @@ start and run scraper:
 ```bash
 docker compose up scraper --build
 ```
-
+do a clean scraper run, deleting the existing data first:
+```bash
+docker compose run scraper --clean_run
+```
 ### Code Quality
 
 Formatting and linting is enforced across all sub-projects.
