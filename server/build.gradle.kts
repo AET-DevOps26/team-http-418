@@ -35,12 +35,57 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+data class RootCauseFailure(
+	val className: String,
+	val testName: String,
+	val exceptionName: String,
+	val message: String?
+)
+val rootCauseFailures = mutableListOf<RootCauseFailure>()
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 	testLogging {
 		events("passed", "skipped", "failed")
-		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 	}
+	afterTest(KotlinClosure2<TestDescriptor, TestResult, Unit>({ descriptor, result ->
+		if (result.resultType == TestResult.ResultType.FAILURE) {
+			result.exceptions.forEach { exception ->
+				val root = generateSequence(exception) { it.cause }.last()
+
+				rootCauseFailures += RootCauseFailure(
+					className = descriptor.className ?: "Unknown class",
+					testName = descriptor.name,
+					exceptionName = root::class.qualifiedName ?: root::class.simpleName ?: "Unknown exception",
+					message = root.message
+				)
+			}
+		}
+	}))
+
+	afterSuite(KotlinClosure2<TestDescriptor, TestResult, Unit>({ descriptor, _ ->
+		if (descriptor.parent == null && rootCauseFailures.isNotEmpty()) {
+			val red = "\u001B[31m"
+			val yellow = "\u001B[33m"
+			val cyan = "\u001B[36m"
+			val bold = "\u001B[1m"
+			val reset = "\u001B[0m"
+
+			println()
+			println("${bold}${red}Root Cause Summary${reset}")
+			println("${red}=====================================================================================${reset}")
+
+			rootCauseFailures.forEachIndexed { index, failure ->
+				println()
+				println("${bold}${yellow}${index + 1}) ${failure.className} > ${failure.testName}${reset}")
+				println("${cyan}Exception:${reset} ${failure.exceptionName}")
+				println("${cyan}Message:  ${reset} ${failure.message ?: "(no message)"}")
+			}
+
+			println()
+			println("${red}=====================================================================================${reset}")
+		}
+	}))
 }
 
 spotless {

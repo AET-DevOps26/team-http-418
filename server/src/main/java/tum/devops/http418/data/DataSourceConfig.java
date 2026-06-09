@@ -3,8 +3,6 @@ package tum.devops.http418.data;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
