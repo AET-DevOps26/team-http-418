@@ -1,14 +1,17 @@
 import logging
-from xml.etree import ElementTree as ET
-import asyncpg
-from xml_parser import find_or, int_at, text_at, date_at, lang_text, xml_string, time_at
 import os
+from xml.etree import ElementTree as ET
 
-DB_NAME = os.environ["DB_NAME"]
+import asyncpg
+
+from xml_parser import date_at, find_or, int_at, lang_text, text_at, time_at, xml_string
+
+DB_NAME = os.environ["COURSES_DB_NAME"]
 DB_USER = os.environ["DB_USER"]
 DB_PASS = os.environ["DB_PASS"]
 DB_HOST = os.environ["DB_HOST"]
 DB_PORT = os.environ["DB_PORT"]
+
 
 class DB:
     conn: asyncpg.Connection
@@ -18,9 +21,14 @@ class DB:
         self.debug = debug
 
     @classmethod
-    async def create_instance(cls, debug: bool = False):
+    async def create_instance(cls, debug: bool = False, clean: bool = False):
+        """
+        :param debug: process only first page of courses and reset db
+        :param clean: reset db
+        :return:
+        """
         instance = cls(debug)
-        await instance.setup_database()
+        await instance.setup_database(clean)
         await instance.create_connection()  # must be after setup
         await instance.init_tables()
         return instance
@@ -28,49 +36,42 @@ class DB:
     # noinspection PyUnresolvedReferences
     async def create_connection(self):
         self.conn = await asyncpg.connect(  # is marked as not async but it is
-            user=DB_USER,
-            password=DB_PASS,
-            database=DB_NAME,
-            host=DB_HOST,
-            port=DB_PORT
+            user=DB_USER, password=DB_PASS, database=DB_NAME, host=DB_HOST, port=DB_PORT
         )
+
     async def close_connection(self):
         await self.conn.close()
 
-    async def setup_database(self):
+    async def setup_database(self, clean: bool = False):
         """
         creates the database if it doesn't exist.
-        If DEBUG is True, it drops the existing database first.
+        If DEBUG or clean is True, it drops the existing database first.
         """
         admin_conn = await asyncpg.connect(
-            user=DB_USER,
-            password=DB_PASS,
-            database="postgres",
-            host=DB_HOST,
-            port=DB_PORT
+            user=DB_USER, password=DB_PASS, database="postgres", host=DB_HOST, port=DB_PORT
         )
 
-        if self.debug:
+        if self.debug or clean:
             logging.info(f"DEBUG mode: Dropping database {DB_NAME} if it exists")
 
             await admin_conn.execute(  # force disconnect all connections to the database
-                '''
+                """
                 SELECT pg_terminate_backend(pid)
                 FROM pg_stat_activity
                 WHERE datname = $1
                   AND pid <> pg_backend_pid()
-                ''',
+                """,
                 DB_NAME,
             )
 
             await admin_conn.execute(f'DROP DATABASE IF EXISTS "{DB_NAME}"')
 
         exists = await admin_conn.fetchval(
-            '''
+            """
             SELECT 1
             FROM pg_catalog.pg_database
             WHERE datname = $1
-            ''',
+            """,
             DB_NAME,
         )
 
@@ -88,11 +89,11 @@ class DB:
         """
         async with self.conn.transaction():
             # semesters table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE if not exists semesters
                                     (
                                         id                  INT PRIMARY KEY, -- e.g. 206
-                                        --tum_id            INT UNIQUE ,                       
+                                        --tum_id            INT UNIQUE ,
                                         semester_key        TEXT NOT NULL,-- UNIQUE, -- e.g. 26S using unique here causes race conditions on insert for some reason
                                         academic_year_id    INT,
                                         semester_type       TEXT,            -- S, W, etc.
@@ -100,9 +101,9 @@ class DB:
                                         start_date          DATE,
                                         end_date            DATE
                                     );
-                                    ''')
+                                    """)
             # course types table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE if not exists course_types
                                     (
                                         id   BIGINT PRIMARY KEY,
@@ -110,23 +111,23 @@ class DB:
                                         key  TEXT NOT NULL UNIQUE, -- VO, SE, UE, PR, FO
                                         name TEXT                  -- Seminar ...
                                     )
-                                    ''')
+                                    """)
             # persons table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE if not exists persons
                                     (
                                         id                BIGINT PRIMARY KEY, -- identityLibDto.id
                                         person_id         BIGINT,             -- probably the same as id
-                                        -- obfuscated_key      TEXT UNIQUE,        
+                                        -- obfuscated_key      TEXT UNIQUE,
                                         first_name        TEXT,
                                         last_name         TEXT,
                                         --gender              TEXT,
                                         --gender_nr_for_title INTEGER,
                                         business_card_url TEXT
                                     )
-                                    ''')
+                                    """)
             # organizations table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE IF NOT EXISTS organizations
                                     (
                                         id                  BIGINT PRIMARY KEY,
@@ -139,9 +140,9 @@ class DB:
 
                                         FOREIGN KEY (parent_id) REFERENCES organizations (id)
                                     )
-                                    ''')
+                                    """)
             # course table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE if not exists courses
                                     (
                                         id                         BIGINT PRIMARY KEY,
@@ -168,7 +169,7 @@ class DB:
                                         teaching_method_ger        TEXT,
                                         teaching_method_en         TEXT,
                                         ---------------------
-                                        --registration_available           BOOLEAN, 
+                                        --registration_available           BOOLEAN,
                                         registration_info          TEXT,
 
                                         raw_source_simple          XML,  -- optional: store original parsed XML
@@ -176,9 +177,9 @@ class DB:
                                         created_at                 TIMESTAMP DEFAULT now(),
                                         updated_at                 TIMESTAMP DEFAULT now()
                                     );
-                                    ''')
+                                    """)
             # lectureship table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE if not exists lectureship
                                     (
                                         id                BIGINT PRIMARY KEY,
@@ -188,9 +189,9 @@ class DB:
                                         --sort_order           INTEGER,
 
                                     )
-                                    ''')
+                                    """)
             # course appointment table
-            await self.conn.execute('''
+            await self.conn.execute("""
                                     CREATE TABLE IF NOT EXISTS course_appointments
                                     (
                                         id              BIGINT PRIMARY KEY,
@@ -202,7 +203,8 @@ class DB:
                                         is_series       BOOLEAN   DEFAULT false,
                                         updated_at      TIMESTAMP DEFAULT now()
                                     )
-                                    ''')
+                                    """)
+
 
 def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Element]]) -> dict:
     semesters = {}
@@ -331,12 +333,9 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
             semester_id,
             course_type_id,
             organization_id,
-            lang_text(detailed_course, "courseTitle", "de")
-            or lang_text(simple_course_info, "courseTitle", "de"),
-            lang_text(detailed_course, "courseTitle", "en")
-            or lang_text(simple_course_info, "courseTitle", "en"),
-            int_at(detailed_course, "identityCodeId")
-            or int_at(simple_course_info, "identityCodeId"),
+            lang_text(detailed_course, "courseTitle", "de") or lang_text(simple_course_info, "courseTitle", "de"),
+            lang_text(detailed_course, "courseTitle", "en") or lang_text(simple_course_info, "courseTitle", "en"),
+            int_at(detailed_course, "identityCodeId") or int_at(simple_course_info, "identityCodeId"),
             int_at(detailed_course, "courseNormConfigs[key='SST']/value")
             or int_at(simple_course_info, "courseNormConfigs[key='SST']/value"),
             lang_text(description, "courseContent", "de"),
@@ -350,12 +349,16 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
             lang_text(description, "teachingMethod", "de"),
             lang_text(description, "teachingMethod", "en"),
             (
-                    lang_text(description, "courseRegistrationInfo", "en")
-                    or lang_text(description, "courseRegistrationInfo", "de")
-                    or lang_text(detailed_course, "registrationInfo", "en") # registration open/closed, not really useful
-                    or lang_text(detailed_course, "registrationInfo", "de") # registration open/closed, not really useful
-                    or lang_text(simple_course_info, "registrationInfo", "en")  # registration open/closed, not really useful
-                    or lang_text(simple_course_info, "registrationInfo", "de")  # registration open/closed, not really useful
+                lang_text(description, "courseRegistrationInfo", "en")
+                or lang_text(description, "courseRegistrationInfo", "de")
+                or lang_text(detailed_course, "registrationInfo", "en")  # registration open/closed, not really useful
+                or lang_text(detailed_course, "registrationInfo", "de")  # registration open/closed, not really useful
+                or lang_text(
+                    simple_course_info, "registrationInfo", "en"
+                )  # registration open/closed, not really useful
+                or lang_text(
+                    simple_course_info, "registrationInfo", "de"
+                )  # registration open/closed, not really useful
             ),
             xml_string(simple_course_info),
             xml_string(detailed_course_info_resource),
@@ -384,9 +387,8 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
                 business_card_url,
             )
 
-            teaching_function = (
-                    text_at(lectureship, "teachingFunction/name")
-                    or text_at(lectureship, "teachingFunction/key")
+            teaching_function = text_at(lectureship, "teachingFunction/name") or text_at(
+                lectureship, "teachingFunction/key"
             )
 
             # Deduplicate by your logical unique constraint.
@@ -405,13 +407,13 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
         "persons": list(persons.values()),
         "courses": list(courses.values()),
         "lectureships": list(lectureships.values()),
-        "course_appointments": list(course_appointments.values())
+        "course_appointments": list(course_appointments.values()),
     }
 
 
 async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
     await conn.executemany(
-        '''
+        """
         INSERT INTO semesters (id,
                                semester_key,
                                academic_year_id,
@@ -426,31 +428,31 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        start_date          = EXCLUDED.start_date,
                                        end_date            = EXCLUDED.end_date
         WHERE semesters.id = EXCLUDED.id
-        ''',
+        """,
         batch["semesters"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO course_types (id, key, name)
         VALUES ($1, $2, $3)
         ON CONFLICT (key) DO UPDATE SET name = EXCLUDED.name
         WHERE course_types.id = EXCLUDED.id
-        ''',
+        """,
         batch["course_types"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO organizations (id)
         VALUES ($1)
         ON CONFLICT (id) DO NOTHING
-        ''',
-        batch["parent_org_ids"], #todo add more information about parent orgs, e.g. name
+        """,
+        batch["parent_org_ids"],  # todo add more information about parent orgs, e.g. name
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO organizations (id,
                                    identification_name,
                                    name_ger,
@@ -463,12 +465,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        name_en             = EXCLUDED.name_en,
                                        parent_id           = EXCLUDED.parent_id,
                                        org_page_url        = EXCLUDED.org_page_url
-        ''',
+        """,
         batch["organizations"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO persons (id,
                              person_id,
                              first_name,
@@ -479,12 +481,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        first_name        = EXCLUDED.first_name,
                                        last_name         = EXCLUDED.last_name,
                                        business_card_url = EXCLUDED.business_card_url
-        ''',
+        """,
         batch["persons"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO courses (id,
                              semester_id,
                              course_type_id,
@@ -534,12 +536,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        raw_source_simple          = EXCLUDED.raw_source_simple,
                                        raw_source_detailed        = EXCLUDED.raw_source_detailed,
                                        updated_at                 = now()
-        ''',
+        """,
         batch["courses"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO lectureship (id,
                                  course_id,
                                  person_id,
@@ -548,12 +550,12 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
         ON CONFLICT (id) DO UPDATE SET course_id         = EXCLUDED.course_id,
                                        person_id         = EXCLUDED.person_id,
                                        teaching_function = EXCLUDED.teaching_function
-        ''',
+        """,
         batch["lectureships"],
     )
 
     await conn.executemany(
-        '''
+        """
         INSERT INTO course_appointments (
             id,
             course_id,
@@ -573,6 +575,6 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        place = EXCLUDED.place,
                                        is_series = EXCLUDED.is_series,
                                        updated_at = now()
-        ''',
+        """,
         batch["course_appointments"],
     )

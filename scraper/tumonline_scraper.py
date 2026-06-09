@@ -11,10 +11,11 @@ semaphore = asyncio.Semaphore(20)
 base_url = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courses"
 base_url_dates = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courseGroups/firstGroups"
 
+
 @dataclass
 class SimpleDescription:
     xml: ET.Element
-    string_xml: str|None = None
+    string_xml: str | None = None
 
     def __assure_string_xml(self):
         if not self.string_xml:
@@ -30,17 +31,20 @@ class SimpleDescription:
         other.__assure_string_xml()
         return self.string_xml == other.string_xml
 
+
 async def fetch_page(session: aiohttp.ClientSession, offset: int, semester_id: int, stepsize: int) -> ET.Element:
     url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip={offset}&$top={stepsize}"
     async with semaphore:
         async with session.get(url) as response:
-            assert response.status == 200, f"could not fetch courselist page with offset {offset}, got {response.status}\n{url}"
+            assert response.status == 200, (
+                f"could not fetch courselist page with offset {offset}, got {response.status}\n{url}"
+            )
             text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
         return ET.fromstring(text)
 
 
-async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tuple[ET.Element,ET.Element]:
+async def fetch_details(session: aiohttp.ClientSession, course: ET.Element) -> tuple[ET.Element, ET.Element]:
     try:
         lecture_id = course.find("id").text
     except AttributeError as e:
@@ -48,9 +52,11 @@ async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tupl
     async with semaphore:
         url = f"{base_url}/{lecture_id}"
         async with session.get(url) as response:
-            assert response.status == 200, f"could not fetch course details for {lecture_id}, got {response.status}\n{url}"
+            assert response.status == 200, (
+                f"could not fetch course details for {lecture_id}, got {response.status}\n{url}"
+            )
             text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
                 resources = ET.fromstring(text).findall("resource")
                 assert len(resources) == 1, f"expected exactly one resource for {lecture_id}, got {len(resources)}"
@@ -59,7 +65,7 @@ async def fetch_details(session: aiohttp.ClientSession, course:ET.Element)->tupl
                 raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
 
 
-async def fetch_dates(session: aiohttp.ClientSession, pair:tuple[ET.Element, ET.Element]):
+async def fetch_dates(session: aiohttp.ClientSession, pair: tuple[ET.Element, ET.Element]):
     try:
         course, detailed = pair
         lecture_id = course.find("id").text
@@ -68,9 +74,11 @@ async def fetch_dates(session: aiohttp.ClientSession, pair:tuple[ET.Element, ET.
     async with semaphore:
         url = f"{base_url_dates}/{lecture_id}"
         async with session.get(url) as response:
-            assert response.status == 200, f"could not fetch course dates for {lecture_id}, got {response.status}\n{url}"
+            assert response.status == 200, (
+                f"could not fetch course dates for {lecture_id}, got {response.status}\n{url}"
+            )
             text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text) #sanitize invalid xml characters
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
                 dates_xml = ET.fromstring(text)
                 return course, detailed, dates_xml
@@ -78,7 +86,7 @@ async def fetch_dates(session: aiohttp.ClientSession, pair:tuple[ET.Element, ET.
                 raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
 
 
-async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,ET.Element, ET.Element]]:
+async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element, ET.Element, ET.Element]]:
     """
     :param debug: if True, only fetch 20 courses for debugging
     :return: a list of triples (course_info, detailed_course_info, dates)
@@ -94,12 +102,15 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         logging.info(f"expecting {total} courses{', ignoring because debug is set' if debug else ''}")
 
         # fetch all courses in parallel
-        if debug: total = 20 # only fetch 20 courses for debugging
+        if debug:
+            total = 20  # only fetch 20 courses for debugging
         tasks = [fetch_page(session, off, semester_id, stepsize) for off in range(0, total, stepsize)]
         courses: list[ET.Element] = await asyncio.gather(*tasks)
-        flat: list[SimpleDescription] = list(map(lambda x: SimpleDescription(x), itertools.chain(*(map(lambda tree: tree.findall("courses"), courses))))) #flatmap to course elements
+        flat: list[SimpleDescription] = list(
+            map(lambda x: SimpleDescription(x), itertools.chain(*(map(lambda tree: tree.findall("courses"), courses))))
+        )  # flatmap to course elements
         assert len(flat) == total, f"only got {len(courses)} courses of {total}"
-        unique = set(flat) # class wrapper is necessary to control comparison
+        unique = set(flat)  # class wrapper is necessary to control comparison
         logging.info(f"got all courses, {len(unique)} of which are unique")
 
         logging.info(f"fetching detailed data for {len(unique)} courses")
@@ -112,5 +123,3 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
 
         logging.info("done fetching information")
     return complete_course_info
-
-
