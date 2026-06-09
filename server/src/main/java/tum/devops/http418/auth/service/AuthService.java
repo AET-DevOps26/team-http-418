@@ -63,8 +63,8 @@ public class AuthService {
 		if (userDetailsService.userExists(tumid)) {
 			throw new UserExistsException("User already exists");
 		}
-		userDetailsService.createUser(
-				User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
+		userDetailsService
+				.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
 		return login(tumid, password);
 	}
 }

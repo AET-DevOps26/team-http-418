@@ -4,20 +4,28 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 public class DataSourceConfig {
 
-	private final String baseUrl = requireEnv("SPRING_DATASOURCE_URL");
-	private final String username = requireEnv("SPRING_DATASOURCE_USERNAME");
-	private final String password = requireEnv("SPRING_DATASOURCE_PASSWORD");
+	@Value("${SPRING_DATASOURCE_URL}")
+	private String baseUrl;
+
+	@Value("${SPRING_DATASOURCE_USERNAME}")
+	private String username;
+
+	@Value("${SPRING_DATASOURCE_PASSWORD}")
+	private String password;
 
 	@Bean
 	@Primary
+	@Profile("!test")
 	public DataSource coursesDataSource() {
 		HikariDataSource dataSource = new HikariDataSource();
 
@@ -51,6 +59,7 @@ public class DataSourceConfig {
 	}
 
 	@Bean
+	@Profile("!test")
 	public DataSource securityDataSource() {
 		createSecurityDatabaseIfNotExists();
 		HikariDataSource dataSource = new HikariDataSource();
@@ -80,11 +89,13 @@ public class DataSourceConfig {
 	}
 
 	@Bean
+	@Profile("!test")
 	public JdbcTemplate coursesJdbcTemplate(@Qualifier("coursesDataSource") DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
 	}
 
 	@Bean
+	@Profile("!test")
 	public JdbcTemplate securityJdbcTemplate(@Qualifier("securityDataSource") DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
 	}

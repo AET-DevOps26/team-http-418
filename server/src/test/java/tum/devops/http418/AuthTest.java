@@ -18,7 +18,7 @@ import tum.devops.http418.auth.service.DBUserDetailsManager;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class AuthLifecycleTest {
+class AuthLifecycleTest extends BaseTest {
 
 	@Autowired
 	private MockMvc mockMvc;

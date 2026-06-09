@@ -54,7 +54,7 @@ public class DBUserDetailsManager implements UserDetailsManager {
 				UPDATE credentials
 				SET password = ?
 				WHERE username = ?
-				""", user.getPassword());
+				""", user.getPassword(), user.getUsername());
 
 		jdbcTemplate.update("DELETE FROM user_authorities WHERE username = ?", user.getUsername());
 

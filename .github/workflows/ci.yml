@@ -46,11 +46,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests
-        run: |
-          set -a
-          source ../.env
-          set +a
-          ./gradlew test
+        run: ./gradlew test
 
   build-images:
     runs-on: ubuntu-latest
