@@ -135,7 +135,9 @@ jobs:
               `**Minimum open time:** ${openTime}`,
               `**Requested reviewers:** ${reviewerMentions}`,
               '',
-              '### Review Rules',
+              '<details>',
+              '<summary><strong>Review Rules</strong></summary>',
+              '',
               '| Change type | Min reviews | Open time |',
               '|---|---|---|',
               '| Own domain only | 0 (optional) | 12h |',
@@ -143,10 +145,16 @@ jobs:
               '| Infrastructure / common | 2 | Until approved |',
               '| Infra + cross-domain | 2 (infra overrides) | Until approved |',
               '',
-              '### Changed domains',
+              '</details>',
+              '',
+              '<details>',
+              '<summary><strong>Changed domains</strong></summary>',
+              '',
               changedDomainLines + infraLine,
               '',
               '> 💡 Need explicit feedback outside the rules? Add the `needs-feedback` label.',
+              '',
+              '</details>',
             ].join('\n');
 
             // Find existing bot comment
