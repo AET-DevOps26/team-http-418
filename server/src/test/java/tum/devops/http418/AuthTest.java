@@ -117,7 +117,7 @@ class AuthLifecycleTest {
 				  "tumId": "testidPersistent",
 				  "password": "testpassPersistent"
 				}
-				
+
 				""";
 		String loginResponseJson = mockMvc
 				.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content(persistentLoginJson))
