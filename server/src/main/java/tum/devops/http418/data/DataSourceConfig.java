@@ -99,13 +99,4 @@ public class DataSourceConfig {
 	public JdbcTemplate securityJdbcTemplate(@Qualifier("securityDataSource") DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
 	}
-	private static String requireEnv(String name) {
-		String value = System.getenv(name);
-
-		if (value == null || value.isBlank()) {
-			throw new IllegalStateException("Missing required environment variable: " + name);
-		}
-
-		return value;
-	}
 }
