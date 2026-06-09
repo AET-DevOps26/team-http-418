@@ -104,12 +104,6 @@ export const handlers = [
 						"Prerequisite for several courses in your remaining curriculum.",
 				},
 			],
-			requirements: [
-				{ name: "Core · Informatics", earned: 67, total: 72 },
-				{ name: "Electives · Informatics", earned: 6, total: 30 },
-				{ name: "Electives · Application", earned: 8, total: 18 },
-				{ name: "Mathematics", earned: 5, total: 8 },
-			],
 			upcomingCourses: [
 				{
 					courseId: "in0001",

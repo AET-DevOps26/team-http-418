@@ -76,17 +76,10 @@ export type UpcomingCourse = {
 	nextSession: CourseSession;
 };
 
-export type DashboardRequirement = {
-	name: string;
-	earned: number;
-	total: number;
-};
-
 export type Dashboard = {
 	progress: DashboardProgress;
 	alerts: DashboardAlert[];
 	recommendations: DashboardRecommendation[];
 	upcomingCourses: UpcomingCourse[];
 	semesterCredits: number;
-	requirements?: DashboardRequirement[];
 };
