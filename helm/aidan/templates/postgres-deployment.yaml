@@ -26,11 +26,11 @@ spec:
           ports:
             - containerPort: {{ .Values.postgres.port }}
           env:
-            - name: POSTGRES_DB
+            - name: POSTGRES_USER
               valueFrom:
                 configMapKeyRef:
                   name: aidan-config
-                  key: DB_NAME
+                  key: DB_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:

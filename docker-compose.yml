@@ -1,12 +1,11 @@
 services:
   db:
-    build: ./lectures_db
+    build: db
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -60,6 +59,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  scraper-clean:
+    build: ./scraper
+    command: ["--clean"]
+    profiles:
+      - scraper_clean
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # allow container to reach services on the host machine at host.docker.internal. only for linux compatibility
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
   ollama_data:

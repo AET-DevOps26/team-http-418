@@ -31,7 +31,10 @@ async function doFetch<T>(
 	const hasBody = options?.body != null;
 
 	const headers = new Headers(options?.headers);
-	headers.set("Accept", options?.responseType === "text" ? "text/plain" : "application/json");
+	headers.set(
+		"Accept",
+		options?.responseType === "text" ? "text/plain" : "application/json",
+	);
 	if (hasBody) headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
 
@@ -66,6 +69,9 @@ async function doFetch<T>(
 	throw new ApiError(res.status, problem);
 }
 
-export function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
+export function apiFetch<T>(
+	path: string,
+	options?: ApiFetchOptions,
+): Promise<T> {
 	return doFetch<T>(path, options);
 }

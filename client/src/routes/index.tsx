@@ -1,6 +1,6 @@
-import { apiFetch } from "#/api";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { apiFetch } from "#/api";
 
 export const Route = createFileRoute("/")({ component: Home });
 

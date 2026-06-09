@@ -42,3 +42,10 @@ terraform.tfvars
 
 # Ansible
 *.retry
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ruff_cache/

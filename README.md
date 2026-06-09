@@ -91,3 +91,51 @@ start and run scraper:
 ```bash
 docker compose up scraper --build
 ```
+do a clean scraper run, deleting the existing data first:
+```bash
+docker compose up scraper-clean
+```
+### Code Quality
+
+Formatting and linting is enforced across all sub-projects.
+
+#### Client (`client/`) — Biome
+
+```bash
+cd client
+pnpm check          # check formatting + lint
+pnpm check --write  # auto-fix
+```
+
+#### Server (`server/`) — Spotless + Google Java Format
+
+```bash
+cd server
+./gradlew spotlessCheck  # check
+./gradlew spotlessApply  # auto-fix
+```
+
+#### Scraper & GenAI (`scraper/`, `genai/`) — Ruff
+
+```bash
+cd scraper  # or genai
+ruff format --check .  # check formatting
+ruff check .           # check lint
+ruff format .          # auto-fix formatting
+ruff check --fix .     # auto-fix lint
+```
+
+#### Pre-commit Hooks
+
+Install once to automatically format staged files before every commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Run manually against all files:
+
+```bash
+pre-commit run --all-files
+```

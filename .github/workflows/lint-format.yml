@@ -1,0 +1,118 @@
+name: Lint & Format
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      client: ${{ steps.filter.outputs.client }}
+      server: ${{ steps.filter.outputs.server }}
+      scraper: ${{ steps.filter.outputs.scraper }}
+      genai: ${{ steps.filter.outputs.genai }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            client:
+              - 'client/**'
+            server:
+              - 'server/**'
+            scraper:
+              - 'scraper/**'
+            genai:
+              - 'genai/**'
+
+  lint-client:
+    needs: changes
+    if: needs.changes.outputs.client == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting and lint
+        run: pnpm check
+
+  lint-server:
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Check formatting
+        run: ./gradlew spotlessCheck
+
+  lint-scraper:
+    needs: changes
+    if: needs.changes.outputs.scraper == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./scraper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Check lint
+        run: ruff check .
+
+  lint-genai:
+    needs: changes
+    if: needs.changes.outputs.genai == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./genai
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Check lint
+        run: ruff check .

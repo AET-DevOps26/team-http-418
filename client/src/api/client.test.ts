@@ -68,7 +68,9 @@ describe("apiFetch", () => {
 		await apiFetch("/items");
 
 		const [, init] = vi.mocked(fetch).mock.calls[0];
-		expect((init?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+		expect((init?.headers as Headers).get("Authorization")).toBe(
+			"Bearer test-token",
+		);
 	});
 
 	it("omits Authorization header when no token", async () => {
