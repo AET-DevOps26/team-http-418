@@ -339,7 +339,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 ---
 
 ### Transcript Fuzzy Matching
-
+(currently unused since we only accept TUM Transcript format, and no need to send them to AI, since they have xml format and easy to read)
 > Spring Boot endpoint: `POST /me/transcript/upload` (Student Service) → calls this GenAI endpoint:
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
