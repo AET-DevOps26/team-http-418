@@ -62,7 +62,7 @@
 <details>
 <summary>Request / response schemas</summary>
 
-**`POST /auth/login` — request**
+**`POST /auth/login` and `POST /auth/register` — request**
 ```json
 {
   "tumId": "ga12abc",
@@ -70,7 +70,7 @@
 }
 ```
 
-**`POST /auth/login` — response**
+**`POST /auth/login` and `POST /auth/register` — response**
 ```json
 {
   "accessToken": "eyJ...",
