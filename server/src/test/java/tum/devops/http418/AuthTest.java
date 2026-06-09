@@ -109,24 +109,4 @@ class AuthLifecycleTest {
 				.content(objectMapper.writeValueAsString(new RefreshRequest(refreshResponse.refreshToken()))))
 				.andExpect(status().isUnauthorized());
 	}
-
-	@Test
-	void testPersistentUserStore() throws Exception {
-		String persistentLoginJson = """
-				{
-				  "tumId": "testidPersistent",
-				  "password": "testpassPersistent"
-				}
-
-				""";
-		String loginResponseJson = mockMvc
-				.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content(persistentLoginJson))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-
-		AuthResponse loginResponse = objectMapper.readValue(loginResponseJson, AuthResponse.class);
-
-		assertThat(loginResponse.accessToken()).isNotBlank();
-		assertThat(loginResponse.refreshToken()).isNotBlank();
-		assertThat(loginResponse.expiresIn()).isEqualTo(3600);
-	}
 }

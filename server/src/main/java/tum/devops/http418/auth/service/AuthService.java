@@ -28,9 +28,6 @@ public class AuthService {
 		this.jwtTokenProvider = jwtTokenProvider;
 		this.refreshTokenStore = refreshTokenStore;
 		this.passwordEncoder = passwordEncoder;
-
-		if (!userDetailsService.userExists("testidPersistent")) // create persistent user for testing
-			register("testidPersistent", "testpassPersistent");
 	}
 
 	public AuthResponse login(String tumId, String password) {
