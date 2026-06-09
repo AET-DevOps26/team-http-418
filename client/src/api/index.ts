@@ -24,6 +24,7 @@ export type {
 	DashboardAlert,
 	DashboardProgress,
 	DashboardRecommendation,
+	DashboardRequirement,
 	IsoDateString,
 	LoginRequest,
 	Page,
