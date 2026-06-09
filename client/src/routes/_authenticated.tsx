@@ -1,5 +1,5 @@
-import { isAuthenticated } from "#/api";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { isAuthenticated } from "#/api";
 
 export const Route = createFileRoute("/_authenticated")({
 	beforeLoad: () => {

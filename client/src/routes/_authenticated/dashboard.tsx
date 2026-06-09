@@ -1,5 +1,5 @@
-import { logout } from "#/api";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { logout } from "#/api";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
 	component: Dashboard,

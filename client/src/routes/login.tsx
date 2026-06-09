@@ -14,7 +14,13 @@ function FloatingShapes() {
 	return (
 		<div
 			aria-hidden="true"
-			style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}
+			style={{
+				position: "fixed",
+				inset: 0,
+				pointerEvents: "none",
+				overflow: "hidden",
+				zIndex: 0,
+			}}
 		>
 			{/* Large purple→blue gradient circle — top right */}
 			<div
@@ -25,7 +31,8 @@ function FloatingShapes() {
 					width: "420px",
 					height: "420px",
 					borderRadius: "50%",
-					background: "linear-gradient(135deg, rgba(138,87,224,0.18), rgba(45,111,181,0.14))",
+					background:
+					"linear-gradient(135deg, rgba(138,87,224,0.18), rgba(45,111,181,0.14))",
 					animation: "spin 60s linear infinite",
 				}}
 			/>
@@ -152,7 +159,8 @@ function LoginPage() {
 					WebkitBackdropFilter: "blur(12px)",
 					borderRadius: "14px",
 					border: "1px solid #E2E7EF",
-					boxShadow: "0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+					boxShadow:
+					"0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
 					overflow: "hidden",
 				}}
 			>
@@ -180,7 +188,13 @@ function LoginPage() {
 								marginBottom: "16px",
 							}}
 						>
-							<svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<svg
+							width="28"
+							height="28"
+							viewBox="0 0 24 24"
+							fill="none"
+							aria-hidden="true"
+						>
 								<path
 									d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"
 									fill="rgba(255,255,255,0.95)"
@@ -259,7 +273,9 @@ function LoginPage() {
 									fontSize: "14px",
 									color: "#0B1F33",
 									background: "#FFFFFF",
-									border: errors.tumId ? "1px solid #C03A2E" : "1px solid #E2E7EF",
+									border: errors.tumId
+									? "1px solid #C03A2E"
+									: "1px solid #E2E7EF",
 									borderRadius: "10px",
 									outline: "none",
 									transition: "border-color 0.15s, box-shadow 0.15s",
@@ -270,12 +286,20 @@ function LoginPage() {
 									e.target.style.boxShadow = "0 0 0 3px rgba(46,111,181,0.12)";
 								}}
 								onBlurCapture={(e) => {
-									e.target.style.borderColor = errors.tumId ? "#C03A2E" : "#E2E7EF";
+									e.target.style.borderColor = errors.tumId
+										? "#C03A2E"
+										: "#E2E7EF";
 									e.target.style.boxShadow = "none";
 								}}
 							/>
 							{errors.tumId && (
-								<p style={{ margin: "4px 0 0", fontSize: "12px", color: "#C03A2E" }}>
+								<p
+									style={{
+										margin: "4px 0 0",
+										fontSize: "12px",
+										color: "#C03A2E",
+									}}
+								>
 									{errors.tumId}
 								</p>
 							)}
@@ -308,7 +332,9 @@ function LoginPage() {
 									fontSize: "14px",
 									color: "#0B1F33",
 									background: "#FFFFFF",
-									border: errors.password ? "1px solid #C03A2E" : "1px solid #E2E7EF",
+									border: errors.password
+										? "1px solid #C03A2E"
+										: "1px solid #E2E7EF",
 									borderRadius: "10px",
 									outline: "none",
 									transition: "border-color 0.15s, box-shadow 0.15s",
@@ -319,12 +345,20 @@ function LoginPage() {
 									e.target.style.boxShadow = "0 0 0 3px rgba(46,111,181,0.12)";
 								}}
 								onBlurCapture={(e) => {
-									e.target.style.borderColor = errors.password ? "#C03A2E" : "#E2E7EF";
+									e.target.style.borderColor = errors.password
+										? "#C03A2E"
+										: "#E2E7EF";
 									e.target.style.boxShadow = "none";
 								}}
 							/>
 							{errors.password && (
-								<p style={{ margin: "4px 0 0", fontSize: "12px", color: "#C03A2E" }}>
+								<p
+									style={{
+										margin: "4px 0 0",
+										fontSize: "12px",
+										color: "#C03A2E",
+									}}
+								>
 									{errors.password}
 								</p>
 							)}
@@ -346,18 +380,22 @@ function LoginPage() {
 								border: "none",
 								borderRadius: "10px",
 								cursor: isDisabled ? "not-allowed" : "pointer",
-								boxShadow: isDisabled ? "none" : "0 4px 14px rgba(138,87,224,0.35)",
+								boxShadow: isDisabled
+									? "none"
+									: "0 4px 14px rgba(138,87,224,0.35)",
 								transition: "box-shadow 0.2s, opacity 0.2s",
 								fontFamily: "inherit",
 								letterSpacing: "0.01em",
 							}}
 							onMouseEnter={(e) => {
 								if (!isDisabled)
-									e.currentTarget.style.boxShadow = "0 6px 20px rgba(138,87,224,0.45)";
+									e.currentTarget.style.boxShadow =
+									"0 6px 20px rgba(138,87,224,0.45)";
 							}}
 							onMouseLeave={(e) => {
 								if (!isDisabled)
-									e.currentTarget.style.boxShadow = "0 4px 14px rgba(138,87,224,0.35)";
+									e.currentTarget.style.boxShadow =
+									"0 4px 14px rgba(138,87,224,0.35)";
 							}}
 						>
 							{mutation.isPending ? "Signing in…" : "Sign in"}
