@@ -1,11 +1,8 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
-import { hydrateAuth } from "#/api/auth";
 import { queryClient } from "#/api/query-client";
 import { routeTree } from "./routeTree.gen";
-
-hydrateAuth();
 
 const router = createRouter({
 	routeTree,

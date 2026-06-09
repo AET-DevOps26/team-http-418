@@ -1,8 +1,7 @@
 export const mockConfig: Record<string, boolean> = {
   "GET /hello": true,
-  "POST /auth/login": true,
-  "POST /auth/refresh": true,
-  "POST /auth/logout": true,
+  // "GET /courses": true,
+  // "POST /auth/login": true,
   // Add endpoints here — set false to "unlock" (use real backend)
 };
 
