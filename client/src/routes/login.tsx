@@ -32,7 +32,7 @@ function FloatingShapes() {
 					height: "420px",
 					borderRadius: "50%",
 					background:
-					"linear-gradient(135deg, rgba(138,87,224,0.18), rgba(45,111,181,0.14))",
+						"linear-gradient(135deg, rgba(138,87,224,0.18), rgba(45,111,181,0.14))",
 					animation: "spin 60s linear infinite",
 				}}
 			/>
@@ -160,7 +160,7 @@ function LoginPage() {
 					borderRadius: "14px",
 					border: "1px solid #E2E7EF",
 					boxShadow:
-					"0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+						"0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
 					overflow: "hidden",
 				}}
 			>
@@ -189,12 +189,12 @@ function LoginPage() {
 							}}
 						>
 							<svg
-							width="28"
-							height="28"
-							viewBox="0 0 24 24"
-							fill="none"
-							aria-hidden="true"
-						>
+								width="28"
+								height="28"
+								viewBox="0 0 24 24"
+								fill="none"
+								aria-hidden="true"
+							>
 								<path
 									d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"
 									fill="rgba(255,255,255,0.95)"
@@ -274,8 +274,8 @@ function LoginPage() {
 									color: "#0B1F33",
 									background: "#FFFFFF",
 									border: errors.tumId
-									? "1px solid #C03A2E"
-									: "1px solid #E2E7EF",
+										? "1px solid #C03A2E"
+										: "1px solid #E2E7EF",
 									borderRadius: "10px",
 									outline: "none",
 									transition: "border-color 0.15s, box-shadow 0.15s",
@@ -390,12 +390,12 @@ function LoginPage() {
 							onMouseEnter={(e) => {
 								if (!isDisabled)
 									e.currentTarget.style.boxShadow =
-									"0 6px 20px rgba(138,87,224,0.45)";
+										"0 6px 20px rgba(138,87,224,0.45)";
 							}}
 							onMouseLeave={(e) => {
 								if (!isDisabled)
 									e.currentTarget.style.boxShadow =
-									"0 4px 14px rgba(138,87,224,0.35)";
+										"0 4px 14px rgba(138,87,224,0.35)";
 							}}
 						>
 							{mutation.isPending ? "Signing in…" : "Sign in"}
