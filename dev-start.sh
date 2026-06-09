@@ -84,7 +84,7 @@ fi
 # Override docker-network hostnames with localhost for native services
 export DB_HOST=localhost
 export DB_PORT="${DB_PORT:-5432}"
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${DB_PORT}/${DB_NAME:-aidan}"
+export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${DB_PORT}"
 export GENAI_BASE_URL="http://localhost:8000"
 
 # ── Shutdown trap ────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ ensure_venv() {
   if   [ -d "$dir/.venv" ]; then venv_dir="$dir/.venv"
   elif [ -d "$dir/venv"  ]; then venv_dir="$dir/venv"
   else
-    log "Creating venv in $dir/.venv"
+    log "Creating venv in $dir/.venv" >&2
     python3 -m venv "$dir/.venv"
     venv_dir="$dir/.venv"
   fi
@@ -173,7 +173,7 @@ fi
 # ── client ───────────────────────────────────────────────────────────────────
 if $START_CLIENT; then
   log_cli "Starting client dev server..."
-  (cd "$SCRIPT_DIR/client" && pnpm dev) &
+  (cd "$SCRIPT_DIR/client" && pnpm install && pnpm dev) &
   PIDS+=($!)
 fi
 
