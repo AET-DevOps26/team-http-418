@@ -2,6 +2,9 @@ package tum.devops.http418.data;
 
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
+
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,9 +13,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 public class DataSourceConfig {
-	String baseUrl = System.getenv("SPRING_DATASOURCE_URL");
-	String username = System.getenv("SPRING_DATASOURCE_USERNAME");
-	String password = System.getenv("SPRING_DATASOURCE_PASSWORD");
+
+	private final String baseUrl = requireEnv("SPRING_DATASOURCE_URL");
+	private final String username = requireEnv("SPRING_DATASOURCE_USERNAME");
+	private final String password = requireEnv("SPRING_DATASOURCE_PASSWORD");
 
 	@Bean
 	@Primary
@@ -85,5 +89,14 @@ public class DataSourceConfig {
 	@Bean
 	public JdbcTemplate securityJdbcTemplate(@Qualifier("securityDataSource") DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
+	}
+	private static String requireEnv(String name) {
+		String value = System.getenv(name);
+
+		if (value == null || value.isBlank()) {
+			throw new IllegalStateException("Missing required environment variable: " + name);
+		}
+
+		return value;
 	}
 }

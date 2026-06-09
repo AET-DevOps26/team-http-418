@@ -19,7 +19,6 @@ public class AuthService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final InMemoryRefreshTokenStore refreshTokenStore;
 	private final PasswordEncoder passwordEncoder;
-	private final String salt = "1234567890";
 
 	public AuthService(AuthenticationManager authenticationManager, DBUserDetailsManager userDetailsService,
 			JwtTokenProvider jwtTokenProvider, InMemoryRefreshTokenStore refreshTokenStore,
@@ -36,7 +35,7 @@ public class AuthService {
 
 	public AuthResponse login(String tumId, String password) {
 		Authentication authentication = authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(tumId, password + salt));
+				.authenticate(new UsernamePasswordAuthenticationToken(tumId, password));
 
 		String accessToken = jwtTokenProvider.generateAccessToken(authentication);
 		String refreshToken = refreshTokenStore.create(authentication.getName());
@@ -68,7 +67,7 @@ public class AuthService {
 			throw new UserExistsException("User already exists");
 		}
 		userDetailsService.createUser(
-				User.withUsername(tumid).password(passwordEncoder.encode(password + salt)).roles("USER").build());
+				User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
 		return login(tumid, password);
 	}
 }
