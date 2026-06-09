@@ -4,8 +4,8 @@ export {
 	refreshAccessToken,
 	setAccessToken,
 } from "#/api/auth";
-export { ApiError, apiFetch } from "#/api/client";
 export type { ApiFetchOptions } from "#/api/client";
+export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
 export { queryClient } from "#/api/query-client";
 export type {
