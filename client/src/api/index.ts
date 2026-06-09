@@ -1,14 +1,23 @@
 export {
+	AuthError,
 	clearAccessToken,
+	clearTokens,
 	getAccessToken,
+	hydrateAuth,
+	isAuthenticated,
+	login,
+	logout,
 	refreshAccessToken,
 	setAccessToken,
+	setTokens,
 } from "#/api/auth";
 export { ApiError, apiFetch } from "#/api/client";
 export type { ApiFetchOptions } from "#/api/client";
 export { queryClient } from "#/api/query-client";
 export type {
+	AuthResponse,
 	IsoDateString,
+	LoginRequest,
 	Page,
 	ProblemDetail,
 	SemesterKey,
