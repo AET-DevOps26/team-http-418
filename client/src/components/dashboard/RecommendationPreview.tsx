@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import type { DashboardRecommendation } from "#/api/types";
 
 type Props = { recommendations: DashboardRecommendation[] };
@@ -6,40 +7,106 @@ export function RecommendationPreview({ recommendations }: Props) {
 	const top3 = recommendations.slice(0, 3);
 
 	return (
-		<div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-			<h2 className="text-lg font-semibold text-gray-900 mb-4">
-				Recommended Courses
-			</h2>
+		<div className="card" style={{ padding: "20px" }}>
+			<div
+				className="eyebrow"
+				style={{ display: "flex", alignItems: "center", gap: 6 }}
+			>
+				<span
+					style={{
+						width: 6,
+						height: 6,
+						borderRadius: "50%",
+						background: "#7c3aed",
+						display: "inline-block",
+						flexShrink: 0,
+					}}
+				/>
+				AI-personalised recommendations
+			</div>
+
 			{top3.length === 0 ? (
-				<p className="text-sm text-gray-500">No recommendations available.</p>
+				<p style={{ fontSize: 13, color: "var(--muted)" }}>
+					No recommendations available.
+				</p>
 			) : (
-				<ul className="space-y-3">
+				<div className="rec-row">
 					{top3.map((rec) => (
-						<li key={rec.courseId}>
-							<a
-								href={`/courses/${rec.courseId}`}
-								className="block rounded-xl border border-gray-100 p-4 hover:border-purple-200 hover:bg-purple-50 transition-colors"
-							>
-								<div className="flex items-start justify-between gap-2">
-									<div className="flex items-center gap-2">
-										<span className="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-											{rec.courseCode}
-										</span>
-										<span className="text-sm font-medium text-gray-900">
-											{rec.courseName}
-										</span>
+						<a
+							key={rec.courseId}
+							href={`/courses/${rec.courseId}`}
+							style={{ textDecoration: "none", display: "flex" }}
+						>
+							<div className="rec-card">
+								<div style={{ marginBottom: 8 }}>
+									<span
+										className="tag"
+										style={{
+											background: "var(--blue-50)",
+											color: "var(--blue-700)",
+											fontFamily: "var(--font-mono)",
+											marginBottom: 6,
+											display: "inline-flex",
+										}}
+									>
+										{rec.courseCode}
+									</span>
+									<div
+										style={{
+											fontSize: 13,
+											fontWeight: 600,
+											color: "var(--ink)",
+											lineHeight: 1.3,
+										}}
+									>
+										{rec.courseName}
 									</div>
-									<span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-										{Math.round(rec.relevanceScore * 100)}%
+								</div>
+
+								<div className="ai-reason" style={{ flex: 1 }}>
+									<div
+										style={{
+											display: "flex",
+											alignItems: "center",
+											gap: 4,
+											marginBottom: 3,
+											fontSize: 10,
+											fontWeight: 700,
+											letterSpacing: "0.05em",
+											textTransform: "uppercase",
+											color: "#7c3aed",
+										}}
+									>
+										<Sparkles size={10} strokeWidth={2} />
+										Why AIDAN recommends this
+									</div>
+									{rec.reason}
+								</div>
+
+								<div
+									style={{
+										marginTop: 10,
+										display: "flex",
+										justifyContent: "flex-end",
+									}}
+								>
+									<span
+										style={{
+											fontSize: 11,
+											fontWeight: 600,
+											color: "#5b21b6",
+											background: "#ede9fe",
+											borderRadius: "var(--r-sm)",
+											padding: "2px 7px",
+										}}
+									>
+										{Math.round(rec.relevanceScore * 100)}% match
 									</span>
 								</div>
-								<p className="mt-1.5 text-xs text-gray-500 line-clamp-2">
-									{rec.reason}
-								</p>
-							</a>
-						</li>
+							</div>
+						</a>
 					))}
-				</ul>
+				</div>
 			)}
 		</div>
 	);
