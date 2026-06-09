@@ -21,6 +21,17 @@ export type Page<T> = {
 export type IsoDateString = string & { readonly __brand: "IsoDateString" };
 export type SemesterKey = string & { readonly __brand: "SemesterKey" };
 
+export type AuthResponse = {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+};
+
+export type LoginRequest = {
+	tumId: string;
+	password: string;
+};
+
 export type DashboardProgress = {
 	totalCreditsEarned: number;
 	totalCreditsRequired: number;
