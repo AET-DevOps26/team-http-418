@@ -6,9 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
 import tum.devops.http418.auth.dto.AuthResponse;
 import tum.devops.http418.auth.security.JwtTokenProvider;
@@ -16,78 +14,61 @@ import tum.devops.http418.auth.security.JwtTokenProvider;
 @Service
 public class AuthService {
 
-    private final AuthenticationManager authenticationManager;
-    private final InMemoryUserDetailsManager userDetailsService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final InMemoryRefreshTokenStore refreshTokenStore;
-    private final PasswordEncoder passwordEncoder;
-    private final String salt = "1234567890";
+	private final AuthenticationManager authenticationManager;
+	private final DBUserDetailsManager userDetailsService;
+	private final JwtTokenProvider jwtTokenProvider;
+	private final InMemoryRefreshTokenStore refreshTokenStore;
+	private final PasswordEncoder passwordEncoder;
+	private final String salt = "1234567890";
 
-    public AuthService(
-            AuthenticationManager authenticationManager,
-            InMemoryUserDetailsManager userDetailsService,
-            JwtTokenProvider jwtTokenProvider,
-            InMemoryRefreshTokenStore refreshTokenStore,
-            PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.refreshTokenStore = refreshTokenStore;
-        this.passwordEncoder = passwordEncoder;
+	public AuthService(AuthenticationManager authenticationManager, DBUserDetailsManager userDetailsService,
+			JwtTokenProvider jwtTokenProvider, InMemoryRefreshTokenStore refreshTokenStore,
+			PasswordEncoder passwordEncoder) {
+		this.authenticationManager = authenticationManager;
+		this.userDetailsService = userDetailsService;
+		this.jwtTokenProvider = jwtTokenProvider;
+		this.refreshTokenStore = refreshTokenStore;
+		this.passwordEncoder = passwordEncoder;
 
-        try {
-            register("ga12abc", "string"); // todo testuser, remove later
-        } catch (UserExistsException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		if (!userDetailsService.userExists("testidPersistent")) // create persistent user for testing
+			register("testidPersistent", "testpassPersistent");
+	}
 
-    public AuthResponse login(String tumId, String password) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(tumId, password + salt)
-        );
+	public AuthResponse login(String tumId, String password) {
+		Authentication authentication = authenticationManager
+				.authenticate(new UsernamePasswordAuthenticationToken(tumId, password + salt));
 
-        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
-        String refreshToken = refreshTokenStore.create(authentication.getName());
+		String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+		String refreshToken = refreshTokenStore.create(authentication.getName());
 
-        return new AuthResponse(
-                accessToken,
-                refreshToken,
-                jwtTokenProvider.getAccessTokenTtlSeconds()
-        );
-    }
+		return new AuthResponse(accessToken, refreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
+	}
 
-    public AuthResponse refresh(String refreshToken) {
-        String tumId = refreshTokenStore.consume(refreshToken)
-                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+	public AuthResponse refresh(String refreshToken) {
+		String tumId = refreshTokenStore.consume(refreshToken)
+				.orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
 
-        var userDetails = userDetailsService.loadUserByUsername(tumId);
+		var userDetails = userDetailsService.loadUserByUsername(tumId);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
+		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+				userDetails.getAuthorities());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
-        String newRefreshToken = refreshTokenStore.create(tumId);
+		String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+		String newRefreshToken = refreshTokenStore.create(tumId);
 
-        return new AuthResponse(
-                newAccessToken,
-                newRefreshToken,
-                jwtTokenProvider.getAccessTokenTtlSeconds()
-        );
-    }
+		return new AuthResponse(newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
+	}
 
-    public void logout(String refreshToken) {
-        refreshTokenStore.revoke(refreshToken);
-    }
+	public void logout(String refreshToken) {
+		refreshTokenStore.revoke(refreshToken);
+	}
 
-    public AuthResponse register(@NotBlank String tumid, @NotBlank String password) {
-        if (userDetailsService.userExists(tumid)) {
-            throw new UserExistsException("User already exists");
-        }
-        userDetailsService.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password + salt)).roles("USER").build());
-        return login(tumid, password);
-    }
+	public AuthResponse register(@NotBlank String tumid, @NotBlank String password) {
+		if (userDetailsService.userExists(tumid)) {
+			throw new UserExistsException("User already exists");
+		}
+		userDetailsService.createUser(
+				User.withUsername(tumid).password(passwordEncoder.encode(password + salt)).roles("USER").build());
+		return login(tumid, password);
+	}
 }

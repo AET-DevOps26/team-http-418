@@ -21,52 +21,36 @@ import tum.devops.http418.auth.security.JwtAuthenticationFilter;
 @Configuration
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
 
-    public SecurityConfig(
-            ObjectMapper objectMapper
-    ) {
-        this.objectMapper = objectMapper;
-    }
+	public SecurityConfig(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            CorsConfigurationSource corsConfigurationSource,
-            JwtAuthenticationFilter jwtAuthenticationFilter
-    ) {
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()    // allow requests to /auth
-                        .requestMatchers("/api/**").authenticated() // require auth for  /api
-                        .anyRequest().permitAll()                     // allow everything else
-                )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint((_, response, _) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    objectMapper.writeValue(
-                            response.getWriter(),
-                            ErrorResponse.of("unauthorized", "Authentication required")
-                    );
-                }))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource,
+			JwtAuthenticationFilter jwtAuthenticationFilter) {
+		return http.csrf(AbstractHttpConfigurer::disable)
+				.cors(cors -> cors.configurationSource(corsConfigurationSource))
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll() // allow requests to /auth
+						.requestMatchers("/api/**").authenticated() // require auth for /api
+						.anyRequest().permitAll() // allow everything else
+				).exceptionHandling(ex -> ex.authenticationEntryPoint((_, response, _) -> {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+					objectMapper.writeValue(response.getWriter(),
+							ErrorResponse.of("unauthorized", "Authentication required"));
+				})).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
+	}
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration
-    ) {
-        return configuration.getAuthenticationManager();
-    }
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+		return configuration.getAuthenticationManager();
+	}
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 }
