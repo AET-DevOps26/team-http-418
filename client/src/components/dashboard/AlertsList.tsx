@@ -1,15 +1,19 @@
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import type { AlertSeverity, DashboardAlert } from "#/api/types";
 
-const severityStyles: Record<AlertSeverity, string> = {
-	INFO: "bg-blue-50 border-blue-200 text-blue-800",
-	WARNING: "bg-amber-50 border-amber-200 text-amber-800",
-	ERROR: "bg-red-50 border-red-200 text-red-900",
+const alertClass: Record<AlertSeverity, string> = {
+	ERROR: "alert-error",
+	WARNING: "alert-warn",
+	INFO: "alert-info",
 };
 
-const severityDot: Record<AlertSeverity, string> = {
-	INFO: "bg-blue-400",
-	WARNING: "bg-amber-400",
-	ERROR: "bg-red-500",
+const AlertIcon = ({ severity }: { severity: AlertSeverity }) => {
+	const props = { size: 14, strokeWidth: 2, style: { flexShrink: 0 } };
+	if (severity === "ERROR")
+		return <AlertCircle {...props} color="var(--danger)" />;
+	if (severity === "WARNING")
+		return <AlertTriangle {...props} color="var(--accent)" />;
+	return <Info {...props} color="var(--blue-500)" />;
 };
 
 function formatType(type: string): string {
@@ -23,24 +27,71 @@ type Props = { alerts: DashboardAlert[] };
 
 export function AlertsList({ alerts }: Props) {
 	return (
-		<div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-			<h2 className="text-lg font-semibold text-gray-900 mb-4">Alerts</h2>
+		<div className="card" style={{ padding: "20px" }}>
+			<div className="eyebrow" style={{ color: "var(--danger)" }}>
+				Needs your attention
+			</div>
+
 			{alerts.length === 0 ? (
-				<p className="text-sm text-gray-500">No alerts right now.</p>
+				<p style={{ fontSize: 13, color: "var(--muted)" }}>
+					No alerts right now.
+				</p>
 			) : (
-				<ul className="space-y-2">
+				<ul
+					style={{
+						listStyle: "none",
+						margin: 0,
+						padding: 0,
+						display: "flex",
+						flexDirection: "column",
+						gap: 8,
+					}}
+				>
 					{alerts.map((alert) => (
 						<li
 							key={`${alert.type}-${alert.message}`}
-							className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${severityStyles[alert.severity]}`}
+							className={`alert-item ${alertClass[alert.severity]}`}
 						>
-							<span
-								className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${severityDot[alert.severity]}`}
-							/>
-							<div>
-								<span className="font-semibold">{formatType(alert.type)}</span>
-								<span className="mx-1">·</span>
-								<span>{alert.message}</span>
+							<div
+								style={{ display: "flex", gap: 8, alignItems: "flex-start" }}
+							>
+								<AlertIcon severity={alert.severity} />
+								<div>
+									<div
+										style={{
+											fontSize: 11.5,
+											fontWeight: 600,
+											color: "var(--ink-soft)",
+											marginBottom: 2,
+										}}
+									>
+										{formatType(alert.type)}
+									</div>
+									<div
+										style={{
+											fontSize: 12,
+											color: "var(--ink-soft)",
+											lineHeight: 1.45,
+										}}
+									>
+										{alert.message}
+									</div>
+									{alert.relatedEntityId && (
+										<a
+											href={`/courses/${alert.relatedEntityId}`}
+											style={{
+												display: "inline-block",
+												marginTop: 4,
+												fontSize: 11,
+												fontWeight: 600,
+												color: "var(--blue-600)",
+												textDecoration: "none",
+											}}
+										>
+											Resolve →
+										</a>
+									)}
+								</div>
 							</div>
 						</li>
 					))}
