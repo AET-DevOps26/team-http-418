@@ -70,20 +70,20 @@ public class DBUserDetailsManager implements UserDetailsManager {
 	@Override
 	@Transactional
 	public void changePassword(@NonNull String oldPassword, @NonNull String newPassword) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		if (authentication == null || authentication.getName() == null) {
 			throw new IllegalStateException("No authenticated user found");
 		}
 
-		String username = authentication.getName();
-		UserDetails currentUser = loadUserByUsername(username);
+		final String username = authentication.getName();
+		final UserDetails currentUser = loadUserByUsername(username);
 
 		if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
 			throw new IllegalArgumentException("Old password is incorrect");
 		}
 
-		String encodedNewPassword = passwordEncoder.encode(newPassword);
+		final String encodedNewPassword = passwordEncoder.encode(newPassword);
 
 		jdbcTemplate.update("UPDATE credentials SET password = ? WHERE username = ?", encodedNewPassword, username);
 	}

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+	protected final void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
 		String token = extractBearerToken(request);
 
@@ -31,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			String tumId = jwtTokenProvider.getUsername(token);
 
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(tumId, null,
-					List.of(new SimpleGrantedAuthority("ROLE_USER")));
+					List.of(new SimpleGrantedAuthority(Roles.USER)));
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		}
@@ -39,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	private String extractBearerToken(HttpServletRequest request) {
+	private @Nullable String extractBearerToken(@NonNull HttpServletRequest request) {
 		String header = request.getHeader("Authorization");
 
 		if (header == null || !header.startsWith("Bearer ")) {

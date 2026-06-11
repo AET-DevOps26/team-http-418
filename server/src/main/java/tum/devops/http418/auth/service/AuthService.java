@@ -34,23 +34,23 @@ public class AuthService {
 		Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(tumId, password));
 
-		String accessToken = jwtTokenProvider.generateAccessToken(authentication);
-		String refreshToken = refreshTokenStore.create(authentication.getName());
+		final String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+		final String refreshToken = refreshTokenStore.create(authentication.getName());
 
 		return new AuthResponse(accessToken, refreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
 	}
 
 	public AuthResponse refresh(String refreshToken) {
-		String tumId = refreshTokenStore.consume(refreshToken)
+		final String tumId = refreshTokenStore.consume(refreshToken)
 				.orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
 
-		var userDetails = userDetailsService.loadUserByUsername(tumId);
+		final var userDetails = userDetailsService.loadUserByUsername(tumId);
 
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
 				userDetails.getAuthorities());
 
-		String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
-		String newRefreshToken = refreshTokenStore.create(tumId);
+		final String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+		final String newRefreshToken = refreshTokenStore.create(tumId);
 
 		return new AuthResponse(newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
 	}
