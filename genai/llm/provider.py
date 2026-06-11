@@ -8,7 +8,8 @@ from langchain_ollama import ChatOllama
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "cloud")
 
-LOGOS_BASE_URL = os.getenv("LOGOS_BASE_URL", "https://logos.aet.cit.tum.de/v1")
+# Base URL without /v1 — OpenAI SDK appends /v1 automatically
+LOGOS_BASE_URL = os.getenv("LOGOS_BASE_URL", "https://logos.aet.cit.tum.de")
 LOGOS_API_KEY = os.getenv("LOGOS_API_KEY", "")
 LOGOS_MODEL = os.getenv("LOGOS_MODEL", "openai/gpt-oss-120b")
 
@@ -22,8 +23,8 @@ def get_llm():
     if LLM_PROVIDER == "local":
         return ChatOllama(base_url=OLLAMA_BASE_URL, model=OLLAMA_MODEL)
     return ChatOpenAI(
-        base_url=LOGOS_BASE_URL,
-        api_key=LOGOS_API_KEY,
+        openai_api_base=f"{LOGOS_BASE_URL}/v1",
+        openai_api_key=LOGOS_API_KEY,
         model=LOGOS_MODEL,
     )
 
@@ -41,7 +42,7 @@ def check_llm_health() -> str:
         if LLM_PROVIDER == "local":
             url = f"{OLLAMA_BASE_URL}/api/tags"
         else:
-            url = f"{LOGOS_BASE_URL}/models"
+            url = f"{LOGOS_BASE_URL}/v1/models"
 
         req = urllib.request.Request(url)
         if LLM_PROVIDER == "cloud" and LOGOS_API_KEY:

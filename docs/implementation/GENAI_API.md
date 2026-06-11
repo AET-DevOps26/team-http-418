@@ -52,6 +52,30 @@ Possible values: `UP` (service running and ready) / `DOWN` (service unavailable)
 
 ---
 
+### Chat (proof-of-concept)
+
+> Spring Boot endpoint: `POST /hello-ai` (any service) → calls this GenAI endpoint:
+
+| Impl | Method | Endpoint | Body | Status | Description | Called by |
+| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
+| [x] | `POST` | `/v1/chat` | `{ message }` | 200 | Forward raw message to LLM, return response. No DB, no auth, no student context. Proof-of-concept only. | Any |
+
+<details>
+<summary>Request / response schemas</summary>
+
+**Request**
+```json
+{ "message": "What courses should I take to become an AI researcher?" }
+```
+
+**Response**
+```json
+{ "response": "To become an AI researcher, I recommend starting with..." }
+```
+</details>
+
+---
+
 ### Semantic Course Search
 
 > Spring Boot endpoint: `GET /courses?ai=true` (Browsing Service) → calls this GenAI endpoint:

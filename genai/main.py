@@ -1,7 +1,14 @@
-from fastapi import FastAPI, APIRouter
-from fastapi.responses import JSONResponse
+import logging
+import time
 
-from llm.provider import check_llm_health, get_provider_info
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+from llm.provider import check_llm_health, get_provider_info, get_llm
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("genai")
 
 app = FastAPI(title="AIDAN GenAI Service")
 
@@ -19,6 +26,43 @@ async def health():
             **provider_info,
         }
     })
+
+
+# ---------------------------------------------------------------------------
+# Implemented endpoints
+# ---------------------------------------------------------------------------
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+@router.post("/chat")
+async def chat(request: ChatRequest):
+    provider_info = get_provider_info()
+    # TODO: remove request_body from logs before prod — will contain student data
+    logger.info(
+        "chat | model=%s provider=%s request_body=%r",
+        provider_info["model"],
+        provider_info["provider"],
+        request.message,
+    )
+
+    llm = get_llm()
+    start = time.perf_counter()
+    result = await llm.ainvoke(request.message)
+    elapsed_ms = round((time.perf_counter() - start) * 1000)
+
+    token_usage = getattr(result, "response_metadata", {}).get("token_usage", {})
+    logger.info(
+        "chat | model=%s duration_ms=%d prompt_tokens=%s completion_tokens=%s total_tokens=%s",
+        provider_info["model"],
+        elapsed_ms,
+        token_usage.get("prompt_tokens", "n/a"),
+        token_usage.get("completion_tokens", "n/a"),
+        token_usage.get("total_tokens", "n/a"),
+    )
+
+    return JSONResponse({"response": result.content})
 
 
 # ---------------------------------------------------------------------------
