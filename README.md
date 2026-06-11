@@ -79,19 +79,39 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 ### Build Instructions
 
-environment variables:
+**1. Set up environment variables:**
 ```bash
 cp .env.example .env
+# edit .env — set LOGOS_API_KEY (get from tutor), adjust LLM_PROVIDER if needed
 ```
-required components:
+
+**2. Start all core services** (db, server, client, genai):
 ```bash
 docker compose up --build
 ```
-start and run scraper:
+
+Services started automatically:
+| Service | Port | Description |
+|---|---|---|
+| `client` | `localhost:3000` | React frontend |
+| `server` | `localhost:8080` | Spring Boot REST API |
+| `db` | `localhost:5432` | PostgreSQL |
+| `genai` | internal only | Python FastAPI AI service |
+
+**3. Run scraper** (on-demand, after core services are up):
 ```bash
-docker compose up scraper --build
+docker compose --profile scraper up scraper --build
 ```
-do a clean scraper run, deleting the existing data first:
+
+**4. Run with local LLM** (Ollama instead of Logos cloud):
+```bash
+# set LLM_PROVIDER=local in .env first
+docker compose --profile local up --build
+# then pull the model (first run only):
+docker compose exec ollama ollama pull llama3.2
+```
+
+**5. Clean scraper run** (deletes existing data first):
 ```bash
 docker compose up scraper-clean
 ```
