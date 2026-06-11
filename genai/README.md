@@ -18,7 +18,8 @@ TUM-provided OpenAI-compatible API.
 
 ```
 LLM_PROVIDER=cloud
-LOGOS_BASE_URL=https://logos.aet.cit.tum.de/v1
+LOGOS_BASE_URL=https://logos.aet.cit.tum.de
+LOGOS_API_VERSION=v1
 LOGOS_API_KEY=lg-...        # get from your tutor
 LOGOS_MODEL=openai/gpt-oss-120b
 ```

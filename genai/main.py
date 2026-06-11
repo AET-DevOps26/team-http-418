@@ -50,22 +50,30 @@ async def chat(request: ChatRequest):
         request.message,
     )
 
-    llm = get_llm()
-    start = time.perf_counter()
-    result = await llm.ainvoke(request.message)
-    elapsed_ms = round((time.perf_counter() - start) * 1000)
+    try:
+        llm = get_llm()
+        start = time.perf_counter()
+        result = await llm.ainvoke(request.message)
+        elapsed_ms = round((time.perf_counter() - start) * 1000)
 
-    token_usage = getattr(result, "response_metadata", {}).get("token_usage", {})
-    logger.info(
-        "chat | model=%s duration_ms=%d prompt_tokens=%s completion_tokens=%s total_tokens=%s",
-        provider_info["model"],
-        elapsed_ms,
-        token_usage.get("prompt_tokens", "n/a"),
-        token_usage.get("completion_tokens", "n/a"),
-        token_usage.get("total_tokens", "n/a"),
-    )
+        token_usage = getattr(result, "response_metadata", {}).get("token_usage", {})
+        logger.info(
+            "chat | model=%s duration_ms=%d prompt_tokens=%s completion_tokens=%s total_tokens=%s",
+            provider_info["model"],
+            elapsed_ms,
+            token_usage.get("prompt_tokens", "n/a"),
+            token_usage.get("completion_tokens", "n/a"),
+            token_usage.get("total_tokens", "n/a"),
+        )
 
-    return JSONResponse({"response": result.content})
+        return JSONResponse({"response": result.content})
+
+    except TimeoutError as e:
+        logger.error("chat | model=%s timeout: %s", provider_info["model"], e)
+        return JSONResponse({"error": "LLM request timed out"}, status_code=504)
+    except Exception as e:
+        logger.error("chat | model=%s unexpected error: %s", provider_info["model"], e)
+        return JSONResponse({"error": "LLM request failed"}, status_code=502)
 
 
 # ---------------------------------------------------------------------------
