@@ -1,10 +1,10 @@
 import os
-import urllib.request
 import urllib.error
+import urllib.request
 from functools import lru_cache
 
-from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "cloud")
 

@@ -1,11 +1,11 @@
 import logging
 import time
 
-from fastapi import FastAPI, APIRouter, Request
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from llm.provider import check_llm_health, get_provider_info, get_llm
+from llm.provider import check_llm_health, get_llm, get_provider_info
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("genai")
@@ -19,18 +19,21 @@ router = APIRouter(prefix="/v1")
 async def health():
     llm_status = check_llm_health()
     provider_info = get_provider_info()
-    return JSONResponse({
-        "status": "UP",
-        "llm": {
-            "status": llm_status,
-            **provider_info,
+    return JSONResponse(
+        {
+            "status": "UP",
+            "llm": {
+                "status": llm_status,
+                **provider_info,
+            },
         }
-    })
+    )
 
 
 # ---------------------------------------------------------------------------
 # Implemented endpoints
 # ---------------------------------------------------------------------------
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -68,6 +71,7 @@ async def chat(request: ChatRequest):
 # ---------------------------------------------------------------------------
 # Stub endpoints — returns 501 until implemented
 # ---------------------------------------------------------------------------
+
 
 @router.get("/courses")
 async def courses_search():
