@@ -1,10 +1,12 @@
+import logging
 import os
-import urllib.error
-import urllib.request
 from functools import lru_cache
 
+import requests
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+
+logger = logging.getLogger("genai")
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "cloud")
 
@@ -41,14 +43,22 @@ def check_llm_health() -> str:
     try:
         if LLM_PROVIDER == "local":
             url = f"{OLLAMA_BASE_URL}/api/tags"
+            response = requests.get(url, timeout=5)
         else:
             url = f"{LOGOS_BASE_URL}/{LOGOS_API_VERSION}/models"
+            response = requests.get(url, headers={"Authorization": f"Bearer {LOGOS_API_KEY}"}, timeout=5)
 
-        req = urllib.request.Request(url)
-        if LLM_PROVIDER == "cloud" and LOGOS_API_KEY:
-            req.add_header("Authorization", f"Bearer {LOGOS_API_KEY}")
-
-        urllib.request.urlopen(req, timeout=5)
+        response.raise_for_status()
         return "UP"
-    except Exception:
+    except requests.exceptions.ConnectionError as e:
+        logger.warning("LLM health check failed — connection error: %s", e)
+        return "DOWN"
+    except requests.exceptions.Timeout as e:
+        logger.warning("LLM health check failed — timeout: %s", e)
+        return "DOWN"
+    except requests.exceptions.HTTPError as e:
+        logger.warning("LLM health check failed — HTTP %s: %s", e.response.status_code, e)
+        return "DOWN"
+    except Exception as e:
+        logger.warning("LLM health check failed — unexpected error: %s", e)
         return "DOWN"
