@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -26,7 +27,8 @@ class Http418ApplicationTests {
 		ClassPathResource file = new ClassPathResource("grade_report.pdf");
 		byte[] fileContent = file.getContentAsByteArray();
 
-		mockMvc.perform(post("/parse-pdf").contentType(MediaType.APPLICATION_OCTET_STREAM).content(fileContent));
+		mockMvc.perform(post("/parse-pdf").contentType(MediaType.APPLICATION_OCTET_STREAM).content(fileContent))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 		// TODO compare result to expected
 	}
 }

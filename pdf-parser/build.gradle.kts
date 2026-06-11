@@ -22,6 +22,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
+	implementation("technology.tabula:tabula:1.0.5"){
+		exclude(group = "org.slf4j", module = "slf4j-simple")
+	}
 	implementation("org.apache.pdfbox:pdfbox:3.0.7")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")

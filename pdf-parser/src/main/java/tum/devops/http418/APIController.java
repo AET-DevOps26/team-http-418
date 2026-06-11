@@ -15,8 +15,9 @@ public class APIController {
 	}
 
 	@PostMapping("/parse-pdf")
-	public ResponseEntity<String> parse(@RequestBody byte[] fileContent) throws IOException {
-		return ResponseEntity.status(HttpStatus.OK).body(PDFParser.parsePDF(fileContent));
+	public ResponseEntity<String> parse(@RequestBody byte[] fileContent) {
+		String res = PDFParser.parsePDF(fileContent);
+		return ResponseEntity.status(res.equals("OK") ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(res);
 	}
 
 	@ExceptionHandler(IOException.class)
