@@ -9,5 +9,5 @@ import org.springframework.test.context.TestPropertySource;
 		"SPRING_DATASOURCE_PASSWORD=", "app.jwt.secret=change-me-change-me-change-me-change-me",
 		"app.jwt.access-token-ttl-seconds=3600", "app.refresh-token.ttl-seconds=604800"})
 @ActiveProfiles("test")
-public class BaseTest {
+public class BaseTest  {
 }
