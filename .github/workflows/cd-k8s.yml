@@ -69,7 +69,6 @@ jobs:
 
       - name: Create GHCR pull secret
         run: |
-          kubectl create namespace aidan --dry-run=client -o yaml | kubectl apply -f -
           kubectl create secret docker-registry ghcr-pull-secret \
             --docker-server=ghcr.io \
             --docker-username=${{ github.actor }} \
@@ -84,6 +83,5 @@ jobs:
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
             --namespace aidan \
-            --create-namespace \
             --wait \
             --timeout 5m
