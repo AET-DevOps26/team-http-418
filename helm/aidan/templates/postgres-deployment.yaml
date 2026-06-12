@@ -8,6 +8,8 @@ metadata:
     {{- include "aidan.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount.postgres }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: postgres
