@@ -1,9 +1,3 @@
 {
-  "private": true,
-  "scripts": {
-    "prepare": "husky && printf 'cd client && npx biome check --staged --write --no-errors-on-unmatched --colors=off\\n' > .husky/pre-commit && chmod +x .husky/pre-commit"
-  },
-  "devDependencies": {
-    "husky": "^9.1.7"
-  }
+  "private": true
 }

@@ -19,19 +19,84 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-jdbc")
+
+	compileOnly("org.projectlombok:lombok:1.18.46")
+	annotationProcessor("org.projectlombok:lombok:1.18.46")
+	testCompileOnly("org.projectlombok:lombok:1.18.46")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.46")
+
+	implementation("org.postgresql:postgresql")
+	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+	testImplementation("com.h2database:h2")
+	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+data class RootCauseFailure(
+	val className: String,
+	val testName: String,
+	val exceptionName: String,
+	val message: String?
+)
+val rootCauseFailures = mutableListOf<RootCauseFailure>()
+
 tasks.withType<Test> {
 	useJUnitPlatform()
+	testLogging {
+		events("passed", "skipped", "failed")
+	}
+	afterTest(KotlinClosure2<TestDescriptor, TestResult, Unit>({ descriptor, result ->
+		if (result.resultType == TestResult.ResultType.FAILURE) {
+			result.exceptions.forEach { exception ->
+				val root = generateSequence(exception) { it.cause }.last()
+
+				rootCauseFailures += RootCauseFailure(
+					className = descriptor.className ?: "Unknown class",
+					testName = descriptor.name,
+					exceptionName = root::class.qualifiedName ?: root::class.simpleName ?: "Unknown exception",
+					message = root.message
+				)
+			}
+		}
+	}))
+
+	afterSuite(KotlinClosure2<TestDescriptor, TestResult, Unit>({ descriptor, _ ->
+		if (descriptor.parent == null && rootCauseFailures.isNotEmpty()) {
+			val red = "\u001B[31m"
+			val yellow = "\u001B[33m"
+			val cyan = "\u001B[36m"
+			val bold = "\u001B[1m"
+			val reset = "\u001B[0m"
+
+			println()
+			println("${bold}${red}Root Cause Summary${reset}")
+			println("${red}=====================================================================================${reset}")
+
+			rootCauseFailures.forEachIndexed { index, failure ->
+				println()
+				println("${bold}${yellow}${index + 1}) ${failure.className} > ${failure.testName}${reset}")
+				println("${cyan}Exception:${reset} ${failure.exceptionName}")
+				println("${cyan}Message:  ${reset} ${failure.message ?: "(no message)"}")
+			}
+
+			println()
+			println("${red}=====================================================================================${reset}")
+		}
+	}))
 }
 
 spotless {
 	java {
-		googleJavaFormat()
+		eclipse()
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()
