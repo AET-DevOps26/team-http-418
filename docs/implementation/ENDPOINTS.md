@@ -54,6 +54,7 @@
 
 | Impl | Method | Endpoint | Params / Body | Status | Description | Service |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
+| [ ] | `POST` | `/auth/register` | Body: `{ tumId, password }` | 200 / 409 | Register a new user | Student Service |
 | [ ] | `POST` | `/auth/login` | Body: `{ tumId, password }` | 200 / 401 | Exchange TUM credentials for JWT access + refresh tokens | Student Service |
 | [ ] | `POST` | `/auth/refresh` | Body: `{ refreshToken }` | 200 / 401 | Rotate tokens using a valid refresh token | Student Service |
 | [ ] | `POST` | `/auth/logout` | Header: `Authorization` | 204 | Invalidate the current session | Student Service |
@@ -61,7 +62,7 @@
 <details>
 <summary>Request / response schemas</summary>
 
-**`POST /auth/login` — request**
+**`POST /auth/login` and `POST /auth/register` — request**
 ```json
 {
   "tumId": "ga12abc",
@@ -69,7 +70,7 @@
 }
 ```
 
-**`POST /auth/login` — response**
+**`POST /auth/login` and `POST /auth/register` — response**
 ```json
 {
   "accessToken": "eyJ...",

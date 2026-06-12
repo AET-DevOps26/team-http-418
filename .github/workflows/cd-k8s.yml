@@ -69,7 +69,6 @@ jobs:
 
       - name: Create GHCR pull secret
         run: |
-          kubectl create namespace aidan --dry-run=client -o yaml | kubectl apply -f -
           kubectl create secret docker-registry ghcr-pull-secret \
             --docker-server=ghcr.io \
             --docker-username=${{ github.actor }} \
@@ -84,6 +83,21 @@ jobs:
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
             --namespace aidan \
-            --create-namespace \
             --wait \
             --timeout 5m
+
+      - name: Reset postgres PVC (one-time)
+        run: |
+          kubectl delete pvc postgres-pvc -n aidan --ignore-not-found
+          kubectl delete deployment postgres -n aidan --ignore-not-found
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods -n aidan
+          kubectl get pvc -n aidan
+          kubectl get events -n aidan --sort-by='.lastTimestamp'
+          kubectl describe pods -n aidan
+          kubectl logs -l app=postgres -n aidan --tail=50 || true
+          kubectl logs -l app=client -n aidan --tail=50 || true
+          kubectl logs -l app=server -n aidan --tail=50 || true

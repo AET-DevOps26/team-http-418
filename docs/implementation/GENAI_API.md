@@ -18,8 +18,8 @@ The React client **never** communicates with the GenAI service directly. Spring 
 
 | Convention | Detail |
 | :--- | :--- |
-| **Base URL** | `http://genai:8000` — service name `genai`, port `8000` (FastAPI default). Must be added to `docker-compose.yml`. Configurable via `GENAI_BASE_URL` env var |
-| **Endpoint paths** | GenAI endpoints mirror the Spring Boot paths they serve (e.g. Spring Boot `POST /me/roadmap/generate` calls GenAI `POST /me/roadmap/generate` at `genai:8000`) |
+| **Base URL** | `http://genai:8000/v1` — service name `genai`, port `8000` (FastAPI default). Must be added to `docker-compose.yml`. Configurable via `GENAI_BASE_URL` env var |
+| **Endpoint paths** | GenAI endpoints mirror the Spring Boot paths they serve (e.g. Spring Boot `POST /me/roadmap/generate` calls GenAI `POST /v1/me/roadmap/generate` at `genai:8000`) |
 | **Auth** | No auth between services — GenAI is not exposed publicly. Network-level isolation only |
 | **Errors** | `{ "error": "string", "detail": "string" }` with appropriate HTTP status |
 | **Stateless** | GenAI holds no state. Spring Boot sends full context on every request |
@@ -38,7 +38,7 @@ The React client **never** communicates with the GenAI service directly. Spring 
 
 | Impl | Method | Endpoint | Description | Called by |
 | :---: | :---: | :--- | :--- | :--- |
-| [ ] | `GET` | `/health` | Liveness check — confirms GenAI service is up and ready | All Spring Boot services |
+| [ ] | `GET` | `/v1/health` | Liveness check — confirms GenAI service is up and ready | All Spring Boot services |
 
 <details>
 <summary>Response schema</summary>
@@ -52,13 +52,37 @@ Possible values: `UP` (service running and ready) / `DOWN` (service unavailable)
 
 ---
 
+### Chat (proof-of-concept)
+
+> Spring Boot endpoint: `POST /hello-ai` (any service) → calls this GenAI endpoint:
+
+| Impl | Method | Endpoint | Body | Status | Description | Called by |
+| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
+| [x] | `POST` | `/v1/chat` | `{ message }` | 200 | Forward raw message to LLM, return response. No DB, no auth, no student context. Proof-of-concept only. | Any |
+
+<details>
+<summary>Request / response schemas</summary>
+
+**Request**
+```json
+{ "message": "What courses should I take to become an AI researcher?" }
+```
+
+**Response**
+```json
+{ "response": "To become an AI researcher, I recommend starting with..." }
+```
+</details>
+
+---
+
 ### Semantic Course Search
 
 > Spring Boot endpoint: `GET /courses?ai=true` (Browsing Service) → calls this GenAI endpoint:
 
 | Impl | Method | Endpoint | Query Params | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses` | `query, limit, department, language, level` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
+| [ ] | `GET` | `/v1/courses` | `query, limit, department, language, level` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
 
 Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
 
@@ -91,7 +115,7 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
+| [ ] | `POST` | `/v1/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
 
 **Always POST to GenAI** — both client-facing GET and POST flow here. GET sends complex student context as body (query params insufficient for arrays). POST adds optional override fields.
 
@@ -173,7 +197,7 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
+| [ ] | `POST` | `/v1/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
 
 **Async**: Spring Boot returns `202 Accepted` to client immediately, calls this endpoint in background. Client polls a status URL to retrieve the result when ready.
 
@@ -242,7 +266,7 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
+| [ ] | `POST` | `/v1/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
 
 **Streaming**: GenAI streams SSE tokens back to Spring Boot, which forwards the stream to the client. After stream ends, Spring Boot saves the completed assistant message to DB.
 
@@ -301,7 +325,7 @@ data: {"done": true, "fullContent": "Based on your completed ML courses..."}
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
+| [ ] | `POST` | `/v1/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
 
 Sync JSON — no streaming. Shown on advisor page before student types anything.
 
@@ -339,12 +363,12 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 ---
 
 ### Transcript Fuzzy Matching
-
+(currently unused since we only accept TUM Transcript format, and no need to send them to AI, since they have xml format and easy to read)
 > Spring Boot endpoint: `POST /me/transcript/upload` (Student Service) → calls this GenAI endpoint:
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/transcript/upload` | `{ unmatchedCourses, availableCourses }` | 200 | Fuzzy-match unrecognized transcript course names to catalog entries | Student Service |
+| [ ] | `POST` | `/v1/me/transcript/upload` | `{ unmatchedCourses, availableCourses }` | 200 | Fuzzy-match unrecognized transcript course names to catalog entries | Student Service |
 
 **Status: open / TBD** — requires real catalog data from scraper. Spring Boot first attempts exact + normalized matching. Only unmatched courses are sent here.
 
@@ -387,7 +411,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/plan/validate` | `{ student, semesterPlan, completedCourses }` | 200 | Holistic workload + conflict analysis beyond rule-based time overlap | Planning Service |
+| [ ] | `POST` | `/v1/me/plan/validate` | `{ student, semesterPlan, completedCourses }` | 200 | Holistic workload + conflict analysis beyond rule-based time overlap | Planning Service |
 
 Spring Boot runs rule-based time overlap checks independently. This endpoint adds AI-powered soft warnings (unrealistic workload, risky course combinations, scheduling preference violations). Spring Boot merges both result sets before returning `ConflictList` to client.
 
@@ -456,7 +480,7 @@ Spring Boot runs rule-based time overlap checks independently. This endpoint add
 
 | Impl | Method | Endpoint | Body | Status | Description | Called by |
 | :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors in Vector DB | Catalog Service / Scraper trigger |
+| [ ] | `POST` | `/v1/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors in Vector DB | Catalog Service / Scraper trigger |
 
 Triggered after scraper ingestion adds or updates courses. Also run on first setup (bulk embed all courses). Required for semantic search and recommendations to work.
 
