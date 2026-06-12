@@ -1,6 +1,8 @@
 package tum.devops.http418;
 
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import static java.lang.IO.println;
 public class APIController {
 
 	final ObjectMapper objectMapper = new ObjectMapper();
+	final Logger logger = LoggerFactory.getLogger(APIController.class);
 
 	@GetMapping("/health")
 	public ResponseEntity<String> health() {
@@ -39,6 +42,7 @@ public class APIController {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<String> handleException(@NonNull Exception ex) {
+		logger.error("Error parsing PDF", ex);
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
 	}
 }

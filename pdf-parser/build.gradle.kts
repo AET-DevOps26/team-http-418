@@ -26,6 +26,7 @@ dependencies {
 		exclude(group = "org.slf4j", module = "slf4j-simple")
 	}
 	implementation("org.apache.pdfbox:pdfbox:3.0.7")
+	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
