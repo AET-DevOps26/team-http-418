@@ -1,6 +1,7 @@
 package tum.devops.http418.auth;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -19,13 +20,10 @@ import tum.devops.http418.auth.dto.ErrorResponse;
 import tum.devops.http418.auth.security.JwtAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
 	private final ObjectMapper objectMapper;
-
-	public SecurityConfig(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {

@@ -1,17 +1,20 @@
 package tum.devops.http418.auth.service;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tum.devops.http418.auth.dto.AuthResponse;
 import tum.devops.http418.auth.security.JwtTokenProvider;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
 	private final AuthenticationManager authenticationManager;
@@ -19,16 +22,6 @@ public class AuthService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final InMemoryRefreshTokenStore refreshTokenStore;
 	private final PasswordEncoder passwordEncoder;
-
-	public AuthService(AuthenticationManager authenticationManager, DBUserDetailsManager userDetailsService,
-			JwtTokenProvider jwtTokenProvider, InMemoryRefreshTokenStore refreshTokenStore,
-			PasswordEncoder passwordEncoder) {
-		this.authenticationManager = authenticationManager;
-		this.userDetailsService = userDetailsService;
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.refreshTokenStore = refreshTokenStore;
-		this.passwordEncoder = passwordEncoder;
-	}
 
 	public AuthResponse login(String tumId, String password) {
 		Authentication authentication = authenticationManager
@@ -44,7 +37,7 @@ public class AuthService {
 		final String tumId = refreshTokenStore.consume(refreshToken)
 				.orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
 
-		final var userDetails = userDetailsService.loadUserByUsername(tumId);
+		final UserDetails userDetails = userDetailsService.loadUserByUsername(tumId);
 
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
 				userDetails.getAuthorities());
