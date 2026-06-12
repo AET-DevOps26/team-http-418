@@ -85,3 +85,11 @@ jobs:
             --namespace aidan \
             --wait \
             --timeout 5m
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods -n aidan
+          kubectl get pvc -n aidan
+          kubectl get events -n aidan --sort-by='.lastTimestamp'
+          kubectl describe pods -n aidan
