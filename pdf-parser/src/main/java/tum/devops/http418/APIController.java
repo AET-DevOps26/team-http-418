@@ -9,6 +9,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.IO.println;
+
 @RestController
 @RequestMapping("/v1")
 public class APIController {
@@ -17,6 +19,7 @@ public class APIController {
 
 	@GetMapping("/health")
 	public ResponseEntity<String> health() {
+		println("healthy");
 		return ResponseEntity.status(HttpStatus.OK).body("healthy");
 	}
 
