@@ -64,6 +64,33 @@ docker compose exec ollama ollama pull llama3.2
 
 ---
 
+## Embedding Models
+
+Used for semantic search and recommendation vector pipeline. Separate from LLM provider.
+Switch via `EMBEDDING_MODEL_CLOUD` / `EMBEDDING_MODEL_LOCAL` in `.env`.
+
+| Mode | Model | Dimensions | Provider |
+|---|---|---|---|
+| `cloud` | `Qwen/Qwen3-Embedding-8B` | 4096 | Logos (same API key) |
+| `local` | `nomic-embed-text` | 768 | Ollama |
+
+> **Note**: Cloud embedding model (`Qwen/Qwen3-Embedding-8B`) requires TUM network / eduVPN same as LLM.
+
+Pull local embedding model into Ollama (first run only):
+```bash
+docker compose exec ollama ollama pull nomic-embed-text
+```
+
+Test cloud embedding model manually:
+```bash
+curl -X POST https://logos.aet.cit.tum.de/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $LOGOS_API_KEY" \
+  -d '{"model": "Qwen/Qwen3-Embedding-8B", "input": "Introduction to Deep Learning"}'
+```
+
+---
+
 ## Running GenAI service only
 
 No need to start all services for development.
@@ -143,5 +170,6 @@ genai/
 ├── README.md            # This file
 └── llm/
     ├── __init__.py
-    └── provider.py      # LLM factory — returns ChatOpenAI or ChatOllama
+    ├── provider.py      # LLM factory — returns ChatOpenAI or ChatOllama
+    └── embeddings.py    # Embedding factory — returns cloud or local embedding model (TODO)
 ```
