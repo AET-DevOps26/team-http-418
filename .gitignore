@@ -49,5 +49,3 @@ venv/
 __pycache__/
 *.py[cod]
 .ruff_cache/
-/pdf-parser/src/main/resources/grade_report.pdf
-/scraper/urls.py
