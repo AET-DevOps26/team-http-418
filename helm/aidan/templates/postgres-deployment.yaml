@@ -39,6 +39,7 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
+              subPath: pgdata
           resources:
             {{- toYaml .Values.postgres.resources | nindent 12 }}
           readinessProbe:
