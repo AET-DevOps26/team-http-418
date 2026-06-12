@@ -1,13 +1,15 @@
 package tum.devops.http418;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HelloController {
+@RequestMapping("/api")
+public class APIController {
 
 	@GetMapping("/hello")
 	public String sayHello() {
-		return "hello world";
+		return "authenticated hello world";
 	}
 }
