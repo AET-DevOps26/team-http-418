@@ -20,13 +20,13 @@ repos:
       - id: spotless-server-java
         name: Spotless Java - server
         language: system
-        entry: bash -c 'cd server && ./gradlew spotlessCheck'
+        entry: bash -c 'cd server && ./gradlew spotlessApply'
         files: ^server/.*\.java$
         pass_filenames: false
 
       - id: spotless-pdf-parser
         name: Spotless Java - pdf-parser
         language: system
-        entry: bash -c 'cd pdf-parser && ./gradlew spotlessCheck'
+        entry: bash -c 'cd pdf-parser && ./gradlew spotlessApply'
         files: ^pdf-parser/.*\.java$
         pass_filenames: false
