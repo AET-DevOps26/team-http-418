@@ -2,6 +2,8 @@ package tum.devops.http418;
 
 import org.apache.pdfbox.Loader;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import technology.tabula.Cell;
 import technology.tabula.Table;
 import technology.tabula.ObjectExtractor;
@@ -17,6 +19,8 @@ import java.util.Optional;
 
 public class PDFParser {
 
+	static final Logger logger = LoggerFactory.getLogger(PDFParser.class);
+
 	public record Module(String moduleId, String titleDe, String titleEn, float grade, int credits, int page) {
 		@Override
 		public boolean equals(Object o) {
@@ -27,14 +31,14 @@ public class PDFParser {
 	}
 
 	public static @NonNull List<Module> extractModules(byte[] fileContent) throws Exception {
-		List<Module> result = new ArrayList<>();
+		final List<Module> result = new ArrayList<>();
 
 		try (PDDocument document = Loader.loadPDF(fileContent);
 				ObjectExtractor extractor = new ObjectExtractor(document)) {
 
 			SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
 
-			int pageCount = document.getNumberOfPages();
+			final int pageCount = document.getNumberOfPages();
 
 			for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
 				Page page = extractor.extract(pageNumber);
@@ -61,23 +65,24 @@ public class PDFParser {
 
 	private static Optional<Module> parseRow(@NonNull List<String> cells, int pageNumber) {
 		try {
-			String moduleId = cells.get(0);
-			String titleCell = cells.get(1);
-			String grade = cells.get(2);
-			String credits = cells.get(3);
+			final String moduleId = cells.get(0);
+			final String titleCell = cells.get(1);
+			final String grade = cells.get(2);
+			final String credits = cells.get(3);
 
 			if (moduleId.isBlank() || titleCell.isBlank() || grade.isBlank() || credits.isBlank()) {
 				return Optional.empty();
 			}
 
-			String[] titleLines = titleCell.split("\\R+");
+			final String[] titleLines = titleCell.split("\\R+");
 
-			String titleDe = titleLines[0];
-			String titleEn = titleLines.length > 1 ? titleLines[1] : "";
+			final String titleDe = titleLines[0];
+			final String titleEn = titleLines.length > 1 ? titleLines[1] : "";
 
 			return Optional.of(new Module(moduleId, titleDe, titleEn, Float.parseFloat(grade.replace(",", ".")),
 					Integer.parseInt(credits), pageNumber));
 		} catch (IndexOutOfBoundsException | NumberFormatException e) {
+			logger.error("Error parsing row", e);
 			return Optional.empty();
 		}
 	}
@@ -86,6 +91,7 @@ public class PDFParser {
 		try {
 			return Optional.of(extractModules(fileContent));
 		} catch (Exception e) {
+			logger.error("Error parsing file", e);
 			return Optional.empty();
 		}
 	}

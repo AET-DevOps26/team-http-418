@@ -11,8 +11,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 
-import static java.lang.IO.println;
-
 @RestController
 @RequestMapping("/v1")
 public class APIController {
@@ -22,13 +20,12 @@ public class APIController {
 
 	@GetMapping("/health")
 	public ResponseEntity<String> health() {
-		println("healthy");
+		logger.info("healthy");
 		return ResponseEntity.status(HttpStatus.OK).body("healthy");
 	}
 
 	/**
-	 * @param fileContent
-	 *            pdf file as bytes
+	 * @param fileContent pdf file as bytes
 	 * @return json representation of parsed fields
 	 */
 	@PostMapping("/parse-pdf")
