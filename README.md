@@ -127,7 +127,7 @@ pnpm check          # check formatting + lint
 pnpm check --write  # auto-fix
 ```
 
-#### Server (`server/`) — Spotless + Google Java Format
+#### Server (`server/`, `pdf-parser`) — Spotless + Google Java Format
 
 ```bash
 cd server
