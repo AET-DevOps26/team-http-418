@@ -6,6 +6,7 @@ vi.mock("#/api/auth", () => ({
 	refreshAccessToken: vi.fn(async () => null),
 	clearAccessToken: vi.fn(),
 	setAccessToken: vi.fn(),
+	API_VERSION: "v1",
 }));
 
 function jsonResponse(body: unknown, status = 200): Response {

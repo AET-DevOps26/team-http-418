@@ -1,10 +1,9 @@
 import { HttpResponse, http, passthrough } from "msw";
+import { API_VERSION } from "#/api/auth.ts";
 import { isMocked } from "./config";
-import {API_VERSION} from "#/api/auth.ts";
 
 const MOCK_ACCESS_TOKEN = "mock-access-token";
 const MOCK_REFRESH_TOKEN = "mock-refresh-token";
-
 
 export const handlers = [
 	http.get(`/api/${API_VERSION}/hello`, () => {
