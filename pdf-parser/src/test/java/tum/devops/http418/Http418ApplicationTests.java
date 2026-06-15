@@ -28,16 +28,16 @@ class Http418ApplicationTests {
 
 	@Test
 	void testParsePDf() throws Exception {
-		ClassPathResource file = new ClassPathResource("grade_report.pdf");
-		byte[] fileContent = file.getContentAsByteArray();
+		final ClassPathResource file = new ClassPathResource("grade_report.pdf");
+		final byte[] fileContent = file.getContentAsByteArray();
 
-		String response = mockMvc
+		final String response = mockMvc
 				.perform(post("/v1/parse-pdf").contentType(MediaType.APPLICATION_OCTET_STREAM).content(fileContent))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-		List<PDFParser.Module> returnedObjects = objectMapper.readValue(response, new TypeReference<>() {
+		final List<PDFParser.Module> returnedObjects = objectMapper.readValue(response, new TypeReference<>() {
 		});
 
-		List<PDFParser.Module> expected = List.of(
+		final List<PDFParser.Module> expected = List.of(
 				new PDFParser.Module("IN0012", "Bachelor-Praktikum", "Bachelor Practical Course", 1.0f, 10, 1),
 				new PDFParser.Module("IN0001", "Einführung in die Informatik", "Introduction to Informatics", 2.0f, 6,
 						1),

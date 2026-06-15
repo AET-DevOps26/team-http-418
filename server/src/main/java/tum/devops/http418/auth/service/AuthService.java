@@ -24,7 +24,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 
 	public AuthResponse login(String tumId, String password) {
-		Authentication authentication = authenticationManager
+		final Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(tumId, password));
 
 		final String accessToken = jwtTokenProvider.generateAccessToken(authentication);
@@ -39,7 +39,7 @@ public class AuthService {
 
 		final UserDetails userDetails = userDetailsService.loadUserByUsername(tumId);
 
-		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+		final Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
 				userDetails.getAuthorities());
 
 		final String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);

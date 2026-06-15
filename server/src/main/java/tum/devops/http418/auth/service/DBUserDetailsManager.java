@@ -90,7 +90,7 @@ public class DBUserDetailsManager implements UserDetailsManager {
 
 	@Override
 	public boolean userExists(@NonNull String username) {
-		Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM credentials WHERE username = ?",
+		final Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM credentials WHERE username = ?",
 				Integer.class, username);
 
 		return count != null && count > 0;
@@ -98,7 +98,7 @@ public class DBUserDetailsManager implements UserDetailsManager {
 
 	@Override
 	public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-		List<UserDetails> users = jdbcTemplate.query("""
+		final List<UserDetails> users = jdbcTemplate.query("""
 				SELECT username,
 				       password
 				FROM credentials
@@ -121,7 +121,7 @@ public class DBUserDetailsManager implements UserDetailsManager {
 	}
 
 	private String[] loadAuthorities(String username) {
-		List<String> authorities = jdbcTemplate
+		final List<String> authorities = jdbcTemplate
 				.queryForList("SELECT authority FROM user_authorities WHERE username = ?", String.class, username);
 
 		return authorities.toArray(String[]::new);

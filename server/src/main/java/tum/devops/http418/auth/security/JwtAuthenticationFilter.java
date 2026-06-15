@@ -25,12 +25,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected final void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
-		String token = extractBearerToken(request);
+		final String token = extractBearerToken(request);
 
 		if (token != null && jwtTokenProvider.validate(token)) {
-			String tumId = jwtTokenProvider.getUsername(token);
+			final String tumId = jwtTokenProvider.getUsername(token);
 
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(tumId, null,
+			final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(tumId,
+					null,
 					List.of(new SimpleGrantedAuthority(Roles.USER)));
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -40,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private @Nullable String extractBearerToken(@NonNull HttpServletRequest request) {
-		String header = request.getHeader("Authorization");
+		final String header = request.getHeader("Authorization");
 
 		if (header == null || !header.startsWith("Bearer ")) {
 			return null;

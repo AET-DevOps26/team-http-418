@@ -27,7 +27,7 @@ public class DataSourceConfig {
 	@Primary
 	@Profile("!test")
 	public DataSource coursesDataSource() {
-		HikariDataSource dataSource = new HikariDataSource();
+		final HikariDataSource dataSource = new HikariDataSource();
 
 		dataSource.setJdbcUrl(baseUrl + "/courses-data");
 		dataSource.setUsername(username);
@@ -39,16 +39,17 @@ public class DataSourceConfig {
 	}
 
 	private void createSecurityDatabaseIfNotExists() {
-		HikariDataSource adminDataSource = new HikariDataSource();
+		final HikariDataSource adminDataSource = new HikariDataSource();
 
 		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
 		adminDataSource.setUsername(username);
 		adminDataSource.setPassword(password);
 		adminDataSource.setDriverClassName("org.postgresql.Driver");
 
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
 
-		Boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+		final Boolean exists = jdbcTemplate.queryForObject(
+				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
 				Boolean.class, "security");
 
 		if (Boolean.FALSE.equals(exists)) {
@@ -62,14 +63,14 @@ public class DataSourceConfig {
 	@Profile("!test")
 	public DataSource securityDataSource() {
 		createSecurityDatabaseIfNotExists();
-		HikariDataSource dataSource = new HikariDataSource();
+		final HikariDataSource dataSource = new HikariDataSource();
 
 		dataSource.setJdbcUrl(baseUrl + "/security");
 		dataSource.setUsername(username);
 		dataSource.setPassword(password);
 		dataSource.setDriverClassName("org.postgresql.Driver");
 
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
 		jdbcTemplate.execute("""
 				    CREATE TABLE IF NOT EXISTS credentials (

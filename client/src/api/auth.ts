@@ -7,6 +7,7 @@ const SESSION_REFRESH_KEY = "auth_refresh_token";
 let accessToken: string | null = null;
 let storedRefreshToken: string | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+export const API_VERSION = "v1";
 
 export class AuthError extends Error {
 	status: number;
@@ -68,7 +69,7 @@ export function isAuthenticated(): boolean {
 }
 
 export async function login(tumId: string, password: string): Promise<void> {
-	const res = await fetch("/api/auth/login", {
+	const res = await fetch(`/api/${API_VERSION}/auth/login`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ tumId, password }),
@@ -87,7 +88,7 @@ export async function login(tumId: string, password: string): Promise<void> {
 
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
-	const res = await fetch("/api/auth/refresh", {
+	const res = await fetch(`/api/${API_VERSION}/auth/refresh`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ refreshToken: storedRefreshToken }),
@@ -100,7 +101,7 @@ export async function refreshTokens(): Promise<string | null> {
 
 export async function logout(): Promise<void> {
 	try {
-		await fetch("/api/auth/logout", { method: "POST" });
+		await fetch(`/api/${API_VERSION}/auth/logout`, { method: "POST" });
 	} catch {}
 	clearTokens();
 }

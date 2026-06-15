@@ -21,7 +21,7 @@ public class InMemoryRefreshTokenStore {
 	}
 
 	public String create(String tumId) {
-		String token = generateToken();
+		final String token = generateToken();
 
 		tokens.put(token, new RefreshTokenData(tumId, Instant.now().plusSeconds(refreshTokenTtlSeconds)));
 
@@ -37,7 +37,7 @@ public class InMemoryRefreshTokenStore {
 			return Optional.empty();
 		}
 
-		RefreshTokenData data = tokens.remove(token);
+		final RefreshTokenData data = tokens.remove(token);
 
 		if (data == null || data.isExpired()) {
 			return Optional.empty();
@@ -53,7 +53,7 @@ public class InMemoryRefreshTokenStore {
 	}
 
 	private String generateToken() {
-		byte[] bytes = new byte[64];
+		final byte[] bytes = new byte[64];
 		secureRandom.nextBytes(bytes);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}

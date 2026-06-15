@@ -21,7 +21,7 @@ public class TestConfig {
 	@Bean(name = "securityJdbcTemplate")
 	@Primary
 	public JdbcTemplate securityJdbcTemplate(DataSource dataSource) {
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		// Manually run the schema creation for the in-memory DB if needed
 		jdbcTemplate
 				.execute("CREATE TABLE IF NOT EXISTS credentials (username TEXT PRIMARY KEY, password TEXT NOT NULL)");

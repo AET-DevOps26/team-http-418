@@ -36,23 +36,23 @@ public class PDFParser {
 		try (PDDocument document = Loader.loadPDF(fileContent);
 				ObjectExtractor extractor = new ObjectExtractor(document)) {
 
-			SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
+			final SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
 
 			final int pageCount = document.getNumberOfPages();
 
 			for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
-				Page page = extractor.extract(pageNumber);
-				List<Table> tables = sea.extract(page);
+				final Page page = extractor.extract(pageNumber);
+				final List<Table> tables = sea.extract(page);
 
 				for (Table table : tables) {
 					for (var row : table.getRows()) {
-						List<String> cells = row.stream().map(RectangularTextContainer::getText).toList();
+						final List<String> cells = row.stream().map(RectangularTextContainer::getText).toList();
 						if (cells.size() != 5 || cells.subList(0, 4).stream().anyMatch(String::isBlank)
 								|| !row.stream().allMatch(column -> column instanceof Cell))
 							continue;
 						// only process rows with 5 cells where the first 4 are not empty and all
 						// columns are Cells
-						Optional<Module> module = parseRow(cells, pageNumber);
+						final Optional<Module> module = parseRow(cells, pageNumber);
 						module.orElseThrow();
 						module.ifPresent(result::add);
 					}

@@ -3,6 +3,7 @@ import {
 	getAccessToken,
 	refreshAccessToken,
 	setAccessToken,
+	API_VERSION
 } from "#/api/auth";
 import type { ProblemDetail } from "#/api/types";
 
@@ -38,7 +39,7 @@ async function doFetch<T>(
 	if (hasBody) headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
 
-	const res = await fetch(`/api${path}`, { ...options, headers });
+	const res = await fetch(`/api/${API_VERSION}${path}`, { ...options, headers });
 
 	if (res.ok) {
 		if (res.status === 204) return undefined as T;

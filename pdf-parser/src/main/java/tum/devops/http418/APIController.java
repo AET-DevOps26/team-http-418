@@ -30,7 +30,7 @@ public class APIController {
 	 */
 	@PostMapping("/parse-pdf")
 	public ResponseEntity<String> parse(@RequestBody byte[] fileContent) {
-		Optional<List<PDFParser.Module>> res = PDFParser.parsePDF(fileContent);
+		final Optional<List<PDFParser.Module>> res = PDFParser.parsePDF(fileContent);
 		if (res.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body("Could not parse PDF");
 		}

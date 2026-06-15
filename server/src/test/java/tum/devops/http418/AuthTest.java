@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static tum.devops.http418.Http418Application.API_VERSION;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ class AuthLifecycleTest extends BaseTest {
 	@Autowired
 	private DBUserDetailsManager userDetailsManager;
 
-	private static final String PROTECTED_ENDPOINT = "/api/hello";
+	private static final String PROTECTED_ENDPOINT = "/api/" + API_VERSION + "/hello";
 
 	/**
 	 * test that: 1. protected endpoint is not accessible without login 2. register
@@ -42,7 +43,7 @@ class AuthLifecycleTest extends BaseTest {
 
 		mockMvc.perform(get(PROTECTED_ENDPOINT)).andExpect(status().isUnauthorized());
 
-		String loginJson = """
+		final String loginJson = """
 				{
 				  "tumId": "testid",
 				  "password": "testpass"
@@ -52,28 +53,28 @@ class AuthLifecycleTest extends BaseTest {
 		if (userDetailsManager.userExists("testid"))
 			userDetailsManager.deleteUser("testid");
 
-		String registerResponseJson = mockMvc
-				.perform(post("/auth/register").contentType(MediaType.APPLICATION_JSON).content(loginJson))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+		final String registerResponseJson = mockMvc.perform(post("/api/" + API_VERSION + "/auth/register")
+				.contentType(MediaType.APPLICATION_JSON).content(loginJson)).andExpect(status().isOk()).andReturn()
+				.getResponse().getContentAsString();
 
-		AuthResponse registerResponse = objectMapper.readValue(registerResponseJson, AuthResponse.class);
+		final AuthResponse registerResponse = objectMapper.readValue(registerResponseJson, AuthResponse.class);
 
 		assertThat(registerResponse.accessToken()).isNotBlank();
 		assertThat(registerResponse.refreshToken()).isNotBlank();
 		assertThat(registerResponse.expiresIn()).isEqualTo(3600);
 
-		mockMvc.perform(post("/auth/register").contentType(MediaType.APPLICATION_JSON).content(loginJson))
-				.andExpect(status().isConflict());
+		mockMvc.perform(post("/api/" + API_VERSION + "/auth/register").contentType(MediaType.APPLICATION_JSON)
+				.content(loginJson)).andExpect(status().isConflict());
 
-		mockMvc.perform(post("/auth/logout").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(post("/api/" + API_VERSION + "/auth/logout").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(new RefreshRequest(registerResponse.refreshToken()))))
 				.andExpect(status().isNoContent());
 
-		String loginResponseJson = mockMvc
-				.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+		final String loginResponseJson = mockMvc.perform(
+				post("/api/" + API_VERSION + "/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
-		AuthResponse loginResponse = objectMapper.readValue(loginResponseJson, AuthResponse.class);
+		final AuthResponse loginResponse = objectMapper.readValue(loginResponseJson, AuthResponse.class);
 
 		assertThat(loginResponse.accessToken()).isNotBlank();
 		assertThat(loginResponse.refreshToken()).isNotBlank();
@@ -82,30 +83,30 @@ class AuthLifecycleTest extends BaseTest {
 		mockMvc.perform(get(PROTECTED_ENDPOINT).header("Authorization", "Bearer " + loginResponse.accessToken()))
 				.andExpect(status().isOk());
 
-		RefreshRequest refreshRequest = new RefreshRequest(loginResponse.refreshToken());
+		final RefreshRequest refreshRequest = new RefreshRequest(loginResponse.refreshToken());
 
-		String refreshResponseJson = mockMvc
-				.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+		final String refreshResponseJson = mockMvc
+				.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(refreshRequest)))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
-		AuthResponse refreshResponse = objectMapper.readValue(refreshResponseJson, AuthResponse.class);
+		final AuthResponse refreshResponse = objectMapper.readValue(refreshResponseJson, AuthResponse.class);
 
 		assertThat(refreshResponse.accessToken()).isNotBlank();
 		assertThat(refreshResponse.refreshToken()).isNotBlank();
 		assertThat(refreshResponse.refreshToken()).isNotEqualTo(loginResponse.refreshToken());
 
-		mockMvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(refreshRequest))).andExpect(status().isUnauthorized());
 
 		mockMvc.perform(get(PROTECTED_ENDPOINT).header("Authorization", "Bearer " + refreshResponse.accessToken()))
 				.andExpect(status().isOk());
 
-		mockMvc.perform(post("/auth/logout").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(post("/api/" + API_VERSION + "/auth/logout").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(new RefreshRequest(refreshResponse.refreshToken()))))
 				.andExpect(status().isNoContent());
 
-		mockMvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(new RefreshRequest(refreshResponse.refreshToken()))))
 				.andExpect(status().isUnauthorized());
 	}
