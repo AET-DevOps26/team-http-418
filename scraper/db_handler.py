@@ -4,7 +4,7 @@ import os
 import asyncpg
 
 from tumonline_scraper import Course
-from xml_parser import date_at, find_or, int_at, lang_text, text_at, time_at, xml_string
+from xml_parser import date_at, find_or, int_at, lang_text, parse_curriculum_positions, text_at, time_at, xml_string
 
 DB_NAME = os.environ["COURSES_DB_NAME"]
 DB_USER = os.environ["DB_USER"]
@@ -215,9 +215,10 @@ def build_import_batch(courses_input: list[Course]) -> dict:
     courses = {}
     lectureships = {}
     course_appointments = {}
+    curriculum_connections = []
 
     for course in courses_input:
-        simple_course_info, detailed_course_info_resource, dates, _curriculum_positions = (
+        simple_course_info, detailed_course_info_resource, dates, curriculum_positions = (
             course.simple_xml,
             course.detailed_xml,
             course.dates_xml,
@@ -404,6 +405,8 @@ def build_import_batch(courses_input: list[Course]) -> dict:
                 teaching_function,
             )
 
+        curriculum_connections += parse_curriculum_positions(curriculum_positions)
+
     return {
         "semesters": list(semesters.values()),
         "course_types": list(course_types.values()),
@@ -413,6 +416,7 @@ def build_import_batch(courses_input: list[Course]) -> dict:
         "courses": list(courses.values()),
         "lectureships": list(lectureships.values()),
         "course_appointments": list(course_appointments.values()),
+        "curriculum_connections": curriculum_connections,
     }
 
 

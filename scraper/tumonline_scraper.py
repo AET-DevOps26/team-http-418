@@ -111,7 +111,9 @@ async def fetch_curriculum_position(session: aiohttp.ClientSession, course: Cour
                 f"could not fetch curriculum_positions for {course.id}, got {response.status}\n{url}"
             )
             text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text).replace(
+                "&", "&amp;"
+            )  # sanitize invalid xml characters
             try:
                 course.curriculum_positions_xml = ET.fromstring(text).findall("resource")
                 return course
