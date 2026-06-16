@@ -18,7 +18,8 @@ The React client **never** communicates with the GenAI service directly. Spring 
 
 | Convention | Detail |
 | :--- | :--- |
-| **Base URL** | `http://genai:8000/v1` — service name `genai`, port `8000` (FastAPI default). Must be added to `docker-compose.yml`. Configurable via `GENAI_BASE_URL` env var |
+| **Base URL** | `http://genai:8000` — service name `genai`, port `8000` (FastAPI default). Configurable via `GENAI_BASE_URL` env var |
+| **API Version** | `v1` — configurable via `GENAI_API_VERSION` env var. Full base: `{GENAI_BASE_URL}/{GENAI_API_VERSION}` |
 | **Endpoint paths** | GenAI endpoints mirror the Spring Boot paths they serve (e.g. Spring Boot `POST /me/roadmap/generate` calls GenAI `POST /v1/me/roadmap/generate` at `genai:8000`) |
 | **Auth** | No auth between services — GenAI is not exposed publicly. Network-level isolation only |
 | **Errors** | `{ "error": "string", "detail": "string" }` with appropriate HTTP status |
