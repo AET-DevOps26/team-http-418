@@ -1,9 +1,12 @@
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
+from enum import Enum
 
 from fastapi import APIRouter, FastAPI, Query
 from fastapi.responses import JSONResponse
+from psycopg2 import DatabaseError, OperationalError
 from pydantic import BaseModel, Field
 
 from db import get_connection, init_schema
@@ -126,8 +129,17 @@ async def courses_search(
 
         return JSONResponse({"results": results})
 
+    except OperationalError as e:
+        logger.error("search | model=%s DB connection failed: %s", model, e)
+        return JSONResponse({"error": "Database unavailable"}, status_code=503)
+    except DatabaseError as e:
+        logger.error("search | model=%s DB query failed: %s", model, e)
+        return JSONResponse({"error": "Database error"}, status_code=502)
+    except json.JSONDecodeError as e:
+        logger.error("search | model=%s LLM response parse failed: %s", model, e)
+        return JSONResponse({"error": "LLM returned malformed response"}, status_code=502)
     except Exception as e:
-        logger.error("search | model=%s error: %s", model, e)
+        logger.error("search | model=%s unexpected error: %s", model, e)
         return JSONResponse({"error": "Search failed"}, status_code=502)
 
 
@@ -171,11 +183,17 @@ class CourseItem(BaseModel):
     language: str | None = None
 
 
+class EmbedMode(str, Enum):
+    UPSERT = "UPSERT"
+    FULL_REBUILD = "FULL_REBUILD"
+
+
 class EmbedCoursesRequest(BaseModel):
     courses: list[CourseItem]
-    mode: str = "UPSERT"  # UPSERT | FULL_REBUILD
+    mode: EmbedMode = EmbedMode.UPSERT
 
 
+# TODO: connect with scraper — scraper should call this endpoint after ingestion
 @router.post("/embeddings/courses")
 async def embeddings_courses(request: EmbedCoursesRequest):
     model = get_active_model()
@@ -183,13 +201,9 @@ async def embeddings_courses(request: EmbedCoursesRequest):
     logger.info("embed | model=%s mode=%s courses=%d", model, request.mode, total)
     start = time.perf_counter()
 
-    embedded, failed = 0, 0
-    errors = []
-
     try:
         embeddings = get_embeddings()
 
-        # Build text to embed per course — combine all available text fields
         texts = []
         for c in request.courses:
             parts = [c.course_name]
@@ -200,51 +214,40 @@ async def embeddings_courses(request: EmbedCoursesRequest):
             texts.append(" | ".join(parts))
 
         vectors = await embeddings.aembed_documents(texts)
+        vectors = await embeddings.aembed_documents(texts)
+        rows = [(c.course_id, v) for c, v in zip(request.courses, vectors, strict=False)]
 
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                if request.mode == "FULL_REBUILD":
-                    cur.execute("DELETE FROM course_embeddings")
-                    logger.info("embed | full rebuild — deleted existing embeddings")
+        with get_connection() as conn, conn.cursor() as cur:
+            if request.mode == EmbedMode.FULL_REBUILD:
+                cur.execute("DELETE FROM course_embeddings")
+                logger.info("embed | full rebuild — deleted existing embeddings")
 
-                for course, vector in zip(request.courses, vectors, strict=False):
-                    try:
-                        cur.execute(
-                            """
-                            INSERT INTO course_embeddings (course_id, embedding, updated_at)
-                            VALUES (%s, %s, NOW())
-                            ON CONFLICT (course_id) DO UPDATE
-                                SET embedding = EXCLUDED.embedding,
-                                    updated_at = NOW()
-                            """,
-                            (course.course_id, vector),
-                        )
-                        embedded += 1
-                    except Exception as e:
-                        failed += 1
-                        errors.append(f"course_id={course.course_id}: {e}")
-                        logger.warning("embed | failed course_id=%s: %s", course.course_id, e)
-
+            cur.executemany(
+                """
+                INSERT INTO course_embeddings (course_id, embedding, updated_at)
+                VALUES (%s, %s, NOW())
+                ON CONFLICT (course_id) DO UPDATE
+                    SET embedding = EXCLUDED.embedding,
+                        updated_at = NOW()
+                """,
+                rows,
+            )
             conn.commit()
 
         elapsed_ms = round((time.perf_counter() - start) * 1000)
-        logger.info(
-            "embed | model=%s embedded=%d failed=%d duration_ms=%d",
-            model,
-            embedded,
-            failed,
-            elapsed_ms,
-        )
+        logger.info("embed | model=%s embedded=%d duration_ms=%d", model, total, elapsed_ms)
 
-        return JSONResponse(
-            {
-                "embedded": embedded,
-                "skipped": 0,
-                "failed": failed,
-                "errors": errors,
-            }
-        )
+        return JSONResponse({"embedded": total, "skipped": 0, "failed": 0, "errors": []})
 
+    except OperationalError as e:
+        logger.error("embed | model=%s DB connection failed: %s", model, e)
+        return JSONResponse({"error": "Database unavailable"}, status_code=503)
+    except DatabaseError as e:
+        logger.error("embed | model=%s DB query failed: %s", model, e)
+        return JSONResponse({"error": "Database error"}, status_code=502)
+    except json.JSONDecodeError as e:
+        logger.error("embed | model=%s LLM response parse failed: %s", model, e)
+        return JSONResponse({"error": "LLM returned malformed response"}, status_code=502)
     except Exception as e:
         logger.error("embed | model=%s unexpected error: %s", model, e)
         return JSONResponse({"error": "Embedding failed", "detail": str(e)}, status_code=502)
