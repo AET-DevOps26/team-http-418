@@ -2,7 +2,7 @@ import asyncio
 import itertools
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from xml.etree import ElementTree as ET
 
 import aiohttp
@@ -10,6 +10,9 @@ import aiohttp
 semaphore = asyncio.Semaphore(20)
 base_url = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courses"
 base_url_dates = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courseGroups/firstGroups"
+base_url_curriculum_positions = (
+    "https://campus.tum.de/tumonline/ee/rest/slc.cm.curriculumposition/positions/{}/course/allCurriculumPositions"
+)
 
 
 @dataclass
@@ -32,6 +35,21 @@ class SimpleDescription:
         return self.string_xml == other.string_xml
 
 
+@dataclass
+class Course:
+    id: int = field(init=False, default=None)  # exclude id from constructor, will be provided by post_init
+    simple_xml: ET.Element
+    detailed_xml: ET.Element | None
+    dates_xml: ET.Element | None
+    curriculum_positions_xml: list[ET.Element] | None
+
+    def __post_init__(self):
+        try:
+            self.id = int(self.simple_xml.find("id").text)
+        except AttributeError as e:
+            raise AttributeError(f"course {self.simple_xml} has no id\n{e}") from e
+
+
 async def fetch_page(session: aiohttp.ClientSession, offset: int, semester_id: int, stepsize: int) -> ET.Element:
     url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip={offset}&$top={stepsize}"
     async with semaphore:
@@ -44,49 +62,67 @@ async def fetch_page(session: aiohttp.ClientSession, offset: int, semester_id: i
         return ET.fromstring(text)
 
 
-async def fetch_details(session: aiohttp.ClientSession, course: ET.Element) -> tuple[ET.Element, ET.Element]:
-    try:
-        lecture_id = course.find("id").text
-    except AttributeError as e:
-        raise AttributeError(f"lecture {course} has no id\n{e}") from e
+async def fetch_details(session: aiohttp.ClientSession, course: Course) -> Course:
+    """
+    sets the detailed_xml attribute of the course
+    """
     async with semaphore:
-        url = f"{base_url}/{lecture_id}"
+        url = f"{base_url}/{course.id}"
         async with session.get(url) as response:
             assert response.status == 200, (
-                f"could not fetch course details for {lecture_id}, got {response.status}\n{url}"
+                f"could not fetch course details for {course.id}, got {response.status}\n{url}"
             )
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
                 resources = ET.fromstring(text).findall("resource")
-                assert len(resources) == 1, f"expected exactly one resource for {lecture_id}, got {len(resources)}"
-                return course, resources[0]
+                assert len(resources) == 1, f"expected exactly one resource for {course.id}, got {len(resources)}"
+                course.detailed_xml = resources[0]
+                return course
             except Exception as e:
-                raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
+                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
 
 
-async def fetch_dates(session: aiohttp.ClientSession, pair: tuple[ET.Element, ET.Element]):
-    try:
-        course, detailed = pair
-        lecture_id = course.find("id").text
-    except AttributeError as e:
-        raise AttributeError(f"lecture {pair[0]} has no id\n{e}") from e
+async def fetch_dates(session: aiohttp.ClientSession, course: Course) -> Course:
+    """
+    sets the dates_xml attribute of the course
+    """
     async with semaphore:
-        url = f"{base_url_dates}/{lecture_id}"
+        url = f"{base_url_dates}/{course.id}"
         async with session.get(url) as response:
-            assert response.status == 200, (
-                f"could not fetch course dates for {lecture_id}, got {response.status}\n{url}"
-            )
+            assert response.status == 200, f"could not fetch course dates for {course.id}, got {response.status}\n{url}"
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
                 dates_xml = ET.fromstring(text)
-                return course, detailed, dates_xml
+                course.dates_xml = dates_xml
+                return course
             except Exception as e:
-                raise Exception(f"could not parse {lecture_id} with content:\n{text}") from e
+                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
 
 
-async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element, ET.Element, ET.Element]]:
+async def fetch_curriculum_position(session: aiohttp.ClientSession, course: Course) -> Course:
+    """
+    sets the curriculum_positions_xml attribute of the course
+    """
+    async with semaphore:
+        url = f"{base_url}/{course.id}"
+        async with session.get(url) as response:
+            assert response.status == 200, (
+                f"could not fetch course details for {course.id}, got {response.status}\n{url}"
+            )
+            text = await response.text()
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
+            try:
+                resources = ET.fromstring(text).findall("resource")
+                assert len(resources) == 1, f"expected exactly one resource for {course.id}, got {len(resources)}"
+                course.detailed_xml = resources[0]
+                return course
+            except Exception as e:
+                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
+
+
+async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
     """
     :param debug: if True, only fetch 20 courses for debugging
     :return: a list of triples (course_info, detailed_course_info, dates)
@@ -105,21 +141,28 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[tuple[ET.Element,
         if debug:
             total = 20  # only fetch 20 courses for debugging
         tasks = [fetch_page(session, off, semester_id, stepsize) for off in range(0, total, stepsize)]
-        courses: list[ET.Element] = await asyncio.gather(*tasks)
+        simple_descriptions: list[ET.Element] = await asyncio.gather(*tasks)
         flat: list[SimpleDescription] = list(
-            map(lambda x: SimpleDescription(x), itertools.chain(*(map(lambda tree: tree.findall("courses"), courses))))
+            map(
+                lambda x: SimpleDescription(x),
+                itertools.chain(*(map(lambda tree: tree.findall("courses"), simple_descriptions))),
+            )
         )  # flatmap to course elements
-        assert len(flat) == total, f"only got {len(courses)} courses of {total}"
+        assert len(flat) == total, f"only got {len(simple_descriptions)} courses of {total}"
         unique = set(flat)  # class wrapper is necessary to control comparison
         logging.info(f"got all courses, {len(unique)} of which are unique")
 
         logging.info(f"fetching detailed data for {len(unique)} courses")
-        tasks = [fetch_details(session, course.xml) for course in unique]
-        detail_pairs: list[tuple[ET.Element, ET.Element]] = await asyncio.gather(*tasks)
-        logging.info("fetching dates for courses")
+        tasks = [fetch_details(session, Course(course.xml, None, None, None)) for course in unique]
+        courses: list[Course] = await asyncio.gather(*tasks)
 
-        tasks = [fetch_dates(session, pair) for pair in detail_pairs]
-        complete_course_info: list[tuple[ET.Element, ET.Element, ET.Element]] = await asyncio.gather(*tasks)
+        logging.info("fetching dates for courses")
+        tasks = [fetch_dates(session, course) for course in courses]
+        courses: list[Course] = await asyncio.gather(*tasks)
+
+        logging.info("fetching curriculum positions for courses")
+        tasks = [fetch_curriculum_position(session, course) for course in courses]
+        courses: list[Course] = await asyncio.gather(*tasks)
 
         logging.info("done fetching information")
-    return complete_course_info
+    return courses

@@ -1,9 +1,9 @@
 import logging
 import os
-from xml.etree import ElementTree as ET
 
 import asyncpg
 
+from tumonline_scraper import Course
 from xml_parser import date_at, find_or, int_at, lang_text, text_at, time_at, xml_string
 
 DB_NAME = os.environ["COURSES_DB_NAME"]
@@ -206,7 +206,7 @@ class DB:
                                     """)
 
 
-def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Element]]) -> dict:
+def build_import_batch(courses_input: list[Course]) -> dict:
     semesters = {}
     course_types = {}
     parent_org_ids = set()
@@ -216,8 +216,13 @@ def build_import_batch(courses_input: list[tuple[ET.Element, ET.Element, ET.Elem
     lectureships = {}
     course_appointments = {}
 
-    for data in courses_input:
-        simple_course_info, detailed_course_info_resource, dates = data
+    for course in courses_input:
+        simple_course_info, detailed_course_info_resource, dates, _curriculum_positions = (
+            course.simple_xml,
+            course.detailed_xml,
+            course.dates_xml,
+            course.curriculum_positions_xml,
+        )
 
         detail_root = detailed_course_info_resource.find(".//cpCourseDetailDto")
         detailed_course = find_or(detail_root, "cpCourseDto", simple_course_info)
