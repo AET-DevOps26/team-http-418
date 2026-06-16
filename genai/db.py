@@ -3,6 +3,7 @@ import os
 
 import psycopg2
 from pgvector.psycopg2 import register_vector
+from psycopg2 import DatabaseError, OperationalError
 
 logger = logging.getLogger("genai")
 
@@ -30,5 +31,7 @@ def init_schema(dimensions: int = 4096) -> None:
                 """)
             conn.commit()
         logger.info("db | schema initialized (dimensions=%d)", dimensions)
-    except Exception as e:
+    except OperationalError as e:
+        logger.warning("db | connection failed (DB not ready?) — will retry on first request: %s", e)
+    except DatabaseError as e:
         logger.warning("db | schema init failed — will retry on first request: %s", e)
