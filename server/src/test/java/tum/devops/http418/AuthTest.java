@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static tum.devops.http418.Http418Application.API_VERSION;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -30,7 +30,8 @@ class AuthLifecycleTest extends BaseTest {
 	@Autowired
 	private DBUserDetailsManager userDetailsManager;
 
-	private static final String PROTECTED_ENDPOINT = "/api/" + API_VERSION + "/hello";
+	@Value("${API_VERSION}")
+	private String API_VERSION;
 
 	/**
 	 * test that: 1. protected endpoint is not accessible without login 2. register
@@ -40,6 +41,8 @@ class AuthLifecycleTest extends BaseTest {
 	 */
 	@Test
 	void authLifecycleWorks() throws Exception {
+
+		final String PROTECTED_ENDPOINT = "/api/" + API_VERSION + "/hello";
 
 		mockMvc.perform(get(PROTECTED_ENDPOINT)).andExpect(status().isUnauthorized());
 

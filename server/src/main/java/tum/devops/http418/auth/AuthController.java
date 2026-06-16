@@ -13,10 +13,8 @@ import tum.devops.http418.auth.dto.RefreshRequest;
 import tum.devops.http418.auth.service.AuthService;
 import tum.devops.http418.auth.service.UserExistsException;
 
-import static tum.devops.http418.Http418Application.API_VERSION;
-
 @RestController
-@RequestMapping("api/" + API_VERSION + "/auth/")
+@RequestMapping("/api/${API_VERSION}/auth")
 public class AuthController {
 
 	private final AuthService authService;
