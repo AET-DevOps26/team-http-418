@@ -94,8 +94,7 @@ async def fetch_dates(session: aiohttp.ClientSession, course: Course) -> Course:
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
-                dates_xml = ET.fromstring(text)
-                course.dates_xml = dates_xml
+                course.dates_xml = ET.fromstring(text)
                 return course
             except Exception as e:
                 raise Exception(f"could not parse {course.id} with content:\n{text}") from e
@@ -106,17 +105,15 @@ async def fetch_curriculum_position(session: aiohttp.ClientSession, course: Cour
     sets the curriculum_positions_xml attribute of the course
     """
     async with semaphore:
-        url = f"{base_url}/{course.id}"
+        url = base_url_curriculum_positions.format(course.id)
         async with session.get(url) as response:
             assert response.status == 200, (
-                f"could not fetch course details for {course.id}, got {response.status}\n{url}"
+                f"could not fetch curriculum_positions for {course.id}, got {response.status}\n{url}"
             )
             text = await response.text()
             text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
             try:
-                resources = ET.fromstring(text).findall("resource")
-                assert len(resources) == 1, f"expected exactly one resource for {course.id}, got {len(resources)}"
-                course.detailed_xml = resources[0]
+                course.curriculum_positions_xml = ET.fromstring(text).findall("resource")
                 return course
             except Exception as e:
                 raise Exception(f"could not parse {course.id} with content:\n{text}") from e
