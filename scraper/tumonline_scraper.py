@@ -127,7 +127,7 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
     :return: a list of triples (course_info, detailed_course_info, dates)
     """
     stepsize = 20
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(headers={"accept": "application/xml"}) as session:
         # get first page to get total number of courses
         url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip=0"
         page = await session.get(url)

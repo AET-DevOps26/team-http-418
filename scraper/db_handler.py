@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -205,6 +206,25 @@ class DB:
                                     )
                                     """)
 
+            # curriculum connections table
+            await self.conn.execute("""
+                                    CREATE TABLE IF NOT EXISTS curriculum_connections
+                                    (
+                                        id                    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                        course_id             BIGINT NOT NULL REFERENCES courses (id) ON DELETE CASCADE, -- e.g. 950938055
+                                        curriculum_version_id INT, -- e.g. 5372
+                                        study_name_ger        TEXT, -- e.g. Microelectronics and Chip Design
+                                        study_name_en         TEXT,
+                                        study_id              TEXT NOT NULL, -- e.g. 522
+                                        designation           BIGINT, -- e.g. 20251 not sure what this is for, probably links to study in a different way
+                                        subject_type          TEXT, -- Pflichtfach/Wahlfach/Null
+                                        path                  JSONB, -- hierarchy of position in curriculum
+                                        source_xml            XML,
+                                        updated_at            TIMESTAMP DEFAULT now(),
+                                        UNIQUE (course_id, study_id)
+                                    )
+                                    """)
+
 
 def build_import_batch(courses_input: list[Course]) -> dict:
     semesters = {}
@@ -215,7 +235,7 @@ def build_import_batch(courses_input: list[Course]) -> dict:
     courses = {}
     lectureships = {}
     course_appointments = {}
-    curriculum_connections = []
+    curriculum_connections: list[dict] = []
 
     for course in courses_input:
         simple_course_info, detailed_course_info_resource, dates, curriculum_positions = (
@@ -405,7 +425,7 @@ def build_import_batch(courses_input: list[Course]) -> dict:
                 teaching_function,
             )
 
-        curriculum_connections += parse_curriculum_positions(curriculum_positions)
+        curriculum_connections += parse_curriculum_positions(curriculum_positions, course_id)
 
     return {
         "semesters": list(semesters.values()),
@@ -416,7 +436,20 @@ def build_import_batch(courses_input: list[Course]) -> dict:
         "courses": list(courses.values()),
         "lectureships": list(lectureships.values()),
         "course_appointments": list(course_appointments.values()),
-        "curriculum_connections": curriculum_connections,
+        "curriculum_connections": [
+            (
+                c["course_id"],
+                c["curriculum_version_id"],
+                c["study_name_ger"],
+                c["study_name_en"],
+                c["study_id"],
+                c["designation"],
+                c["subject_type"],
+                json.dumps(c["path"]),
+                c["source_xml"],
+            )
+            for c in curriculum_connections
+        ],
     }
 
 
@@ -586,4 +619,34 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
                                        updated_at = now()
         """,
         batch["course_appointments"],
+    )
+
+    await conn.executemany(
+        """
+        INSERT INTO curriculum_connections (
+            course_id,
+            curriculum_version_id,
+            study_name_ger,
+            study_name_en,
+            study_id,
+            designation,
+            subject_type,
+            path,
+            source_xml,
+            updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::xml, now())
+        ON CONFLICT (course_id, study_id) DO UPDATE SET
+                                       course_id = EXCLUDED.course_id,
+                                       curriculum_version_id = EXCLUDED.curriculum_version_id,
+                                       study_name_ger = EXCLUDED.study_name_ger,
+                                       study_name_en = EXCLUDED.study_name_en,
+                                       study_id = EXCLUDED.study_id,
+                                       designation = EXCLUDED.designation,
+                                       subject_type = EXCLUDED.subject_type,
+                                       path = EXCLUDED.path,
+                                       source_xml = EXCLUDED.source_xml,
+                                       updated_at = now()
+        """,
+        batch["curriculum_connections"],
     )

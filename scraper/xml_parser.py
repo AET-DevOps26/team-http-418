@@ -83,7 +83,7 @@ def time_at(tree: ET.Element | None, path: str) -> time | None:
     return datetime.fromisoformat(value).time()
 
 
-def parse_curriculum_positions(curriculum_positions_xml) -> list:
+def parse_curriculum_positions(curriculum_positions_xml, course_id: int) -> list[dict]:
     parsed_positions = []
 
     for resource in curriculum_positions_xml:
@@ -102,15 +102,15 @@ def parse_curriculum_positions(curriculum_positions_xml) -> list:
 
         study_name_en = lang_text(study_name_info, "name", "en") or lang_text(curriculum_info, "displayedName", "en")
 
-        displayed_code = text_at(curriculum_info, "displayedCode") or text_at(study_name_info, "studyIdentifier")
+        study_identifier = text_at(curriculum_info, "displayedCode") or int_at(study_name_info, "studyIdentifier") or ""
 
         subject_type = text_at(dto, "subjectTypeDto/value/value", None)
-        designation = ""
+        designation: int = None
         path = []
         if curriculum_potition_path is not None:
             for i, path_el in enumerate(curriculum_potition_path.findall("path")):
                 if i == 0:
-                    designation = text_at(path_el, "designation")
+                    designation = int_at(path_el, "designation")
                 element_id = int_at(path_el, "elementId")
                 default_name = text_at(path_el, "name/value")
 
@@ -126,10 +126,11 @@ def parse_curriculum_positions(curriculum_positions_xml) -> list:
 
         parsed_positions.append(
             {
+                "course_id": course_id,
                 "curriculum_version_id": curriculum_version_id,
                 "study_name_ger": study_name_ger,
                 "study_name_en": study_name_en,
-                "displayed_code": displayed_code,
+                "study_id": study_identifier,
                 "designation": designation,
                 "subject_type": subject_type,
                 "path": path,
