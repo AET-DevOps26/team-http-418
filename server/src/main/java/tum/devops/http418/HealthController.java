@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HealthController {
-	Logger logger = LoggerFactory.getLogger(APIController.class);
+	final Logger logger = LoggerFactory.getLogger(HealthController.class);
 
 	@GetMapping("/health")
-	public String sayHello() {
-		logger.info("healthy");
+	public String getHealth() {
+		logger.debug("healthy");
 		return "healthy";
 	}
 }
