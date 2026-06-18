@@ -1,18 +1,19 @@
 import { HttpResponse, http, passthrough } from "msw";
+import { API_VERSION } from "#/api/auth.ts";
 import { isMocked } from "./config";
 
 const MOCK_ACCESS_TOKEN = "mock-access-token";
 const MOCK_REFRESH_TOKEN = "mock-refresh-token";
 
 export const handlers = [
-	http.get("/api/hello", () => {
+	http.get(`/api/${API_VERSION}/hello`, () => {
 		if (!isMocked("GET", "/hello")) return passthrough();
 		return new HttpResponse("hello world (mock)", {
 			headers: { "Content-Type": "text/plain" },
 		});
 	}),
 
-	http.post("/api/auth/login", async ({ request }) => {
+	http.post(`/api/${API_VERSION}/auth/login`, async ({ request }) => {
 		if (!isMocked("POST", "/auth/login")) return passthrough();
 		const body = (await request.json()) as {
 			tumId?: string;
@@ -31,7 +32,7 @@ export const handlers = [
 		);
 	}),
 
-	http.post("/api/auth/refresh", async () => {
+	http.post(`/api/${API_VERSION}/auth/refresh`, async () => {
 		if (!isMocked("POST", "/auth/refresh")) return passthrough();
 		return HttpResponse.json({
 			accessToken: MOCK_ACCESS_TOKEN,
@@ -40,12 +41,12 @@ export const handlers = [
 		});
 	}),
 
-	http.post("/api/auth/logout", () => {
+	http.post(`/api/${API_VERSION}/auth/logout`, () => {
 		if (!isMocked("POST", "/auth/logout")) return passthrough();
 		return new HttpResponse(null, { status: 204 });
 	}),
 
-	http.get("/api/me/dashboard", () => {
+	http.get(`/api/${API_VERSION}/me/dashboard`, () => {
 		if (!isMocked("GET", "/me/dashboard")) return passthrough();
 		return HttpResponse.json({
 			progress: {

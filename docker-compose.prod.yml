@@ -20,6 +20,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider http://localhost:8080/health 2>&1 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pdf-parser:
     image: ghcr.io/aet-devops26/team-http-418/pdf-parser:${IMAGE_TAG:-latest}

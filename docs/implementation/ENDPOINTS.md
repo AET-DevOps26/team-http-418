@@ -2,15 +2,15 @@
 
 ## Conventions
 
-| Convention | Detail |
-| :--- | :--- |
-| **Base path** | Spring Boot exposes all endpoints at the root. The React client accesses them via `/api/*`, which the Vite dev proxy rewrites to `/*` on `localhost:8080`. In production a reverse proxy handles the same rewrite. |
-| **Authentication** | JWT Bearer token in the `Authorization: Bearer <token>` header. Identity is extracted from the token — no user ID in the path. |
-| **Pagination** | List endpoints accept `?page=0&size=20&sort=field,asc`. Response is a `Page<T>`: `{ "content": [...], "totalElements": N, "totalPages": N, "number": 0, "size": 20 }` |
-| **Errors** | RFC 7807 `ProblemDetail`: `{ "type": "uri", "title": "string", "status": 400, "detail": "string", "instance": "/path" }` |
-| **Dates** | ISO-8601 UTC strings everywhere (`2025-05-13T10:00:00Z`) |
-| **Semester keys** | `WS2024` / `SS2025` — two-letter prefix + 4-digit year |
-| **Streaming** | The advisor chat endpoint supports SSE via `Accept: text/event-stream` for incremental token delivery (typing indicator). Falls back to synchronous JSON with `Accept: application/json`. |
+| Convention | Detail                                                                                                                                                                                                                      |
+| :--- |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Base path** | Spring Boot exposes all endpoints at `/api/{version}/*` on `localhost:8080`.                                                                                                                                                |
+| **Authentication** | JWT Bearer token in the `Authorization: Bearer <token>` header. Identity is extracted from the token — no user ID in the path.                                                                                              |
+| **Pagination** | List endpoints accept `?page=0&size=20&sort=field,asc`. Response is a `Page<T>`: `{ "content": [...], "totalElements": N, "totalPages": N, "number": 0, "size": 20 }`                                                       |
+| **Errors** | RFC 7807 `ProblemDetail`: `{ "type": "uri", "title": "string", "status": 400, "detail": "string", "instance": "/path" }`                                                                                                    |
+| **Dates** | ISO-8601 UTC strings everywhere (`2025-05-13T10:00:00Z`)                                                                                                                                                                    |
+| **Semester keys** | `WS2024` / `SS2025` — two-letter prefix + 4-digit year                                                                                                                                                                      |
+| **Streaming** | The advisor chat endpoint supports SSE via `Accept: text/event-stream` for incremental token delivery (typing indicator). Falls back to synchronous JSON with `Accept: application/json`.                                   |
 
 ---
 

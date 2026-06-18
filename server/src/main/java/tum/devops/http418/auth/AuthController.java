@@ -14,7 +14,7 @@ import tum.devops.http418.auth.service.AuthService;
 import tum.devops.http418.auth.service.UserExistsException;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/${API_VERSION}/auth")
 public class AuthController {
 
 	private final AuthService authService;

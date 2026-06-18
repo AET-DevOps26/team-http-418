@@ -2,6 +2,7 @@ package tum.devops.http418.auth;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -25,12 +26,15 @@ public class SecurityConfig {
 
 	private final ObjectMapper objectMapper;
 
+	@Value("${API_VERSION}")
+	String API_VERSION;
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {
 		return http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll() // allow requests to /auth
-						.requestMatchers("/api/**").authenticated() // require auth for /api
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/" + API_VERSION + "/auth/**").permitAll() // allow requests to /auth
+						.requestMatchers("/api/" + API_VERSION + "/**").authenticated() // require auth for /api
 						.anyRequest().permitAll() // allow everything else
 				).exceptionHandling(ex -> ex.authenticationEntryPoint((_, response, _) -> {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
+
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
 	private final SecretKey key;
+	@Getter
 	private final long accessTokenTtlSeconds;
 
 	public JwtTokenProvider(@Value("${app.jwt.secret}") String secret,
@@ -25,8 +28,8 @@ public class JwtTokenProvider {
 	}
 
 	public String generateAccessToken(Authentication authentication) {
-		Instant now = Instant.now();
-		Instant expiresAt = now.plusSeconds(accessTokenTtlSeconds);
+		final Instant now = Instant.now();
+		final Instant expiresAt = now.plusSeconds(accessTokenTtlSeconds);
 
 		return Jwts.builder().subject(authentication.getName()).issuedAt(Date.from(now))
 				.expiration(Date.from(expiresAt)).signWith(key).compact();
@@ -43,10 +46,6 @@ public class JwtTokenProvider {
 		} catch (JwtException | IllegalArgumentException ex) {
 			return false;
 		}
-	}
-
-	public long getAccessTokenTtlSeconds() {
-		return accessTokenTtlSeconds;
 	}
 
 	private Claims parseClaims(String token) {

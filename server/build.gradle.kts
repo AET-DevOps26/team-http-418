@@ -30,6 +30,7 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok:1.18.46")
 	testAnnotationProcessor("org.projectlombok:lombok:1.18.46")
 
+	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 	implementation("org.postgresql:postgresql")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
@@ -98,7 +99,12 @@ tasks.withType<Test> {
 
 spotless {
 	java {
-		eclipse()
+		eclipse().configProperties("""
+			org.eclipse.jdt.core.formatter.join_wrapped_lines=false
+			org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=false
+			org.eclipse.jdt.core.formatter.comment.format_block_comments=false
+			org.eclipse.jdt.core.formatter.comment.format_line_comments=false
+		""".trimIndent())
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()
