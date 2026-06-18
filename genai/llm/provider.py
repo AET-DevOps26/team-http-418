@@ -5,6 +5,7 @@ from functools import lru_cache
 import requests
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+from requests import ConnectionError, HTTPError, Timeout
 
 logger = logging.getLogger("genai")
 
@@ -50,13 +51,13 @@ def check_llm_health() -> str:
 
         response.raise_for_status()
         return "UP"
-    except requests.exceptions.ConnectionError as e:
+    except ConnectionError as e:
         logger.warning("LLM health check failed — connection error: %s", e)
         return "DOWN"
-    except requests.exceptions.Timeout as e:
+    except Timeout as e:
         logger.warning("LLM health check failed — timeout: %s", e)
         return "DOWN"
-    except requests.exceptions.HTTPError as e:
+    except HTTPError as e:
         logger.warning("LLM health check failed — HTTP %s: %s", e.response.status_code, e)
         return "DOWN"
     except Exception as e:
