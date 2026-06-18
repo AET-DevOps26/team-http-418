@@ -82,13 +82,13 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         raise HTTPException(
             status_code=503,
             detail="Vector database unavailable — cannot perform similarity search",
-        ) from e
+        ) from None
     except DatabaseError as e:
         logger.error("recommendations | DB query failed: %s", e)
         raise HTTPException(
             status_code=502,
             detail="Vector similarity search failed — database query error",
-        ) from e
+        ) from None
 
     if not rows:
         logger.warning("recommendations | no embeddings found for candidates")
