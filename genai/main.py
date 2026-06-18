@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from contextlib import asynccontextmanager
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import APIRouter, FastAPI, Query
 from fastapi.responses import JSONResponse
@@ -187,7 +187,7 @@ class CourseItem(BaseModel):
     language: str | None = None
 
 
-class EmbedMode(str, Enum):
+class EmbedMode(StrEnum):
     UPSERT = "UPSERT"
     FULL_REBUILD = "FULL_REBUILD"
 
