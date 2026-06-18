@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from db import get_connection, init_schema
 from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
 from llm.provider import check_llm_health, get_llm, get_provider_info
+from routers import recommendations as recommendations_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("genai")
@@ -143,11 +144,6 @@ async def courses_search(
         return JSONResponse({"error": "Search failed"}, status_code=502)
 
 
-@router.post("/me/recommendations")
-async def recommendations():
-    return JSONResponse({"error": "Not implemented"}, status_code=501)
-
-
 @router.post("/me/roadmap/generate")
 async def roadmap_generate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
@@ -171,6 +167,11 @@ async def transcript_parse():
 @router.post("/me/plan/validate")
 async def plan_validate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
+
+
+# ---------------------------------------------------------------------------
+# Embeddings models
+# ---------------------------------------------------------------------------
 
 
 class CourseItem(BaseModel):
@@ -254,3 +255,4 @@ async def embeddings_courses(request: EmbedCoursesRequest):
 
 
 app.include_router(router)
+app.include_router(recommendations_router.router, prefix="/v1")
