@@ -76,6 +76,13 @@ Switch via `EMBEDDING_MODEL_CLOUD` / `EMBEDDING_MODEL_LOCAL` in `.env`.
 
 > **Note**: Cloud embedding model (`Qwen/Qwen3-Embedding-8B`) requires TUM network / eduVPN same as LLM.
 
+> **Warning**: Switching embedding model changes vector dimensions (e.g. Qwen 4096 → nomic 768). Stored vectors become incompatible — similarity search will fail. After switching, trigger a full rebuild from Spring Boot or scraper:
+> ```json
+> POST /v1/embeddings/courses
+> { "courses": [...all courses...], "mode": "FULL_REBUILD" }
+> ```
+> This deletes all existing vectors and re-embeds everything with the new model. Must be triggered by scraper or Spring Boot — not a manual step.
+
 Pull local embedding model into Ollama (first run only):
 ```bash
 docker compose exec ollama ollama pull nomic-embed-text
@@ -164,12 +171,41 @@ docker compose exec genai python -c \
 
 ```
 genai/
-├── main.py              # FastAPI app, route registration
-├── requirements.txt     # Python dependencies
-├── Dockerfile           # Container definition
-├── README.md            # This file
-└── llm/
-    ├── __init__.py
-    ├── provider.py      # LLM factory — returns ChatOpenAI or ChatOllama
-    └── embeddings.py    # Embedding factory — returns cloud or local embedding model (TODO)
+├── main.py                  # App init + router includes only
+├── db.py                    # PostgreSQL connection + pgvector schema init
+├── requirements.txt         # Python dependencies
+├── Dockerfile               # Container definition
+├── README.md                # This file
+├── llm/
+│   ├── provider.py          # LLM factory — ChatOpenAI (Logos) or ChatOllama
+│   └── embeddings.py        # Embedding factory — cloud (Qwen) or local (nomic)
+├── models/
+│   ├── chat.py              # ChatRequest
+│   ├── embeddings.py        # CourseItem, EmbedMode, EmbedCoursesRequest
+│   └── recommendations.py   # StudentProfile, CourseRef, RecommendationsRequest
+├── repositories/
+│   ├── courses.py           # Vector similarity search (global)
+│   └── recommendations.py   # Vector similarity search (filtered by candidate IDs)
+├── services/
+│   ├── chat.py              # LLM chat logic
+│   ├── courses.py           # Embed query + semantic search
+│   ├── embeddings.py        # Embed courses + upsert to pgvector
+│   └── recommendations.py   # Embed goals + search + LLM ranking + reasons
+├── routers/
+│   ├── chat.py              # POST /v1/chat
+│   ├── courses.py           # GET /v1/courses
+│   ├── embeddings.py        # POST /v1/embeddings/courses
+│   ├── recommendations.py   # POST /v1/me/recommendations
+│   └── stubs.py             # 501 stubs for unimplemented endpoints
+└── prompts/
+    └── recommendations.txt  # LLM prompt template for recommendations
 ```
+
+### Architecture pattern
+
+Follows SRP / layered architecture:
+
+- **Router** — HTTP only. Parses request, calls service, returns response. No business logic, no try/except.
+- **Service** — Business logic. Raises `HTTPException` on failure. No SQL.
+- **Repository** — SQL only. No business logic.
+- **Model** — Pydantic DTOs only. No logic.
