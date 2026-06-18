@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from db import init_schema
 from llm.embeddings import get_embedding_dimensions
 from llm.provider import check_llm_health, get_provider_info
-from routers import chat, courses, embeddings, recommendations, stubs
+from routers import advisor, chat, courses, embeddings, recommendations, stubs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("genai")
@@ -32,6 +32,7 @@ async def health():
 
 
 app.include_router(router)
+app.include_router(advisor.router, prefix="/v1")
 app.include_router(chat.router, prefix="/v1")
 app.include_router(courses.router, prefix="/v1")
 app.include_router(embeddings.router, prefix="/v1")
