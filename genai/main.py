@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from contextlib import asynccontextmanager
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import APIRouter, FastAPI, Query
 from fastapi.responses import JSONResponse
@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from db import get_connection, init_schema
 from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
 from llm.provider import check_llm_health, get_llm, get_provider_info
+from routers import recommendations as recommendations_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("genai")
@@ -45,6 +46,7 @@ async def health():
 
 # ---------------------------------------------------------------------------
 # Implemented endpoints
+# TODO: migrate to routers/services/models pattern in follow-up ticket
 # ---------------------------------------------------------------------------
 
 
@@ -91,6 +93,7 @@ async def chat(request: ChatRequest):
 
 # ---------------------------------------------------------------------------
 # Stub endpoints — returns 501 until implemented
+# TODO: migrate to routers/services/models pattern in follow-up ticket
 # ---------------------------------------------------------------------------
 
 
@@ -143,11 +146,6 @@ async def courses_search(
         return JSONResponse({"error": "Search failed"}, status_code=502)
 
 
-@router.post("/me/recommendations")
-async def recommendations():
-    return JSONResponse({"error": "Not implemented"}, status_code=501)
-
-
 @router.post("/me/roadmap/generate")
 async def roadmap_generate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
@@ -173,6 +171,12 @@ async def plan_validate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
 
 
+# ---------------------------------------------------------------------------
+# Embeddings models
+# TODO: migrate to routers/services/models pattern in follow-up ticket
+# ---------------------------------------------------------------------------
+
+
 class CourseItem(BaseModel):
     model_config = {"populate_by_name": True}
 
@@ -183,7 +187,7 @@ class CourseItem(BaseModel):
     language: str | None = None
 
 
-class EmbedMode(str, Enum):
+class EmbedMode(StrEnum):
     UPSERT = "UPSERT"
     FULL_REBUILD = "FULL_REBUILD"
 
@@ -254,3 +258,4 @@ async def embeddings_courses(request: EmbedCoursesRequest):
 
 
 app.include_router(router)
+app.include_router(recommendations_router.router, prefix="/v1")
