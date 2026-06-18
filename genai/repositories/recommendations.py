@@ -14,8 +14,8 @@ def find_similar_courses(
     if not candidate_ids:
         return []
 
-    with get_connection() as conn, conn.cursor() as cur:
-        cur.execute(
+    with get_connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
             """
             SELECT course_id,
                    1 - (embedding <=> %s::vector) AS score
@@ -26,4 +26,4 @@ def find_similar_courses(
             """,
             (query_vector, candidate_ids, query_vector, limit),
         )
-        return cur.fetchall()
+        return cursor.fetchall()
