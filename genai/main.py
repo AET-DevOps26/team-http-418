@@ -46,6 +46,7 @@ async def health():
 
 # ---------------------------------------------------------------------------
 # Implemented endpoints
+# TODO: migrate to routers/services/models pattern in follow-up ticket
 # ---------------------------------------------------------------------------
 
 
