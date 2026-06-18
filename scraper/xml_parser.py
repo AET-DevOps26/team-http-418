@@ -81,3 +81,61 @@ def time_at(tree: ET.Element | None, path: str) -> time | None:
 
     # Handles "2026-04-14T08:15:00"
     return datetime.fromisoformat(value).time()
+
+
+def parse_curriculum_positions(curriculum_positions_xml, course_id: int) -> list[dict]:
+    parsed_positions = []
+
+    for resource in curriculum_positions_xml:
+        dto = resource.find(".//coCurriculumPositionDto")
+        if dto is None:
+            continue
+
+        study_name_info = dto.find("studyNameInfoDto")
+        curriculum_version_info = dto.find("curriculumVersionInfoDto")
+        curriculum_info = curriculum_version_info.find("curriculumInfo")
+        curriculum_potition_path = dto.find("curriculumPositionPathDto")
+
+        curriculum_version_id = int_at(study_name_info, "curriculumVersionId") or int_at(curriculum_version_info, "id")
+
+        study_name_ger = lang_text(study_name_info, "name", "de") or lang_text(curriculum_info, "displayedName", "de")
+
+        study_name_en = lang_text(study_name_info, "name", "en") or lang_text(curriculum_info, "displayedName", "en")
+
+        study_identifier = text_at(curriculum_info, "displayedCode") or int_at(study_name_info, "studyIdentifier") or ""
+
+        subject_type = text_at(dto, "subjectTypeDto/value/value", None)
+        designation: int = None
+        path = []
+        if curriculum_potition_path is not None:
+            for i, path_el in enumerate(curriculum_potition_path.findall("path")):
+                if i == 0:
+                    designation = int_at(path_el, "designation")
+                element_id = int_at(path_el, "elementId")
+                default_name = text_at(path_el, "name/value")
+
+                if element_id is None and default_name is None:
+                    continue
+
+                path.append(
+                    {
+                        "element_id": element_id,
+                        "name": default_name,
+                    }
+                )
+
+        parsed_positions.append(
+            {
+                "course_id": course_id,
+                "curriculum_version_id": curriculum_version_id,
+                "study_name_ger": study_name_ger,
+                "study_name_en": study_name_en,
+                "study_id": study_identifier,
+                "designation": designation,
+                "subject_type": subject_type,
+                "path": path,
+                "source_xml": xml_string(resource),
+            }
+        )
+
+    return parsed_positions

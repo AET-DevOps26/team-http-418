@@ -6,6 +6,7 @@ from db_handler import DB, build_import_batch, bulk_update_database
 from tumonline_scraper import fetch_courses
 
 DEBUG = False
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
 async def main(clean: bool = False):
@@ -25,7 +26,7 @@ async def main(clean: bool = False):
         await bulk_update_database(db.conn, batch)
 
     await db.close_connection()
-    logging.info("\ndone")
+    logging.info("done")
 
 
 if __name__ == "__main__":
