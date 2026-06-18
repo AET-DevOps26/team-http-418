@@ -92,6 +92,7 @@ async def chat(request: ChatRequest):
 
 # ---------------------------------------------------------------------------
 # Stub endpoints — returns 501 until implemented
+# TODO: migrate to routers/services/models pattern in follow-up ticket
 # ---------------------------------------------------------------------------
 
 
@@ -171,6 +172,7 @@ async def plan_validate():
 
 # ---------------------------------------------------------------------------
 # Embeddings models
+# TODO: migrate to routers/services/models pattern in follow-up ticket
 # ---------------------------------------------------------------------------
 
 

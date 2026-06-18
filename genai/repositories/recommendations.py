@@ -18,12 +18,12 @@ def find_similar_courses(
         cursor.execute(
             """
             SELECT course_id,
-                   1 - (embedding <=> %s::vector) AS score
+                   1 - (embedding <=> %(vector)s::vector) AS score
             FROM course_embeddings
-            WHERE course_id = ANY(%s)
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
+            WHERE course_id = ANY(%(ids)s)
+            ORDER BY embedding <=> %(vector)s::vector
+            LIMIT %(limit)s
             """,
-            (query_vector, candidate_ids, query_vector, limit),
+            {"vector": query_vector, "ids": candidate_ids, "limit": limit},
         )
         return cursor.fetchall()
