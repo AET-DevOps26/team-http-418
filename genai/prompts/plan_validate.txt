@@ -22,12 +22,16 @@ Check for:
 
 Only flag real issues. If the plan looks fine, return an empty warnings array.
 
+Allowed values — you MUST use exactly these, no other values accepted:
+- type: "WORKLOAD_EXCEEDED" | "SCHEDULING_PREFERENCE" | "RISKY_COMBINATION"
+- severity: "ERROR" | "WARNING" | "INFO"
+
 Return ONLY a valid JSON object. No explanation, no markdown, just JSON:
 {{
   "warnings": [
     {{
-      "type": "<WORKLOAD_EXCEEDED|SCHEDULING_PREFERENCE|RISKY_COMBINATION>",
-      "severity": "<ERROR|WARNING|INFO>",
+      "type": "WORKLOAD_EXCEEDED",
+      "severity": "ERROR",
       "message": "<human-readable explanation referencing specific courses or credits>"
     }}
   ]
