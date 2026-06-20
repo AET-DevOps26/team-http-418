@@ -2,9 +2,9 @@ import logging
 import time
 
 from fastapi import APIRouter, Header
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
-from models.advisor import AdvisorRequest
+from models.advisor import AdvisorRequest, AdvisorResponse
 from services.advisor import get_advisor_response, stream_advisor_response
 
 logger = logging.getLogger("genai")
@@ -29,7 +29,7 @@ async def advisor_chat(
         result = await get_advisor_response(request)
         elapsed_ms = round((time.perf_counter() - start) * 1000)
         logger.info("advisor | conversation_id=%s duration_ms=%d (sync)", conversation_id, elapsed_ms)
-        return JSONResponse(result)
+        return AdvisorResponse(**result)
 
     return StreamingResponse(
         stream_advisor_response(request, conversation_id),

@@ -2,9 +2,8 @@ import logging
 import time
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 
-from models.recommendations import RecommendationsRequest
+from models.recommendations import RecommendationsRequest, RecommendationsResponse
 from services.recommendations import generate_recommendations
 
 logger = logging.getLogger("genai")
@@ -12,7 +11,7 @@ logger = logging.getLogger("genai")
 router = APIRouter()
 
 
-@router.post("/me/recommendations")
+@router.post("/me/recommendations", response_model=RecommendationsResponse)
 async def recommendations(request: RecommendationsRequest):
     start = time.perf_counter()
     logger.info(
@@ -30,4 +29,4 @@ async def recommendations(request: RecommendationsRequest):
         len(result["recommendations"]),
         elapsed_ms,
     )
-    return JSONResponse(result)
+    return result
