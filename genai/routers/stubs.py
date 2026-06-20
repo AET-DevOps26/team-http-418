@@ -5,8 +5,8 @@ router = APIRouter()
 
 
 # TODO: implement these endpoints instead of stubs
-@router.post("/me/advisor/suggestions")
-async def advisor_suggestions():
+@router.post("/me/roadmap/generate")
+async def roadmap_generate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
 
 

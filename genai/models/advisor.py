@@ -39,3 +39,16 @@ class AdvisorRequest(BaseModel):
     completed_courses: list[CompletedCourseRef] = Field(default=[], alias="completedCourses")
     conversation_history: list[ConversationMessage] = Field(default=[], alias="conversationHistory")
     new_message: str = Field(alias="newMessage")
+
+
+class AdvisorPromptSuggestionsRequest(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    student: StudentAdvisorProfile
+    completed_courses: list[CompletedCourseRef] = Field(default=[], alias="completedCourses")
+    current_semester: str | None = Field(default=None, alias="currentSemester")
+
+
+class PromptSuggestionChip(BaseModel):
+    text: str
+    category: str
