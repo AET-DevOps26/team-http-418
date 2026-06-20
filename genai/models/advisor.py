@@ -32,6 +32,20 @@ class ConversationMessage(BaseModel):
     content: str
 
 
+class ReferencedCourse(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    course_id: int = Field(alias="courseId")
+    course_code: str = Field(alias="courseCode")
+
+
+class AdvisorResponse(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    content: str
+    referenced_courses: list[ReferencedCourse] = Field(default=[], alias="referencedCourses")
+
+
 class AdvisorRequest(BaseModel):
     model_config = {"populate_by_name": True}
 

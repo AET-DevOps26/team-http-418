@@ -2,9 +2,8 @@ import logging
 import time
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 
-from models.plan_validate import PlanValidateRequest
+from models.plan_validate import PlanValidateRequest, PlanValidateResponse
 from services.plan_validate import validate_plan
 
 logger = logging.getLogger("genai")
@@ -12,7 +11,7 @@ logger = logging.getLogger("genai")
 router = APIRouter()
 
 
-@router.post("/me/plan/validate")
+@router.post("/me/plan/validate", response_model=PlanValidateResponse)
 async def plan_validate(request: PlanValidateRequest):
     start = time.perf_counter()
     logger.info(
@@ -30,4 +29,4 @@ async def plan_validate(request: PlanValidateRequest):
         len(result["warnings"]),
         elapsed_ms,
     )
-    return JSONResponse(result)
+    return result

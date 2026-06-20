@@ -21,6 +21,22 @@ class CourseRef(BaseModel):
     description: str | None = None
 
 
+class RecommendationItem(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    course_id: int = Field(alias="courseId")
+    relevance_score: float = Field(alias="relevanceScore")
+    reason: str
+    tags: list[str] = Field(default=[])
+
+
+class RecommendationsResponse(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    recommendations: list[RecommendationItem]
+    generated_at: str = Field(alias="generatedAt")
+
+
 class RecommendationsRequest(BaseModel):
     model_config = {"populate_by_name": True}
 

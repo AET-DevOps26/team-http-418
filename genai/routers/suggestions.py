@@ -2,9 +2,8 @@ import logging
 import time
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 
-from models.advisor import AdvisorPromptSuggestionsRequest
+from models.advisor import AdvisorPromptSuggestionsRequest, PromptSuggestionChip
 from services.suggestions import generate_suggestions
 
 logger = logging.getLogger("genai")
@@ -12,7 +11,7 @@ logger = logging.getLogger("genai")
 router = APIRouter()
 
 
-@router.post("/me/advisor/suggestions")
+@router.post("/me/advisor/suggestions", response_model=list[PromptSuggestionChip])
 async def advisor_suggestions(request: AdvisorPromptSuggestionsRequest):
     start = time.perf_counter()
     logger.info(
@@ -29,4 +28,4 @@ async def advisor_suggestions(request: AdvisorPromptSuggestionsRequest):
         len(chips),
         elapsed_ms,
     )
-    return JSONResponse(chips)
+    return chips
