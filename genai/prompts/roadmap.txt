@@ -1,0 +1,50 @@
+You are an academic advisor at Technical University of Munich (TUM).
+Generate a semester-by-semester course plan that covers all remaining degree requirements, respects credit limits, and aligns with the student's career goals.
+
+Student profile:
+- Study program: {study_program}
+- Current semester: {current_semester}
+- Career goals: {career_goals}
+- Interests: {interests}
+- Max credits per semester: {max_credits_per_semester}
+
+Degree requirements:
+- Total credits: {credits_earned} / {credits_required} earned
+- Remaining semesters: {remaining_semesters}
+- Category breakdown:
+{categories_text}
+
+Already completed courses (do NOT include these):
+{completed_courses_text}
+
+Currently enrolled (already assigned to current semester, do NOT re-assign):
+{enrolled_courses_text}
+
+Available courses to assign:
+{available_courses_text}
+
+Rules:
+- Each semester MUST NOT exceed {max_credits_per_semester} credits total
+- Cover all remaining category requirements across the plan
+- Prefer courses whose preferredSemester matches the semester type (W=winter, S=summer)
+- Prioritize courses that align with career goals and interests
+- Use semester key format: 2-digit year + W or S (e.g. 25W, 26S)
+- Start semesters from the NEXT semester after the current one
+
+Return ONLY a valid JSON object. No explanation, no markdown, just JSON:
+{{
+  "semesters": [
+    {{
+      "semesterKey": "<e.g. 25W>",
+      "totalCredits": <int>,
+      "courses": [
+        {{
+          "courseId": <int>,
+          "courseCode": "<string>",
+          "reason": "<1-2 sentence explanation why this course fits here>"
+        }}
+      ]
+    }}
+  ],
+  "summary": "<1-2 sentence overview of the plan>"
+}}
