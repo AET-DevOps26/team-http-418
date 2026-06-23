@@ -3,7 +3,8 @@ package tum.devops.http418.auth.service;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DBUserDetailsManager implements UserDetailsManager {
 
-	private final JdbcTemplate jdbcTemplate;
+	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate_;
+	private final JdbcOperations jdbcTemplate;
 	private final PasswordEncoder passwordEncoder;
 
-	public DBUserDetailsManager(@Qualifier("securityJdbcTemplate") JdbcTemplate jdbcTemplate,
+	public DBUserDetailsManager(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate,
 			PasswordEncoder passwordEncoder) {
-		this.jdbcTemplate = jdbcTemplate;
+		this.namedParameterJdbcTemplate_ = jdbcTemplate;
+		this.jdbcTemplate = jdbcTemplate.getJdbcOperations();
 		this.passwordEncoder = passwordEncoder;
 	}
 

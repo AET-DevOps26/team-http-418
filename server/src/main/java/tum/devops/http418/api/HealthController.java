@@ -1,4 +1,4 @@
-package tum.devops.http418;
+package tum.devops.http418.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
