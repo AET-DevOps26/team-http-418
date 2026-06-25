@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tum.devops.http418.api.dto.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -21,7 +20,7 @@ public class CoursesDataDB {
 	private final NamedParameterJdbcTemplate template;
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
-		final String query = "SELECT * FROM courses WHERE id IN (:ids)";
+		final String query = "SELECT * FROM courses JOIN course_types on courses.course_type_id = course_types.id WHERE courses.id IN (:ids)";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
 		return template.query(query, parameters, new BeanPropertyRowMapper<>(SimpleCourseData.class));
 	}
@@ -47,7 +46,6 @@ public class CoursesDataDB {
 				org.name_ger as org_name_ger,
 				org.name_en as org_name_en,
 				org.org_page_url as org_url
-
 				FROM courses c
 				JOIN organizations org ON c.organization_id = org.id
 				JOIN semesters sem ON c.semester_id = sem.id
@@ -68,23 +66,33 @@ public class CoursesDataDB {
 		course.setPeople(getPeople(id));
 		course.setCurriculumConnections(getCurriculumConnections(id));
 		return course;
-		//        JOIN curriculum_connections ON curriculum_connections.course_id = courses.id
-		//        JOIN (
-		//                Select * from lectureship
-		//                JOIN persons ON persons.id = lectureship.person_id
-		//        ) as lectureXperson ON lectureXperson.course_id = courses.id
 	}
 
 	private @NonNull List<CurriculumConnections> getCurriculumConnections(int id) {
-		return new ArrayList<>(); //TODO
+		final String query = """
+				SELECT * FROM curriculum_connections WHERE course_id = :id
+				""";
+		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", id);
+		return template.query(query, parameters, new BeanPropertyRowMapper<>(CurriculumConnections.class));
 	}
 
 	private @NonNull List<Person> getPeople(int id) {
-		return new ArrayList<>(); //TODO
+		final String query = """
+				SELECT p.first_name, p.last_name, ls.teaching_function FROM persons p
+				    JOIN lectureship ls on ls.person_id = p.id
+				         WHERE ls.course_id = :id
+				""";
+		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", id);
+		return template.query(query, parameters, new BeanPropertyRowMapper<>(Person.class));
 	}
 
 	public @NonNull List<Appointment> getAppointments(int course_id) {
-		return new ArrayList<>(); //TODO
+		final String query = """
+				SELECT app.weekday_key, app.time_from, app.time_to, app.place, app.is_series FROM course_appointments app
+				WHERE course_id = :id
+				""";
+		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", course_id);
+		return template.query(query, parameters, new BeanPropertyRowMapper<>(Appointment.class));
 	}
 
 	public List<SimpleCourseData> getByQuery(String query,
