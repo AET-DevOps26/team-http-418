@@ -90,3 +90,31 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type StudyProgramRef = {
+	id: string;
+	name: string;
+	department: string;
+};
+
+export type StudentProfile = {
+	id: string;
+	tumId: string;
+	name: string;
+	email: string;
+	semester: number;
+	studyPrograms: StudyProgramRef[];
+	totalCredits: number;
+	preferredWorkload: number;
+	careerGoals: string[];
+	interests: string[];
+	createdAt: IsoDateString;
+	updatedAt: IsoDateString;
+};
+
+export type StudentProfileUpdate = {
+	semester?: number;
+	preferredWorkload?: number;
+	careerGoals?: string[];
+	interests?: string[];
+};

@@ -14,6 +14,7 @@ export {
 export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
+export { getProfile, patchProfile, updateProfile } from "#/api/profile";
 export { queryClient } from "#/api/query-client";
 export type {
 	AlertSeverity,
@@ -30,5 +31,8 @@ export type {
 	Page,
 	ProblemDetail,
 	SemesterKey,
+	StudentProfile,
+	StudentProfileUpdate,
+	StudyProgramRef,
 	UpcomingCourse,
 } from "#/api/types";
