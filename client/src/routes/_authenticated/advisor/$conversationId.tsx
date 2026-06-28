@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { MessageInput } from "#/components/advisor/MessageInput";
 import { MessageThread } from "#/components/advisor/MessageThread";
@@ -48,17 +48,28 @@ function ConversationSkeleton() {
 function ConversationPage() {
 	const { conversationId } = Route.useParams();
 	const { prompt } = Route.useSearch();
+	const navigate = useNavigate();
 	const { data, isLoading, isError, refetch } = useConversation(conversationId);
 	const { sendMessage, isStreaming, streamingContent } =
 		useSendMessage(conversationId);
-	const initialPromptSent = useRef(false);
+	const promptedConversationRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (prompt && data && !initialPromptSent.current) {
-			initialPromptSent.current = true;
+		if (
+			prompt &&
+			data?.messages.length === 0 &&
+			promptedConversationRef.current !== conversationId
+		) {
+			promptedConversationRef.current = conversationId;
 			sendMessage(prompt);
+			navigate({
+				to: "/advisor/$conversationId",
+				params: { conversationId },
+				search: {},
+				replace: true,
+			});
 		}
-	}, [prompt, data, sendMessage]);
+	}, [conversationId, prompt, data, sendMessage, navigate]);
 
 	if (isLoading) return <ConversationSkeleton />;
 
