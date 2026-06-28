@@ -5,7 +5,11 @@ export function getDepartments(): Promise<Department[]> {
 	return apiFetch<Department[]>("/departments");
 }
 
-export function getStudyPrograms(departmentId?: string): Promise<StudyProgram[]> {
-	const qs = departmentId ? `?departmentId=${encodeURIComponent(departmentId)}` : "";
+export function getStudyPrograms(
+	departmentId?: string,
+): Promise<StudyProgram[]> {
+	const qs = departmentId
+		? `?departmentId=${encodeURIComponent(departmentId)}`
+		: "";
 	return apiFetch<StudyProgram[]>(`/study-programs${qs}`);
 }

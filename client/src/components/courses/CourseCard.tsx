@@ -16,23 +16,42 @@ export function CourseCard({ course, onClick }: Props) {
 			<div className="catalog-course-card-header">
 				<span className="catalog-course-code">{course.courseCode}</span>
 				<div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-					<span className="tag" style={{ background: "var(--blue-50)", color: "var(--blue-700)" }}>
+					<span
+						className="tag"
+						style={{ background: "var(--blue-50)", color: "var(--blue-700)" }}
+					>
 						{course.language}
 					</span>
-					<span className="tag" style={{ background: "var(--canvas-2)", color: "var(--ink-soft)" }}>
+					<span
+						className="tag"
+						style={{ background: "var(--canvas-2)", color: "var(--ink-soft)" }}
+					>
 						{course.level}
 					</span>
 				</div>
 			</div>
 			<p className="catalog-course-name">{course.name}</p>
 			<div className="catalog-course-meta">
-				<span style={{ color: "var(--muted)", fontSize: 12 }}>{course.department}</span>
-				<span style={{ color: "var(--muted)", fontSize: 12 }}>{course.credits} ECTS</span>
+				<span style={{ color: "var(--muted)", fontSize: 12 }}>
+					{course.department}
+				</span>
+				<span style={{ color: "var(--muted)", fontSize: 12 }}>
+					{course.credits} ECTS
+				</span>
 			</div>
 			{course.hasPrerequisites && (
-				<div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 4 }}>
+				<div
+					style={{
+						marginTop: 8,
+						display: "flex",
+						alignItems: "center",
+						gap: 4,
+					}}
+				>
 					<BookOpen size={11} strokeWidth={1.75} color="var(--muted)" />
-					<span style={{ fontSize: 11, color: "var(--muted)" }}>Has prerequisites</span>
+					<span style={{ fontSize: 11, color: "var(--muted)" }}>
+						Has prerequisites
+					</span>
 				</div>
 			)}
 		</button>

@@ -1,10 +1,16 @@
+import type { CourseSearchParams } from "#/api/types";
 import { useDepartments } from "#/hooks/useDepartments";
 import { useStudyPrograms } from "#/hooks/useStudyPrograms";
-import type { CourseSearchParams } from "#/api/types";
 
 type Filters = Pick<
 	CourseSearchParams,
-	"department" | "studyProgramId" | "language" | "level" | "creditsMin" | "creditsMax" | "semester"
+	| "department"
+	| "studyProgramId"
+	| "language"
+	| "level"
+	| "creditsMin"
+	| "creditsMax"
+	| "semester"
 >;
 
 type Props = {
@@ -26,7 +32,9 @@ export function FilterPanel({ filters, onChange }: Props) {
 		onChange({});
 	}
 
-	const hasFilters = Object.values(filters).some((v) => v !== undefined && v !== "");
+	const hasFilters = Object.values(filters).some(
+		(v) => v !== undefined && v !== "",
+	);
 
 	return (
 		<div className="catalog-filter-panel">
@@ -95,7 +103,10 @@ export function FilterPanel({ filters, onChange }: Props) {
 					placeholder="Min ECTS"
 					value={filters.creditsMin ?? ""}
 					onChange={(e) =>
-						set("creditsMin", e.target.value ? Number(e.target.value) : undefined)
+						set(
+							"creditsMin",
+							e.target.value ? Number(e.target.value) : undefined,
+						)
 					}
 				/>
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>–</span>
@@ -106,13 +117,21 @@ export function FilterPanel({ filters, onChange }: Props) {
 					placeholder="Max ECTS"
 					value={filters.creditsMax ?? ""}
 					onChange={(e) =>
-						set("creditsMax", e.target.value ? Number(e.target.value) : undefined)
+						set(
+							"creditsMax",
+							e.target.value ? Number(e.target.value) : undefined,
+						)
 					}
 				/>
 			</div>
 
 			{hasFilters && (
-				<button type="button" className="btn btn-ghost" style={{ fontSize: 12, padding: "5px 10px" }} onClick={clear}>
+				<button
+					type="button"
+					className="btn btn-ghost"
+					style={{ fontSize: 12, padding: "5px 10px" }}
+					onClick={clear}
+				>
 					Clear filters
 				</button>
 			)}

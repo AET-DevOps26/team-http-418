@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { checkPrerequisites } from "#/api/courses";
 import { isAuthenticated } from "#/api";
+import { checkPrerequisites } from "#/api/courses";
 
 export function usePrerequisiteCheck(courseId?: string) {
 	return useQuery({

@@ -1,11 +1,11 @@
-import { useEffect } from "react";
 import { ExternalLink, X } from "lucide-react";
-import { useCourse } from "#/hooks/useCourse";
-import { usePrerequisiteTree } from "#/hooks/usePrerequisiteTree";
-import { usePrerequisiteCheck } from "#/hooks/usePrerequisiteCheck";
+import { useEffect } from "react";
 import { isAuthenticated } from "#/api";
-import { ScheduleTable } from "#/components/courses/ScheduleTable";
 import { PrerequisiteTree } from "#/components/courses/PrerequisiteTree";
+import { ScheduleTable } from "#/components/courses/ScheduleTable";
+import { useCourse } from "#/hooks/useCourse";
+import { usePrerequisiteCheck } from "#/hooks/usePrerequisiteCheck";
+import { usePrerequisiteTree } from "#/hooks/usePrerequisiteTree";
 
 type Props = {
 	courseId: string;
@@ -53,37 +53,83 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 
 				{isLoading && (
 					<div style={{ padding: "32px 24px" }}>
-						{(["title", "dept", "desc", "a", "b", "c"] as const).map((id, i) => (
-						<div key={id} className="skel" style={{ height: i === 0 ? 22 : 14, width: [200, 140, 160, 80, 80, 80][i], marginBottom: 12 }} />
-					))}
+						{(["title", "dept", "desc", "a", "b", "c"] as const).map(
+							(id, i) => (
+								<div
+									key={id}
+									className="skel"
+									style={{
+										height: i === 0 ? 22 : 14,
+										width: [200, 140, 160, 80, 80, 80][i],
+										marginBottom: 12,
+									}}
+								/>
+							),
+						)}
 					</div>
 				)}
 
 				{isError && (
 					<div style={{ padding: "32px 24px", textAlign: "center" }}>
-						<p style={{ color: "var(--muted)", fontSize: 14 }}>Failed to load course.</p>
+						<p style={{ color: "var(--muted)", fontSize: 14 }}>
+							Failed to load course.
+						</p>
 					</div>
 				)}
 
 				{course && (
 					<div className="catalog-sheet-content">
 						<div style={{ marginBottom: 16 }}>
-							<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-								<span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--blue-700)", fontWeight: 600 }}>
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: 8,
+									marginBottom: 6,
+								}}
+							>
+								<span
+									style={{
+										fontFamily: "var(--font-mono)",
+										fontSize: 13,
+										color: "var(--blue-700)",
+										fontWeight: 600,
+									}}
+								>
 									{course.courseCode}
 								</span>
-								<span className="tag" style={{ background: "var(--blue-50)", color: "var(--blue-700)" }}>
+								<span
+									className="tag"
+									style={{
+										background: "var(--blue-50)",
+										color: "var(--blue-700)",
+									}}
+								>
 									{course.language}
 								</span>
-								<span className="tag" style={{ background: "var(--canvas-2)", color: "var(--ink-soft)" }}>
+								<span
+									className="tag"
+									style={{
+										background: "var(--canvas-2)",
+										color: "var(--ink-soft)",
+									}}
+								>
 									{course.level}
 								</span>
-								<span className="tag" style={{ background: "var(--line-soft)", color: "var(--muted)" }}>
+								<span
+									className="tag"
+									style={{
+										background: "var(--line-soft)",
+										color: "var(--muted)",
+									}}
+								>
 									{course.credits} ECTS
 								</span>
 							</div>
 							<h2 className="catalog-sheet-title">{course.name}</h2>
-							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>{course.department}</p>
+							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+								{course.department}
+							</p>
 						</div>
 
 						{authed && prereqCheck && (
@@ -95,7 +141,9 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 								) : (
 									<span>
 										Unmet prerequisites:{" "}
-										{prereqCheck.unmetPrerequisites.map((r) => r.courseCode).join(", ")}
+										{prereqCheck.unmetPrerequisites
+											.map((r) => r.courseCode)
+											.join(", ")}
 									</span>
 								)}
 							</div>
@@ -104,7 +152,14 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 						{course.description && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Description</p>
-								<p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--ink-soft)", margin: 0 }}>
+								<p
+									style={{
+										fontSize: 13,
+										lineHeight: 1.6,
+										color: "var(--ink-soft)",
+										margin: 0,
+									}}
+								>
 									{course.description}
 								</p>
 							</section>
@@ -113,7 +168,14 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 						{course.generalRequirements && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Requirements</p>
-								<p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--ink-soft)", margin: 0 }}>
+								<p
+									style={{
+										fontSize: 13,
+										lineHeight: 1.6,
+										color: "var(--ink-soft)",
+										margin: 0,
+									}}
+								>
 									{course.generalRequirements}
 								</p>
 							</section>
@@ -122,12 +184,18 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 						{course.instructors.length > 0 && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Instructors</p>
-								<div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+								<div
+									style={{ display: "flex", flexDirection: "column", gap: 6 }}
+								>
 									{course.instructors.map((inst) => (
 										<div key={inst.email} style={{ fontSize: 13 }}>
-											<span style={{ color: "var(--ink)", fontWeight: 500 }}>{inst.name}</span>
+											<span style={{ color: "var(--ink)", fontWeight: 500 }}>
+												{inst.name}
+											</span>
 											{inst.email && (
-												<span style={{ color: "var(--muted)", marginLeft: 8 }}>{inst.email}</span>
+												<span style={{ color: "var(--muted)", marginLeft: 8 }}>
+													{inst.email}
+												</span>
 											)}
 										</div>
 									))}
@@ -160,7 +228,10 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										<span
 											key={sp.id}
 											className="tag"
-											style={{ background: "var(--canvas-2)", color: "var(--ink-soft)" }}
+											style={{
+												background: "var(--canvas-2)",
+												color: "var(--ink-soft)",
+											}}
 										>
 											{sp.name}
 										</span>

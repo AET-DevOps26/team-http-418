@@ -9,11 +9,20 @@ type Props = {
 	depth?: number;
 };
 
-export function PrerequisiteTree({ nodes, metIds, unmetIds, showBadges, depth = 0 }: Props) {
+export function PrerequisiteTree({
+	nodes,
+	metIds,
+	unmetIds,
+	showBadges,
+	depth = 0,
+}: Props) {
 	if (!nodes.length) return null;
 
 	return (
-		<ul className="catalog-prereq-tree" style={{ paddingLeft: depth === 0 ? 0 : 16 }}>
+		<ul
+			className="catalog-prereq-tree"
+			style={{ paddingLeft: depth === 0 ? 0 : 16 }}
+		>
 			{nodes.map((node) => {
 				const met = metIds?.has(node.courseId);
 				const unmet = unmetIds?.has(node.courseId);
@@ -31,7 +40,14 @@ export function PrerequisiteTree({ nodes, metIds, unmetIds, showBadges, depth = 
 								{node.type}
 							</span>
 							<span style={{ fontSize: 13, color: "var(--ink)" }}>
-								<span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--blue-700)", marginRight: 4 }}>
+								<span
+									style={{
+										fontFamily: "var(--font-mono)",
+										fontSize: 12,
+										color: "var(--blue-700)",
+										marginRight: 4,
+									}}
+								>
 									{node.courseCode}
 								</span>
 								{node.courseName}

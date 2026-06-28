@@ -14,7 +14,17 @@ export function SearchBar({ value, ai, onChange, onAiToggle }: Props) {
 
 	useEffect(() => {
 		setLocal(value);
+		if (timer.current) {
+			clearTimeout(timer.current);
+			timer.current = null;
+		}
 	}, [value]);
+
+	useEffect(() => {
+		return () => {
+			if (timer.current) clearTimeout(timer.current);
+		};
+	}, []);
 
 	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const v = e.target.value;
