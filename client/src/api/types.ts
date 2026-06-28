@@ -90,3 +90,125 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+// ── Course catalog types ──
+
+export type CourseLevel = "BACHELOR" | "MASTER" | string;
+export type Language = "EN" | "DE" | string;
+export type PreferredSemester = "WS" | "SS" | string;
+export type ScheduleType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM" | string;
+export type PrerequisiteType = "REQUIRED" | "RECOMMENDED" | string;
+
+export type CourseSummary = {
+	id: string;
+	courseCode: string;
+	name: string;
+	department: string;
+	credits: number;
+	language: Language;
+	level: CourseLevel;
+	preferredSemester: PreferredSemester;
+	hasPrerequisites: boolean;
+	instructors: string[];
+};
+
+export type ScheduleSlot = {
+	day: string;
+	startTime: string;
+	endTime: string;
+	room: string;
+	type: ScheduleType;
+};
+
+export type Instructor = {
+	name: string;
+	email: string;
+};
+
+export type CoursePrerequisiteRef = {
+	courseId: string;
+	courseCode: string;
+	name: string;
+	type: PrerequisiteType;
+};
+
+export type CourseStudyProgramRef = {
+	id: string;
+	name: string;
+	category: string;
+};
+
+export type CourseDetail = {
+	id: string;
+	courseCode: string;
+	name: string;
+	department: string;
+	credits: number;
+	language: Language;
+	level: CourseLevel;
+	preferredSemester: PreferredSemester;
+	hasPrerequisites: boolean;
+	instructors: Instructor[];
+	description: string;
+	generalRequirements: string;
+	schedule: ScheduleSlot[];
+	prerequisites: CoursePrerequisiteRef[];
+	studyPrograms: CourseStudyProgramRef[];
+	sourceUrl: string;
+	lastUpdated: IsoDateString;
+};
+
+export type PrerequisiteNode = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	type: PrerequisiteType;
+	prerequisites: PrerequisiteNode[];
+};
+
+export type PrerequisiteTree = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	prerequisites: PrerequisiteNode[];
+};
+
+export type PrerequisiteCheckRef = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	type: PrerequisiteType;
+};
+
+export type PrerequisiteCheck = {
+	courseId: string;
+	courseCode: string;
+	eligible: boolean;
+	unmetPrerequisites: PrerequisiteCheckRef[];
+	metPrerequisites: PrerequisiteCheckRef[];
+};
+
+export type Department = {
+	id: string;
+	name: string;
+};
+
+export type StudyProgram = {
+	id: string;
+	name: string;
+	department: string;
+};
+
+export type CourseSearchParams = {
+	search?: string;
+	ai?: boolean;
+	department?: string;
+	semester?: string;
+	creditsMin?: number;
+	creditsMax?: number;
+	language?: string;
+	level?: string;
+	studyProgramId?: string;
+	page?: number;
+	size?: number;
+};
