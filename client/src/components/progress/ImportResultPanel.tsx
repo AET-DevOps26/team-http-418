@@ -1,11 +1,32 @@
 import { AlertTriangle, CheckCircle, MinusCircle } from "lucide-react";
-import type { TranscriptImportResult } from "#/api/types";
+import type {
+	ImportError,
+	ImportedCourse,
+	TranscriptImportResult,
+} from "#/api/types";
 
 type Props = {
 	result: TranscriptImportResult;
 };
 
+function formatImportError(error: ImportError): string {
+	if (typeof error === "string") return error;
+	return `${error.row != null ? `Row ${error.row}: ` : ""}${error.message}`;
+}
+
+function getCourseCode(course: ImportedCourse): string {
+	return course.courseCode ?? course.moduleId ?? "Unknown";
+}
+
+function getCourseName(course: ImportedCourse): string {
+	return (
+		course.courseName ?? course.titleEn ?? course.titleDe ?? "Unknown course"
+	);
+}
+
 export function ImportResultPanel({ result }: Props) {
+	const showGrade = result.importedCourses.some((course) => course.grade);
+
 	return (
 		<div className="card" style={{ padding: 20 }}>
 			<div className="eyebrow">Import Result</div>
@@ -22,10 +43,7 @@ export function ImportResultPanel({ result }: Props) {
 			</div>
 
 			{result.errors.length > 0 && (
-				<div
-					className="alert-item alert-error"
-					style={{ marginBottom: 16 }}
-				>
+				<div className="alert-item alert-error" style={{ marginBottom: 16 }}>
 					<div
 						style={{
 							display: "flex",
@@ -48,11 +66,8 @@ export function ImportResultPanel({ result }: Props) {
 							color: "var(--ink-soft)",
 						}}
 					>
-						{result.errors.map((err, i) => (
-							<li key={i}>
-								{err.row != null ? `Row ${err.row}: ` : ""}
-								{err.message}
-							</li>
+						{result.errors.map((err) => (
+							<li key={formatImportError(err)}>{formatImportError(err)}</li>
 						))}
 					</ul>
 				</div>
@@ -80,7 +95,7 @@ export function ImportResultPanel({ result }: Props) {
 						>
 							<th style={{ padding: "6px 8px" }}>Module</th>
 							<th style={{ padding: "6px 8px" }}>Course</th>
-							<th style={{ padding: "6px 8px" }}>Grade</th>
+							{showGrade && <th style={{ padding: "6px 8px" }}>Grade</th>}
 							<th style={{ padding: "6px 8px", textAlign: "right" }}>
 								Credits
 							</th>
@@ -89,7 +104,7 @@ export function ImportResultPanel({ result }: Props) {
 					<tbody>
 						{result.importedCourses.map((c) => (
 							<tr
-								key={c.moduleId}
+								key={`${getCourseCode(c)}-${getCourseName(c)}`}
 								style={{ borderBottom: "1px solid var(--line-soft)" }}
 							>
 								<td
@@ -99,12 +114,10 @@ export function ImportResultPanel({ result }: Props) {
 										fontSize: 12,
 									}}
 								>
-									{c.moduleId}
+									{getCourseCode(c)}
 								</td>
-								<td style={{ padding: "8px" }}>
-									{c.titleEn || c.titleDe}
-								</td>
-								<td style={{ padding: "8px" }}>{c.grade}</td>
+								<td style={{ padding: "8px" }}>{getCourseName(c)}</td>
+								{showGrade && <td style={{ padding: "8px" }}>{c.grade}</td>}
 								<td style={{ padding: "8px", textAlign: "right" }}>
 									{c.credits}
 								</td>

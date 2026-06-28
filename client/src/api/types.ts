@@ -92,17 +92,22 @@ export type Dashboard = {
 };
 
 export type ImportedCourse = {
-	moduleId: string;
-	titleDe: string;
-	titleEn: string;
-	grade: string;
+	courseId?: string;
+	courseCode?: string;
+	courseName?: string;
+	moduleId?: string;
+	titleDe?: string;
+	titleEn?: string;
+	grade?: string;
 	credits: number;
 };
 
-export type ImportError = {
-	row?: number;
-	message: string;
-};
+export type ImportError =
+	| string
+	| {
+			row?: number;
+			message: string;
+	  };
 
 export type TranscriptImportResult = {
 	importedCount: number;

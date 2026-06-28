@@ -1,4 +1,5 @@
 import { Loader2, Upload } from "lucide-react";
+import type { ChangeEvent, DragEvent } from "react";
 import { useRef, useState } from "react";
 
 type Props = {
@@ -36,23 +37,23 @@ export function TranscriptUploader({ onFileSelected, isUploading }: Props) {
 		onFileSelected(file);
 	}
 
-	function onDragEnter(e: React.DragEvent) {
+	function onDragEnter(e: DragEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		dragCounter.current++;
 		setDragActive(true);
 	}
 
-	function onDragOver(e: React.DragEvent) {
+	function onDragOver(e: DragEvent<HTMLButtonElement>) {
 		e.preventDefault();
 	}
 
-	function onDragLeave(e: React.DragEvent) {
+	function onDragLeave(e: DragEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		dragCounter.current--;
 		if (dragCounter.current === 0) setDragActive(false);
 	}
 
-	function onDrop(e: React.DragEvent) {
+	function onDrop(e: DragEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		dragCounter.current = 0;
 		setDragActive(false);
@@ -60,7 +61,7 @@ export function TranscriptUploader({ onFileSelected, isUploading }: Props) {
 		if (file) handleFile(file);
 	}
 
-	function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+	function onChange(e: ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
 		if (file) handleFile(file);
 		e.target.value = "";
@@ -76,13 +77,16 @@ export function TranscriptUploader({ onFileSelected, isUploading }: Props) {
 
 	return (
 		<div>
-			<div
+			<button
+				type="button"
 				className={zoneClass}
 				onDragEnter={onDragEnter}
 				onDragOver={onDragOver}
 				onDragLeave={onDragLeave}
 				onDrop={onDrop}
 				onClick={() => !isUploading && inputRef.current?.click()}
+				disabled={isUploading}
+				aria-busy={isUploading}
 			>
 				{isUploading ? (
 					<Loader2
@@ -101,40 +105,41 @@ export function TranscriptUploader({ onFileSelected, isUploading }: Props) {
 						style={{ color: "var(--muted)", margin: "0 auto 12px" }}
 					/>
 				)}
-				<p
+				<span
 					style={{
-						margin: 0,
+						display: "block",
 						fontSize: 14,
 						fontWeight: 500,
 						color: "var(--ink)",
 					}}
 				>
 					{isUploading
-						? "Uploading transcript…"
+						? "Uploading transcript..."
 						: "Drag & drop your transcript here"}
-				</p>
-				<p
+				</span>
+				<span
 					style={{
+						display: "block",
 						margin: "4px 0 12px",
 						fontSize: 12.5,
 						color: "var(--muted)",
 					}}
 				>
 					PDF or CSV, up to 10 MB
-				</p>
+				</span>
 				{!isUploading && (
-					<button type="button" className="btn btn-ghost">
+					<span className="btn btn-ghost" aria-hidden="true">
 						Browse
-					</button>
+					</span>
 				)}
-				<input
-					ref={inputRef}
-					type="file"
-					accept=".pdf,.csv"
-					onChange={onChange}
-					style={{ display: "none" }}
-				/>
-			</div>
+			</button>
+			<input
+				ref={inputRef}
+				type="file"
+				accept=".pdf,.csv"
+				onChange={onChange}
+				style={{ display: "none" }}
+			/>
 			{error && (
 				<p
 					style={{

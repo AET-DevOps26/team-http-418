@@ -42,10 +42,7 @@ function Progress() {
 				/>
 
 				{isError && (
-					<div
-						className="alert-item alert-error"
-						style={{ marginTop: 16 }}
-					>
+					<div className="alert-item alert-error" style={{ marginTop: 16 }}>
 						<p style={{ margin: 0, fontSize: 13 }}>
 							{error?.message ?? "Upload failed. Please try again."}
 						</p>

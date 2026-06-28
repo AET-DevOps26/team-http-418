@@ -474,9 +474,14 @@ body {
 /* ── Drop zone ── */
 
 .drop-zone {
+  display: block;
+  width: 100%;
   border: 2px dashed var(--line);
   border-radius: var(--r-xl);
   padding: 40px 24px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
