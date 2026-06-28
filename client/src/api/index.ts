@@ -11,8 +11,15 @@ export {
 	setAccessToken,
 	setTokens,
 } from "#/api/auth";
+export { getDepartments, getStudyPrograms } from "#/api/catalog";
 export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
+export {
+	checkPrerequisites,
+	getCourse,
+	getCoursePrerequisites,
+	getCourses,
+} from "#/api/courses";
 export { getDashboard } from "#/api/dashboard";
 export {
 	addCompletedCourse,
@@ -32,24 +39,42 @@ export type {
 	AlertType,
 	AuthResponse,
 	CompletedCourse,
+	CourseDetail,
+	CourseLevel,
+	CoursePrerequisiteRef,
 	CourseScheduleEntry,
+	CourseSearchParams,
 	CourseSession,
 	CourseStatus,
+	CourseStudyProgramRef,
+	CourseSummary,
 	Dashboard,
 	DashboardAlert,
 	DashboardProgress,
 	DashboardRecommendation,
 	DashboardRequirement,
 	DegreeRequirements,
+	Department,
 	EnrollCourseRequest,
 	EnrolledCourse,
+	Instructor,
 	IsoDateString,
+	Language,
 	LoginRequest,
 	Page,
+	PreferredSemester,
+	PrerequisiteCheck,
+	PrerequisiteCheckRef,
+	PrerequisiteNode,
+	PrerequisiteTree,
+	PrerequisiteType,
 	ProblemDetail,
 	RequirementAlert,
 	RequirementCategory,
 	RequirementCourse,
+	ScheduleSlot,
+	ScheduleType,
 	SemesterKey,
+	StudyProgram,
 	UpcomingCourse,
 } from "#/api/types";
