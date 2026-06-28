@@ -77,6 +77,7 @@ export function GoalsInterestsEditor({
 						value={inputValue}
 						onChange={(e) => setInputValue(e.target.value)}
 						onKeyDown={handleKeyDown}
+						onBlur={addItem}
 						placeholder={`Add ${label.toLowerCase()}…`}
 						style={{
 							width: "100%",

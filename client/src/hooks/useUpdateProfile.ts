@@ -7,7 +7,8 @@ export function useUpdateProfile() {
 
 	return useMutation({
 		mutationFn: (fields: Partial<StudentProfileUpdate>) => patchProfile(fields),
-		onSuccess: () => {
+		onSuccess: (profile) => {
+			queryClient.setQueryData(["profile"], profile);
 			queryClient.invalidateQueries({ queryKey: ["profile"] });
 		},
 	});
