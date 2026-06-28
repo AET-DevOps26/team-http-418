@@ -116,3 +116,237 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type ImportedCourse = {
+	courseId?: string;
+	courseCode?: string;
+	courseName?: string;
+	moduleId?: string;
+	titleDe?: string;
+	titleEn?: string;
+	grade?: string;
+	credits: number;
+};
+
+export type ImportError =
+	| string
+	| {
+			row?: number;
+			message: string;
+	  };
+
+export type TranscriptImportResult = {
+	importedCount: number;
+	skippedCount: number;
+	importedCourses: ImportedCourse[];
+	errors: ImportError[];
+};
+
+export type CreditsByCategory = {
+	category: string;
+	earned: number;
+	required: number;
+};
+
+export type AcademicProgress = {
+	totalCreditsEarned: number;
+	totalCreditsRequired: number;
+	gpa: number;
+	completedCourseCount: number;
+	enrolledCourseCount: number;
+	currentSemester: SemesterKey;
+	progressPercentage: number;
+	creditsByCategory: CreditsByCategory[];
+};
+
+export type CompletedCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	grade: number;
+	semester: SemesterKey;
+	category: string;
+};
+
+export type CourseScheduleEntry = {
+	day: string;
+	startTime: string;
+	endTime: string;
+	room: string;
+	type: string;
+};
+
+export type EnrolledCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	semester: SemesterKey;
+	schedule: CourseScheduleEntry[];
+};
+
+export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING";
+
+export type RequirementCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	status: CourseStatus;
+	isRequired: boolean;
+};
+
+export type RequirementCategory = {
+	name: string;
+	creditsRequired: number;
+	creditsEarned: number;
+	fulfilled: boolean;
+	courses: RequirementCourse[];
+};
+
+export type RequirementAlert = {
+	type: string;
+	message: string;
+};
+
+export type DegreeRequirements = {
+	studyProgram: { id: string; name: string };
+	totalCreditsRequired: number;
+	totalCreditsEarned: number;
+	categories: RequirementCategory[];
+	alerts: RequirementAlert[];
+};
+
+export type AddCompletedCourseRequest = {
+	courseId: string;
+	grade: number;
+	semester: string;
+};
+
+export type EnrollCourseRequest = {
+	courseId: string;
+	semester: string;
+};
+
+// ── Course catalog types ──
+
+export type CourseLevel = "BACHELOR" | "MASTER" | string;
+export type Language = "EN" | "DE" | string;
+export type PreferredSemester = "WS" | "SS" | string;
+export type ScheduleType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM" | string;
+export type PrerequisiteType = "REQUIRED" | "RECOMMENDED" | string;
+
+export type CourseSummary = {
+	id: string;
+	courseCode: string;
+	name: string;
+	department: string;
+	credits: number;
+	language: Language;
+	level: CourseLevel;
+	preferredSemester: PreferredSemester;
+	hasPrerequisites: boolean;
+	instructors: string[];
+};
+
+export type ScheduleSlot = {
+	day: string;
+	startTime: string;
+	endTime: string;
+	room: string;
+	type: ScheduleType;
+};
+
+export type Instructor = {
+	name: string;
+	email: string;
+};
+
+export type CoursePrerequisiteRef = {
+	courseId: string;
+	courseCode: string;
+	name: string;
+	type: PrerequisiteType;
+};
+
+export type CourseStudyProgramRef = {
+	id: string;
+	name: string;
+	category: string;
+};
+
+export type CourseDetail = {
+	id: string;
+	courseCode: string;
+	name: string;
+	department: string;
+	credits: number;
+	language: Language;
+	level: CourseLevel;
+	preferredSemester: PreferredSemester;
+	hasPrerequisites: boolean;
+	instructors: Instructor[];
+	description: string;
+	generalRequirements: string;
+	schedule: ScheduleSlot[];
+	prerequisites: CoursePrerequisiteRef[];
+	studyPrograms: CourseStudyProgramRef[];
+	sourceUrl: string;
+	lastUpdated: IsoDateString;
+};
+
+export type PrerequisiteNode = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	type: PrerequisiteType;
+	prerequisites: PrerequisiteNode[];
+};
+
+export type PrerequisiteTree = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	prerequisites: PrerequisiteNode[];
+};
+
+export type PrerequisiteCheckRef = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	type: PrerequisiteType;
+};
+
+export type PrerequisiteCheck = {
+	courseId: string;
+	courseCode: string;
+	eligible: boolean;
+	unmetPrerequisites: PrerequisiteCheckRef[];
+	metPrerequisites: PrerequisiteCheckRef[];
+};
+
+export type Department = {
+	id: string;
+	name: string;
+};
+
+export type StudyProgram = {
+	id: string;
+	name: string;
+	department: string;
+};
+
+export type CourseSearchParams = {
+	search?: string;
+	ai?: boolean;
+	department?: string;
+	semester?: string;
+	creditsMin?: number;
+	creditsMax?: number;
+	language?: string;
+	level?: string;
+	studyProgramId?: string;
+	page?: number;
+	size?: number;
+};

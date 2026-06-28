@@ -3,11 +3,13 @@ import { Bell, Globe, Search } from "lucide-react";
 
 const PAGE_LABELS: Record<string, string> = {
 	"/dashboard": "Overview",
+	"/progress": "Academic Progress",
 	"/courses": "Courses",
 	"/schedule": "Schedule",
 	"/planner": "Planner",
 	"/explore": "Explore",
 	"/insights": "Insights",
+	"/progress": "Progress",
 	"/profile": "Profile",
 	"/preferences": "Preferences",
 };
