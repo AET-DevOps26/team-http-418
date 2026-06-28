@@ -90,3 +90,40 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type CourseStatus = "ENROLLED" | "PLANNED" | "COMPLETED";
+
+export type PlannedCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	status: CourseStatus;
+};
+
+export type SemesterPlanDetail = {
+	semesterKey: SemesterKey;
+	label: string;
+	totalCredits: number;
+	courses: PlannedCourse[];
+	isCurrent: boolean;
+};
+
+export type RoadmapStatus = "READY" | "GENERATING" | "EMPTY";
+
+export type Roadmap = {
+	status: RoadmapStatus;
+	semesters: SemesterPlanDetail[];
+	totalPlannedCredits: number;
+	estimatedGraduation: SemesterKey;
+};
+
+export type GenerateRoadmapRequest = {
+	aims: string;
+	maxCreditsPerSemester: number;
+	interests: string[];
+};
+
+export type AddCourseRequest = {
+	courseId: string;
+};
