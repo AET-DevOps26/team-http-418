@@ -137,10 +137,10 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
     "preferredWorkload": 30
   },
   "completedCourses": [
-    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "credits": 6 }
+    "Introduction to Deep Learning"
   ],
   "enrolledCourses": [
-    { "courseId": "uuid", "courseCode": "IN2349", "courseName": "Advanced Deep Learning", "credits": 6 }
+    "Advanced Deep Learning"
   ],
   "availableCourses": [
     { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "description": "..." }
