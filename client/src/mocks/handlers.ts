@@ -255,7 +255,6 @@ function getRequirementStatus(courseId: string) {
 	}
 	return "MISSING";
 }
->>>>>>> origin/main
 
 export const handlers = [
 	http.get(`/api/${API_VERSION}/hello`, () => {

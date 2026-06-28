@@ -81,8 +81,8 @@ export type {
 	SemesterKey,
 	StudentProfile,
 	StudentProfileUpdate,
-	StudyProgramRef,
 	StudyProgram,
+	StudyProgramRef,
 	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";
