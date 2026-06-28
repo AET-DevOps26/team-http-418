@@ -470,3 +470,69 @@ body {
 .view-fade {
   animation: fade-up 0.2s ease both;
 }
+
+/* ── Schedule grid ── */
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(5, 1fr);
+  grid-template-rows: 40px repeat(24, minmax(28px, 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.schedule-day-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.schedule-time-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  padding-right: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  border-right: 1px solid var(--line);
+  padding-top: 2px;
+}
+
+.schedule-cell {
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.schedule-event {
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  transition: box-shadow 0.15s, transform 0.15s;
+  position: relative;
+  z-index: 1;
+  margin: 1px 2px;
+}
+
+.schedule-event:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}

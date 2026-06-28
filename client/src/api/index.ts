@@ -15,6 +15,7 @@ export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
 export { queryClient } from "#/api/query-client";
+export { getSchedule } from "#/api/schedule";
 export type {
 	AlertSeverity,
 	AlertType,
@@ -30,5 +31,9 @@ export type {
 	Page,
 	ProblemDetail,
 	SemesterKey,
+	ScheduleConflict,
+	ScheduleEvent,
+	ScheduleEventType,
 	UpcomingCourse,
+	WeeklySchedule,
 } from "#/api/types";

@@ -90,3 +90,32 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type ScheduleEventType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM";
+
+export type ScheduleEvent = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	type: ScheduleEventType;
+	day: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY";
+	startTime: string;
+	endTime: string;
+	room: string;
+	instructor: string;
+	color: string;
+};
+
+export type ScheduleConflict = {
+	type: "TIME_OVERLAP" | "WORKLOAD_EXCEEDED" | "PREREQUISITE_UNMET";
+	severity: "ERROR" | "WARNING";
+	message: string;
+	involvedCourses: string[];
+};
+
+export type WeeklySchedule = {
+	semester: SemesterKey;
+	events: ScheduleEvent[];
+	totalCredits: number;
+	conflicts: ScheduleConflict[];
+};
