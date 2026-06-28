@@ -1,4 +1,11 @@
 export {
+	createConversation,
+	getConversation,
+	getConversations,
+	getSuggestions,
+	sendMessage,
+} from "#/api/advisor";
+export {
 	AuthError,
 	clearAccessToken,
 	clearTokens,
@@ -16,9 +23,13 @@ export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
 export { queryClient } from "#/api/query-client";
 export type {
+	AdvisorSSEEvent,
 	AlertSeverity,
 	AlertType,
 	AuthResponse,
+	Conversation,
+	ConversationMessage,
+	ConversationSummary,
 	CourseSession,
 	Dashboard,
 	DashboardAlert,
@@ -27,8 +38,11 @@ export type {
 	DashboardRequirement,
 	IsoDateString,
 	LoginRequest,
+	MessageRole,
 	Page,
 	ProblemDetail,
+	ReferencedCourse,
 	SemesterKey,
+	SuggestedPrompt,
 	UpcomingCourse,
 } from "#/api/types";

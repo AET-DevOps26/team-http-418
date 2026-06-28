@@ -13,6 +13,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdvisorRouteImport } from './routes/_authenticated/advisor'
+import { Route as AuthenticatedAdvisorIndexRouteImport } from './routes/_authenticated/advisor/index'
+import { Route as AuthenticatedAdvisorConversationIdRouteImport } from './routes/_authenticated/advisor/$conversationId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -33,35 +36,69 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdvisorRoute = AuthenticatedAdvisorRouteImport.update({
+  id: '/advisor',
+  path: '/advisor',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdvisorIndexRoute =
+  AuthenticatedAdvisorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdvisorRoute,
+  } as any)
+const AuthenticatedAdvisorConversationIdRoute =
+  AuthenticatedAdvisorConversationIdRouteImport.update({
+    id: '/$conversationId',
+    path: '/$conversationId',
+    getParentRoute: () => AuthenticatedAdvisorRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/advisor': typeof AuthenticatedAdvisorRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
+  '/advisor/': typeof AuthenticatedAdvisorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
+  '/advisor': typeof AuthenticatedAdvisorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/advisor': typeof AuthenticatedAdvisorRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
+  '/_authenticated/advisor/': typeof AuthenticatedAdvisorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/advisor'
+    | '/dashboard'
+    | '/advisor/$conversationId'
+    | '/advisor/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
+  to: '/' | '/login' | '/dashboard' | '/advisor/$conversationId' | '/advisor'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/advisor'
     | '/_authenticated/dashboard'
+    | '/_authenticated/advisor/$conversationId'
+    | '/_authenticated/advisor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,14 +137,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/advisor': {
+      id: '/_authenticated/advisor'
+      path: '/advisor'
+      fullPath: '/advisor'
+      preLoaderRoute: typeof AuthenticatedAdvisorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/advisor/': {
+      id: '/_authenticated/advisor/'
+      path: '/'
+      fullPath: '/advisor/'
+      preLoaderRoute: typeof AuthenticatedAdvisorIndexRouteImport
+      parentRoute: typeof AuthenticatedAdvisorRoute
+    }
+    '/_authenticated/advisor/$conversationId': {
+      id: '/_authenticated/advisor/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/advisor/$conversationId'
+      preLoaderRoute: typeof AuthenticatedAdvisorConversationIdRouteImport
+      parentRoute: typeof AuthenticatedAdvisorRoute
+    }
   }
 }
 
+interface AuthenticatedAdvisorRouteChildren {
+  AuthenticatedAdvisorConversationIdRoute: typeof AuthenticatedAdvisorConversationIdRoute
+  AuthenticatedAdvisorIndexRoute: typeof AuthenticatedAdvisorIndexRoute
+}
+
+const AuthenticatedAdvisorRouteChildren: AuthenticatedAdvisorRouteChildren = {
+  AuthenticatedAdvisorConversationIdRoute:
+    AuthenticatedAdvisorConversationIdRoute,
+  AuthenticatedAdvisorIndexRoute: AuthenticatedAdvisorIndexRoute,
+}
+
+const AuthenticatedAdvisorRouteWithChildren =
+  AuthenticatedAdvisorRoute._addFileChildren(AuthenticatedAdvisorRouteChildren)
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdvisorRoute: typeof AuthenticatedAdvisorRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdvisorRoute: AuthenticatedAdvisorRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 

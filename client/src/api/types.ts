@@ -90,3 +90,44 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type MessageRole = "USER" | "ASSISTANT";
+
+export type ReferencedCourse = {
+	courseId: string;
+	courseCode: string;
+};
+
+export type ConversationMessage = {
+	id: string;
+	role: MessageRole;
+	content: string;
+	referencedCourses: ReferencedCourse[];
+	createdAt: IsoDateString;
+};
+
+export type ConversationSummary = {
+	id: string;
+	title: string;
+	lastMessage: string;
+	lastMessageAt: IsoDateString;
+	messageCount: number;
+};
+
+export type Conversation = {
+	id: string;
+	title: string;
+	messages: ConversationMessage[];
+	createdAt: IsoDateString;
+	updatedAt: IsoDateString;
+};
+
+export type SuggestedPrompt = {
+	text: string;
+	category: string;
+};
+
+export type AdvisorSSEEvent =
+	| { token: string }
+	| { done: true; fullContent: string }
+	| { error: string };
