@@ -82,8 +82,8 @@ Possible values: `UP` (service running and ready) / `DOWN` (service unavailable)
 > Spring Boot endpoint: `GET /courses?ai=true` (Browsing Service) → calls this GenAI endpoint:
 
 | Impl | Method | Endpoint | Query Params | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/v1/courses` | `query, limit, department, language, level` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
+|:----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [x]  | `GET` | `/v1/courses` | `query, limit, department, language, level` | 200 | Embed query string, run vector similarity search, return ranked course IDs + scores | Browsing Service |
 
 Spring Boot falls back to SQL `ILIKE` keyword search if this call fails.
 
@@ -143,7 +143,7 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
     "Advanced Deep Learning"
   ],
   "availableCourses": [
-    { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "description": "..." }
+    { "courseId": "uuid", "courseName": "Robot Learning", "credits": 6, "description": "..." }
   ],
   "limit": 10,
   "category": "Elective",
@@ -163,10 +163,10 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
   "overrideInterests": ["motion planning", "computer vision"],
   "excludeCourseIds": ["uuid-already-seen"],
   "completedCourses": [
-    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "credits": 6 }
+    "Introduction to Deep Learning"
   ],
   "availableCourses": [
-    { "courseId": "uuid", "courseCode": "IN2390", "courseName": "Robot Learning", "credits": 6, "description": "..." }
+    { "courseId": "uuid", "courseName": "Robot Learning", "credits": 6, "description": "..." }
   ],
   "limit": 10
 }
@@ -219,10 +219,10 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
     }
   },
   "completedCourses": [
-    { "courseId": "uuid", "courseCode": "IN2346", "credits": 6, "category": "Elective" }
+    "Introduction to Deep Learning"
   ],
   "enrolledCourses": [
-    { "courseId": "uuid", "courseCode": "IN2349", "credits": 6, "semester": "25S" }
+    "Advanced Deep Learning"
   ],
   "degreeRequirements": {
     "totalCreditsRequired": 120,
@@ -345,7 +345,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
     "currentSemester": "25S"
   },
   "completedCourses": [
-    { "courseCode": "IN2346", "courseName": "Introduction to Deep Learning" }
+    "courseName": "Introduction to Deep Learning"
   ]
 }
 ```
