@@ -8,12 +8,14 @@ import {
 	Map as MapIcon,
 	Settings,
 	Sparkles,
+	TrendingUp,
 	User,
 } from "lucide-react";
 import { logout } from "#/api";
 
 const mainNav = [
 	{ label: "Overview", icon: Home, href: "/dashboard" },
+	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 	{ label: "Courses", icon: BookOpen, href: "/courses" },
 	{ label: "Schedule", icon: Clock, href: "/schedule" },
 	{ label: "Planner", icon: MapIcon, href: "/planner" },

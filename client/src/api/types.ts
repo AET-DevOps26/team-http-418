@@ -91,6 +91,93 @@ export type Dashboard = {
 	requirements?: DashboardRequirement[];
 };
 
+export type CreditsByCategory = {
+	category: string;
+	earned: number;
+	required: number;
+};
+
+export type AcademicProgress = {
+	totalCreditsEarned: number;
+	totalCreditsRequired: number;
+	gpa: number;
+	completedCourseCount: number;
+	enrolledCourseCount: number;
+	currentSemester: SemesterKey;
+	progressPercentage: number;
+	creditsByCategory: CreditsByCategory[];
+};
+
+export type CompletedCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	grade: number;
+	semester: SemesterKey;
+	category: string;
+};
+
+export type CourseScheduleEntry = {
+	day: string;
+	startTime: string;
+	endTime: string;
+	room: string;
+	type: string;
+};
+
+export type EnrolledCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	semester: SemesterKey;
+	schedule: CourseScheduleEntry[];
+};
+
+export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING";
+
+export type RequirementCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	status: CourseStatus;
+	isRequired: boolean;
+};
+
+export type RequirementCategory = {
+	name: string;
+	creditsRequired: number;
+	creditsEarned: number;
+	fulfilled: boolean;
+	courses: RequirementCourse[];
+};
+
+export type RequirementAlert = {
+	type: string;
+	message: string;
+};
+
+export type DegreeRequirements = {
+	studyProgram: { id: string; name: string };
+	totalCreditsRequired: number;
+	totalCreditsEarned: number;
+	categories: RequirementCategory[];
+	alerts: RequirementAlert[];
+};
+
+export type AddCompletedCourseRequest = {
+	courseId: string;
+	grade: number;
+	semester: string;
+};
+
+export type EnrollCourseRequest = {
+	courseId: string;
+	semester: string;
+};
+
 // ── Course catalog types ──
 
 export type CourseLevel = "BACHELOR" | "MASTER" | string;
