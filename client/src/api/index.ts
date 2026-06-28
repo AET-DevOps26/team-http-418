@@ -14,21 +14,42 @@ export {
 export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
+export {
+	addCompletedCourse,
+	dropCourse,
+	enrollCourse,
+	getCompletedCourses,
+	getEnrolledCourses,
+	getProgress,
+	getRequirements,
+	removeCompletedCourse,
+} from "#/api/progress";
 export { queryClient } from "#/api/query-client";
 export type {
+	AcademicProgress,
+	AddCompletedCourseRequest,
 	AlertSeverity,
 	AlertType,
 	AuthResponse,
+	CompletedCourse,
+	CourseScheduleEntry,
 	CourseSession,
+	CourseStatus,
 	Dashboard,
 	DashboardAlert,
 	DashboardProgress,
 	DashboardRecommendation,
 	DashboardRequirement,
+	DegreeRequirements,
+	EnrollCourseRequest,
+	EnrolledCourse,
 	IsoDateString,
 	LoginRequest,
 	Page,
 	ProblemDetail,
+	RequirementAlert,
+	RequirementCategory,
+	RequirementCourse,
 	SemesterKey,
 	UpcomingCourse,
 } from "#/api/types";
