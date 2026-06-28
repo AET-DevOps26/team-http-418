@@ -30,6 +30,7 @@ export {
 	getProgress,
 	getRequirements,
 	removeCompletedCourse,
+	uploadTranscript,
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
 export type {
@@ -57,6 +58,8 @@ export type {
 	Department,
 	EnrollCourseRequest,
 	EnrolledCourse,
+	ImportError,
+	ImportedCourse,
 	Instructor,
 	IsoDateString,
 	Language,
@@ -76,5 +79,6 @@ export type {
 	ScheduleType,
 	SemesterKey,
 	StudyProgram,
+	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";

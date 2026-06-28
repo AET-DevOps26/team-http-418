@@ -1,4 +1,4 @@
-import { HttpResponse, http, passthrough } from "msw";
+import { delay, HttpResponse, http, passthrough } from "msw";
 import { API_VERSION } from "#/api/auth.ts";
 import { isMocked } from "./config";
 
@@ -265,6 +265,48 @@ export const handlers = [
 	http.post(`/api/${API_VERSION}/auth/logout`, () => {
 		if (!isMocked("POST", "/auth/logout")) return passthrough();
 		return new HttpResponse(null, { status: 204 });
+	}),
+
+	http.post(`/api/${API_VERSION}/me/transcript/upload`, async () => {
+		if (!isMocked("POST", "/me/transcript/upload")) return passthrough();
+		await delay(1500);
+		return HttpResponse.json({
+			importedCount: 5,
+			skippedCount: 2,
+			importedCourses: [
+				{
+					courseCode: "IN0001",
+					courseName: "Introduction to Informatics 1",
+					grade: "1.3",
+					credits: 6,
+				},
+				{
+					courseCode: "IN0003",
+					courseName: "Introduction to Informatics 2",
+					grade: "1.7",
+					credits: 6,
+				},
+				{
+					courseCode: "MA0901",
+					courseName: "Linear Algebra for Informatics",
+					grade: "2.0",
+					credits: 8,
+				},
+				{
+					courseCode: "IN0007",
+					courseName: "Fundamentals: Algorithms and Data Structures",
+					grade: "1.0",
+					credits: 6,
+				},
+				{
+					courseCode: "IN0009",
+					courseName: "Fundamentals: Operating Systems and System Software",
+					grade: "2.3",
+					credits: 6,
+				},
+			],
+			errors: ["Could not match course 'XX9999' to catalog"],
+		});
 	}),
 
 	http.get(`/api/${API_VERSION}/me/progress`, () => {

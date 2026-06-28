@@ -21,6 +21,7 @@ const mainNav = [
 	{ label: "Planner", icon: MapIcon, href: "/planner" },
 	{ label: "Explore", icon: Compass, href: "/explore" },
 	{ label: "Insights", icon: Sparkles, href: "/insights" },
+	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 ];
 
 const accountNav = [

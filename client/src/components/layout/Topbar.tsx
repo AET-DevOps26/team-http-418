@@ -9,6 +9,7 @@ const PAGE_LABELS: Record<string, string> = {
 	"/planner": "Planner",
 	"/explore": "Explore",
 	"/insights": "Insights",
+	"/progress": "Progress",
 	"/profile": "Profile",
 	"/preferences": "Preferences",
 };

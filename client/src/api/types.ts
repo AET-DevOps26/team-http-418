@@ -91,6 +91,31 @@ export type Dashboard = {
 	requirements?: DashboardRequirement[];
 };
 
+export type ImportedCourse = {
+	courseId?: string;
+	courseCode?: string;
+	courseName?: string;
+	moduleId?: string;
+	titleDe?: string;
+	titleEn?: string;
+	grade?: string;
+	credits: number;
+};
+
+export type ImportError =
+	| string
+	| {
+			row?: number;
+			message: string;
+	  };
+
+export type TranscriptImportResult = {
+	importedCount: number;
+	skippedCount: number;
+	importedCourses: ImportedCourse[];
+	errors: ImportError[];
+};
+
 export type CreditsByCategory = {
 	category: string;
 	earned: number;

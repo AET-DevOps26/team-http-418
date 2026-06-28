@@ -7,7 +7,17 @@ import type {
 	EnrollCourseRequest,
 	EnrolledCourse,
 	Page,
+	TranscriptImportResult,
 } from "#/api/types";
+
+export function uploadTranscript(file: File): Promise<TranscriptImportResult> {
+	const form = new FormData();
+	form.append("file", file);
+	return apiFetch<TranscriptImportResult>("/me/transcript/upload", {
+		method: "POST",
+		body: form,
+	});
+}
 
 export function getProgress(): Promise<AcademicProgress> {
 	return apiFetch<AcademicProgress>("/me/progress");

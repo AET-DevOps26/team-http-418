@@ -4,6 +4,7 @@ export const mockConfig: Record<string, boolean> = {
 	"POST /auth/refresh": true,
 	"POST /auth/logout": true,
 	"GET /me/dashboard": true,
+	"POST /me/transcript/upload": true,
 	"GET /me/progress": true,
 	"GET /me/courses/completed": true,
 	"POST /me/courses/completed": true,
