@@ -4,6 +4,7 @@ export const mockConfig: Record<string, boolean> = {
 	"POST /auth/refresh": true,
 	"POST /auth/logout": true,
 	"GET /me/dashboard": true,
+	"POST /me/transcript/upload": true,
 	// Add endpoints here — set false to "unlock" (use real backend)
 };
 

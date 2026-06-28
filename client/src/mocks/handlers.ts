@@ -1,4 +1,4 @@
-import { HttpResponse, http, passthrough } from "msw";
+import { HttpResponse, delay, http, passthrough } from "msw";
 import { API_VERSION } from "#/api/auth.ts";
 import { isMocked } from "./config";
 
@@ -44,6 +44,59 @@ export const handlers = [
 	http.post(`/api/${API_VERSION}/auth/logout`, () => {
 		if (!isMocked("POST", "/auth/logout")) return passthrough();
 		return new HttpResponse(null, { status: 204 });
+	}),
+
+	http.post(`/api/${API_VERSION}/me/transcript/upload`, async () => {
+		if (!isMocked("POST", "/me/transcript/upload")) return passthrough();
+		await delay(1500);
+		return HttpResponse.json({
+			importedCount: 5,
+			skippedCount: 2,
+			importedCourses: [
+				{
+					moduleId: "IN0001",
+					titleDe: "Einführung in die Informatik 1",
+					titleEn: "Introduction to Informatics 1",
+					grade: "1.3",
+					credits: 6,
+				},
+				{
+					moduleId: "IN0003",
+					titleDe: "Einführung in die Informatik 2",
+					titleEn: "Introduction to Informatics 2",
+					grade: "1.7",
+					credits: 6,
+				},
+				{
+					moduleId: "MA0901",
+					titleDe: "Lineare Algebra für Informatik",
+					titleEn: "Linear Algebra for Informatics",
+					grade: "2.0",
+					credits: 8,
+				},
+				{
+					moduleId: "IN0007",
+					titleDe: "Grundlagen: Algorithmen und Datenstrukturen",
+					titleEn: "Fundamentals: Algorithms and Data Structures",
+					grade: "1.0",
+					credits: 6,
+				},
+				{
+					moduleId: "IN0009",
+					titleDe: "Grundlagen: Betriebssysteme und Systemsoftware",
+					titleEn: "Fundamentals: Operating Systems and System Software",
+					grade: "2.3",
+					credits: 6,
+				},
+			],
+			errors: [
+				{
+					row: 8,
+					message:
+						"Unknown module ID 'XX9999' — could not match to catalog.",
+				},
+			],
+		});
 	}),
 
 	http.get(`/api/${API_VERSION}/me/dashboard`, () => {

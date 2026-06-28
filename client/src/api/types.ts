@@ -90,3 +90,23 @@ export type Dashboard = {
 	semesterCredits: number;
 	requirements?: DashboardRequirement[];
 };
+
+export type ImportedCourse = {
+	moduleId: string;
+	titleDe: string;
+	titleEn: string;
+	grade: string;
+	credits: number;
+};
+
+export type ImportError = {
+	row?: number;
+	message: string;
+};
+
+export type TranscriptImportResult = {
+	importedCount: number;
+	skippedCount: number;
+	importedCourses: ImportedCourse[];
+	errors: ImportError[];
+};

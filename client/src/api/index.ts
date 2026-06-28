@@ -14,6 +14,7 @@ export {
 export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
+export { uploadTranscript } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
 export type {
 	AlertSeverity,
@@ -25,10 +26,13 @@ export type {
 	DashboardProgress,
 	DashboardRecommendation,
 	DashboardRequirement,
+	ImportedCourse,
+	ImportError,
 	IsoDateString,
 	LoginRequest,
 	Page,
 	ProblemDetail,
 	SemesterKey,
+	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";

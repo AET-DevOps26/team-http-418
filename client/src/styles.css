@@ -470,3 +470,61 @@ body {
 .view-fade {
   animation: fade-up 0.2s ease both;
 }
+
+/* ── Drop zone ── */
+
+.drop-zone {
+  border: 2px dashed var(--line);
+  border-radius: var(--r-xl);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.drop-zone:hover {
+  border-color: var(--blue-300);
+  background: var(--blue-50);
+}
+
+.drop-zone--active {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+}
+
+.drop-zone--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ── Import result ── */
+
+.import-summary {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.import-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.import-stat--success {
+  color: var(--success);
+}
+
+.import-stat--muted {
+  color: var(--muted);
+}
+
+.import-stat--danger {
+  color: var(--danger);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
