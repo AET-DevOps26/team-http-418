@@ -190,6 +190,42 @@ let mockEnrolledCourses = [
 	},
 ];
 
+const CATEGORY_REQUIREMENTS = [
+	{ category: "Core", label: "Core Modules", required: 72 },
+	{ category: "Elective", label: "Electives", required: 30 },
+	{ category: "Mathematics", label: "Mathematics", required: 18 },
+	{ category: "Thesis", label: "Thesis", required: 30 },
+	{ category: "Practical", label: "Practical", required: 30 },
+];
+
+function getTotalCompletedCredits() {
+	return mockCompletedCourses.reduce((sum, course) => sum + course.credits, 0);
+}
+
+function getCompletedCreditsForCategory(category: string) {
+	return mockCompletedCourses
+		.filter((course) => course.category === category)
+		.reduce((sum, course) => sum + course.credits, 0);
+}
+
+function getCreditsByCategory() {
+	return CATEGORY_REQUIREMENTS.map(({ category, label, required }) => ({
+		category: label,
+		earned: getCompletedCreditsForCategory(category),
+		required,
+	}));
+}
+
+function getRequirementStatus(courseId: string) {
+	if (mockCompletedCourses.some((course) => course.courseId === courseId)) {
+		return "COMPLETED";
+	}
+	if (mockEnrolledCourses.some((course) => course.courseId === courseId)) {
+		return "ENROLLED";
+	}
+	return "MISSING";
+}
+
 export const handlers = [
 	http.get(`/api/${API_VERSION}/hello`, () => {
 		if (!isMocked("GET", "/hello")) return passthrough();
@@ -233,7 +269,7 @@ export const handlers = [
 
 	http.get(`/api/${API_VERSION}/me/progress`, () => {
 		if (!isMocked("GET", "/me/progress")) return passthrough();
-		const totalEarned = mockCompletedCourses.reduce((s, c) => s + c.credits, 0);
+		const totalEarned = getTotalCompletedCredits();
 		const totalRequired = 180;
 		const grades = mockCompletedCourses.map((c) => c.grade);
 		const gpa =
@@ -246,13 +282,7 @@ export const handlers = [
 			enrolledCourseCount: mockEnrolledCourses.length,
 			currentSemester: "SS2025",
 			progressPercentage: Math.round((totalEarned / totalRequired) * 1000) / 10,
-			creditsByCategory: [
-				{ category: "Core Modules", earned: 62, required: 72 },
-				{ category: "Electives", earned: 6, required: 30 },
-				{ category: "Mathematics", earned: 16, required: 18 },
-				{ category: "Thesis", earned: 0, required: 30 },
-				{ category: "Practical", earned: 0, required: 30 },
-			],
+			creditsByCategory: getCreditsByCategory(),
 		});
 	}),
 
@@ -359,20 +389,20 @@ export const handlers = [
 		return HttpResponse.json({
 			studyProgram: { id: "sp1", name: "Informatics B.Sc." },
 			totalCreditsRequired: 180,
-			totalCreditsEarned: 84,
+			totalCreditsEarned: getTotalCompletedCredits(),
 			categories: [
 				{
 					name: "Core Modules",
 					creditsRequired: 72,
-					creditsEarned: 62,
-					fulfilled: false,
+					creditsEarned: getCompletedCreditsForCategory("Core"),
+					fulfilled: getCompletedCreditsForCategory("Core") >= 72,
 					courses: [
 						{
 							courseId: "c1",
 							courseCode: "IN0001",
 							courseName: "Introduction to Informatics 1",
 							credits: 8,
-							status: "COMPLETED",
+							status: getRequirementStatus("c1"),
 							isRequired: true,
 						},
 						{
@@ -380,7 +410,7 @@ export const handlers = [
 							courseCode: "IN0002",
 							courseName: "Introduction to Informatics 2",
 							credits: 8,
-							status: "COMPLETED",
+							status: getRequirementStatus("c2"),
 							isRequired: true,
 						},
 						{
@@ -388,7 +418,7 @@ export const handlers = [
 							courseCode: "IN0003",
 							courseName: "Algorithms and Data Structures",
 							credits: 6,
-							status: "COMPLETED",
+							status: getRequirementStatus("c4"),
 							isRequired: true,
 						},
 						{
@@ -396,7 +426,7 @@ export const handlers = [
 							courseCode: "IN2322",
 							courseName: "Advanced Algorithms",
 							credits: 8,
-							status: "ENROLLED",
+							status: getRequirementStatus("e3"),
 							isRequired: true,
 						},
 						{
@@ -404,7 +434,7 @@ export const handlers = [
 							courseCode: "IN0004",
 							courseName: "Formal Languages",
 							credits: 6,
-							status: "MISSING",
+							status: getRequirementStatus("m1"),
 							isRequired: true,
 						},
 					],
@@ -412,15 +442,15 @@ export const handlers = [
 				{
 					name: "Electives",
 					creditsRequired: 30,
-					creditsEarned: 6,
-					fulfilled: false,
+					creditsEarned: getCompletedCreditsForCategory("Elective"),
+					fulfilled: getCompletedCreditsForCategory("Elective") >= 30,
 					courses: [
 						{
 							courseId: "c5",
 							courseCode: "IN2346",
 							courseName: "Introduction to Deep Learning",
 							credits: 6,
-							status: "COMPLETED",
+							status: getRequirementStatus("c5"),
 							isRequired: false,
 						},
 						{
@@ -428,7 +458,7 @@ export const handlers = [
 							courseCode: "IN2349",
 							courseName: "Advanced Deep Learning",
 							credits: 6,
-							status: "ENROLLED",
+							status: getRequirementStatus("e1"),
 							isRequired: false,
 						},
 						{
@@ -436,7 +466,7 @@ export const handlers = [
 							courseCode: "IN2390",
 							courseName: "Robot Learning",
 							credits: 6,
-							status: "ENROLLED",
+							status: getRequirementStatus("e2"),
 							isRequired: false,
 						},
 					],
@@ -444,15 +474,15 @@ export const handlers = [
 				{
 					name: "Mathematics",
 					creditsRequired: 18,
-					creditsEarned: 16,
-					fulfilled: false,
+					creditsEarned: getCompletedCreditsForCategory("Mathematics"),
+					fulfilled: getCompletedCreditsForCategory("Mathematics") >= 18,
 					courses: [
 						{
 							courseId: "c3",
 							courseCode: "MA0001",
 							courseName: "Linear Algebra",
 							credits: 8,
-							status: "COMPLETED",
+							status: getRequirementStatus("c3"),
 							isRequired: true,
 						},
 						{
@@ -460,7 +490,7 @@ export const handlers = [
 							courseCode: "MA0002",
 							courseName: "Analysis",
 							credits: 8,
-							status: "COMPLETED",
+							status: getRequirementStatus("c6"),
 							isRequired: true,
 						},
 						{
@@ -468,7 +498,7 @@ export const handlers = [
 							courseCode: "MA0003",
 							courseName: "Discrete Probability",
 							credits: 2,
-							status: "MISSING",
+							status: getRequirementStatus("m2"),
 							isRequired: true,
 						},
 					],
@@ -476,7 +506,7 @@ export const handlers = [
 				{
 					name: "Thesis",
 					creditsRequired: 30,
-					creditsEarned: 0,
+					creditsEarned: getCompletedCreditsForCategory("Thesis"),
 					fulfilled: false,
 					courses: [
 						{
@@ -484,7 +514,7 @@ export const handlers = [
 							courseCode: "IN9999",
 							courseName: "Bachelor's Thesis",
 							credits: 30,
-							status: "MISSING",
+							status: getRequirementStatus("m3"),
 							isRequired: true,
 						},
 					],

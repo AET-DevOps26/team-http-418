@@ -33,7 +33,7 @@ export function KpiBar({ progress }: { progress: AcademicProgress }) {
 		<div
 			style={{
 				display: "grid",
-				gridTemplateColumns: "repeat(5, 1fr)",
+				gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
 				gap: 16,
 				marginBottom: 24,
 			}}

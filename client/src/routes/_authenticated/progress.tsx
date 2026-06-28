@@ -4,6 +4,7 @@ import type { CompletedCourse, EnrolledCourse } from "#/api/types";
 import { AddCourseForm } from "#/components/progress/AddCourseForm";
 import { CourseTable } from "#/components/progress/CourseTable";
 import { CreditsByCategory } from "#/components/progress/CreditsByCategory";
+import { EnrollCourseForm } from "#/components/progress/EnrollCourseForm";
 import { KpiBar } from "#/components/progress/KpiBar";
 import {
 	type ProgressTab,
@@ -37,7 +38,7 @@ function ProgressSkeleton() {
 			<div
 				style={{
 					display: "grid",
-					gridTemplateColumns: "repeat(5, 1fr)",
+					gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
 					gap: 16,
 					marginBottom: 24,
 				}}
@@ -160,12 +161,20 @@ function Progress() {
 						onPageChange={setCompletedPage}
 						isRemoving={removeCourse.isPending}
 						removeLabel="Remove"
-						onRemove={(row) =>
+						onRemove={(row) => {
+							const goBackAfterRemove =
+								completedPage > 0 &&
+								completedCourses.data?.content.length === 1;
 							removeCourse.mutate(row.courseId, {
-								onSuccess: () => toast("Course removed", "success"),
+								onSuccess: () => {
+									if (goBackAfterRemove) {
+										setCompletedPage((page) => Math.max(0, page - 1));
+									}
+									toast("Course removed", "success");
+								},
 								onError: () => toast("Failed to remove course", "error"),
-							})
-						}
+							});
+						}}
 						columns={[
 							{
 								label: "Code",
@@ -193,6 +202,7 @@ function Progress() {
 			{tab === "Enrolled" && (
 				<div className="card" style={{ padding: 20 }}>
 					<div className="eyebrow">Enrolled Courses</div>
+					<EnrollCourseForm />
 					<CourseTable<EnrolledCourse>
 						page={enrolledCourses.data}
 						isLoading={enrolledCourses.isLoading}
@@ -201,12 +211,19 @@ function Progress() {
 						onPageChange={setEnrolledPage}
 						isRemoving={dropCourse.isPending}
 						removeLabel="Drop"
-						onRemove={(row) =>
+						onRemove={(row) => {
+							const goBackAfterDrop =
+								enrolledPage > 0 && enrolledCourses.data?.content.length === 1;
 							dropCourse.mutate(row.courseId, {
-								onSuccess: () => toast("Course dropped", "success"),
+								onSuccess: () => {
+									if (goBackAfterDrop) {
+										setEnrolledPage((page) => Math.max(0, page - 1));
+									}
+									toast("Course dropped", "success");
+								},
 								onError: () => toast("Failed to drop course", "error"),
-							})
-						}
+							});
+						}}
 						columns={[
 							{
 								label: "Code",

@@ -1,34 +1,29 @@
 import { type FormEvent, useState } from "react";
 import { useToast } from "#/components/ui/Toast";
-import { useAddCompletedCourse } from "#/hooks/useProgress";
+import { useEnrollCourse } from "#/hooks/useProgress";
 
-export function AddCourseForm() {
+export function EnrollCourseForm() {
 	const [courseId, setCourseId] = useState("");
-	const [grade, setGrade] = useState("");
 	const [semester, setSemester] = useState("");
-	const mutation = useAddCompletedCourse();
+	const mutation = useEnrollCourse();
 	const { toast } = useToast();
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		const trimmedCourseId = courseId.trim();
 		const trimmedSemester = semester.trim();
-		if (!trimmedCourseId || !grade || !trimmedSemester) return;
+		if (!trimmedCourseId || !trimmedSemester) return;
+
 		mutation.mutate(
-			{
-				courseId: trimmedCourseId,
-				grade: Number.parseFloat(grade),
-				semester: trimmedSemester,
-			},
+			{ courseId: trimmedCourseId, semester: trimmedSemester },
 			{
 				onSuccess: () => {
-					toast("Course added successfully", "success");
+					toast("Course enrolled successfully", "success");
 					setCourseId("");
-					setGrade("");
 					setSemester("");
 				},
 				onError: () => {
-					toast("Failed to add course", "error");
+					toast("Failed to enroll course", "error");
 				},
 			},
 		);
@@ -63,17 +58,7 @@ export function AddCourseForm() {
 				onChange={(e) => setCourseId(e.target.value)}
 			/>
 			<input
-				style={{ ...inputStyle, width: 80 }}
-				placeholder="Grade"
-				value={grade}
-				onChange={(e) => setGrade(e.target.value)}
-				type="number"
-				step="0.1"
-				min="1.0"
-				max="5.0"
-			/>
-			<input
-				style={{ ...inputStyle, width: 100 }}
+				style={{ ...inputStyle, width: 120 }}
 				placeholder="e.g. WS2025"
 				value={semester}
 				onChange={(e) => setSemester(e.target.value)}
@@ -84,7 +69,7 @@ export function AddCourseForm() {
 				style={{ fontSize: 13 }}
 				disabled={mutation.isPending}
 			>
-				{mutation.isPending ? "Adding..." : "Add Course"}
+				{mutation.isPending ? "Enrolling..." : "Enroll Course"}
 			</button>
 		</form>
 	);

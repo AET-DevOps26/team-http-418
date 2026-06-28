@@ -58,7 +58,7 @@ export function CourseTable<T>({
 	}
 
 	return (
-		<div>
+		<div style={{ overflowX: "auto" }}>
 			<table className="progress-table">
 				<thead>
 					<tr>
