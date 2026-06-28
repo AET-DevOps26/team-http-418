@@ -7,13 +7,83 @@ const START_HOUR = 8;
 const END_HOUR = 20;
 const SLOT_COUNT = (END_HOUR - START_HOUR) * 2;
 
-function timeToRow(time: string): number {
+type PositionedEvent = {
+	event: ScheduleEvent;
+	startMinutes: number;
+	endMinutes: number;
+	lane: number;
+	laneCount: number;
+};
+
+function timeToMinutes(time: string): number {
 	const [h, m] = time.split(":").map(Number);
-	return ((h - START_HOUR) * 60 + m) / 30 + 2;
+	return h * 60 + m;
+}
+
+function minutesToRow(minutes: number): number {
+	return (minutes - START_HOUR * 60) / 30 + 2;
 }
 
 function dayToColumn(day: string): number {
 	return DAYS.indexOf(day as (typeof DAYS)[number]) + 2;
+}
+
+function positionEvents(events: ScheduleEvent[]): PositionedEvent[] {
+	const positioned: PositionedEvent[] = [];
+
+	for (const day of DAYS) {
+		const dayEvents = events
+			.filter((event) => event.day === day)
+			.map((event) => ({
+				event,
+				startMinutes: timeToMinutes(event.startTime),
+				endMinutes: timeToMinutes(event.endTime),
+				lane: 0,
+				laneCount: 1,
+			}))
+			.sort(
+				(a, b) =>
+					a.startMinutes - b.startMinutes ||
+					a.endMinutes - b.endMinutes ||
+					a.event.courseCode.localeCompare(b.event.courseCode),
+			);
+
+		let active: PositionedEvent[] = [];
+		let cluster: PositionedEvent[] = [];
+		let clusterEnd = Number.NEGATIVE_INFINITY;
+
+		function flushCluster() {
+			if (cluster.length === 0) return;
+			const laneCount = Math.max(...cluster.map((item) => item.lane)) + 1;
+			for (const item of cluster) item.laneCount = laneCount;
+			positioned.push(...cluster);
+			cluster = [];
+			active = [];
+		}
+
+		for (const item of dayEvents) {
+			if (cluster.length > 0 && item.startMinutes >= clusterEnd) {
+				flushCluster();
+				clusterEnd = Number.NEGATIVE_INFINITY;
+			}
+
+			active = active.filter(
+				(activeItem) => activeItem.endMinutes > item.startMinutes,
+			);
+			const usedLanes = new Set(active.map((activeItem) => activeItem.lane));
+			let lane = 0;
+			while (usedLanes.has(lane)) lane++;
+			item.lane = lane;
+
+			active.push(item);
+			cluster.push(item);
+			clusterEnd = Math.max(clusterEnd, item.endMinutes);
+		}
+
+		flushCluster();
+	}
+
+	return positioned;
 }
 
 type Props = { events: ScheduleEvent[] };
@@ -24,6 +94,7 @@ export function WeekGrid({ events }: Props) {
 		timeLabels.push(`${h.toString().padStart(2, "0")}:00`);
 		timeLabels.push(`${h.toString().padStart(2, "0")}:30`);
 	}
+	const positionedEvents = positionEvents(events);
 
 	return (
 		<div className="schedule-grid">
@@ -72,15 +143,18 @@ export function WeekGrid({ events }: Props) {
 			)}
 
 			{/* Events */}
-			{events.map((event) => {
-				const startRow = timeToRow(event.startTime);
-				const endRow = timeToRow(event.endTime);
+			{positionedEvents.map((item) => {
+				const startRow = minutesToRow(item.startMinutes);
+				const endRow = minutesToRow(item.endMinutes);
+				const { event } = item;
 				return (
 					<EventBlock
-						key={`${event.courseCode}-${event.type}-${event.day}`}
+						key={`${event.courseId}-${event.type}-${event.day}-${event.startTime}-${event.endTime}-${event.room}`}
 						event={event}
 						gridRow={`${startRow} / ${endRow}`}
 						gridColumn={dayToColumn(event.day)}
+						lane={item.lane}
+						laneCount={item.laneCount}
 					/>
 				);
 			})}

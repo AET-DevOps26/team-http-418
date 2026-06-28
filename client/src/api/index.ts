@@ -30,10 +30,10 @@ export type {
 	LoginRequest,
 	Page,
 	ProblemDetail,
-	SemesterKey,
 	ScheduleConflict,
 	ScheduleEvent,
 	ScheduleEventType,
+	SemesterKey,
 	UpcomingCourse,
 	WeeklySchedule,
 } from "#/api/types";

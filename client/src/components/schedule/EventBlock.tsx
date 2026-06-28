@@ -5,6 +5,8 @@ type Props = {
 	event: ScheduleEvent;
 	gridRow: string;
 	gridColumn: number;
+	lane?: number;
+	laneCount?: number;
 };
 
 const typeBadge: Record<string, string> = {
@@ -14,7 +16,15 @@ const typeBadge: Record<string, string> = {
 	EXAM: "EXAM",
 };
 
-export function EventBlock({ event, gridRow, gridColumn }: Props) {
+export function EventBlock({
+	event,
+	gridRow,
+	gridColumn,
+	lane = 0,
+	laneCount = 1,
+}: Props) {
+	const isStacked = laneCount > 1;
+
 	return (
 		<a
 			href={`/courses/${event.courseId}`}
@@ -22,6 +32,11 @@ export function EventBlock({ event, gridRow, gridColumn }: Props) {
 			style={{
 				gridRow,
 				gridColumn,
+				width: isStacked ? `calc(${100 / laneCount}% - 2px)` : undefined,
+				margin: isStacked ? "1px 1px" : "1px 2px",
+				marginLeft: isStacked
+					? `calc(${(lane * 100) / laneCount}% + 1px)`
+					: undefined,
 				background: `${event.color}14`,
 				borderLeft: `3px solid ${event.color}`,
 			}}
