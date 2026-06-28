@@ -18,7 +18,7 @@ const mainNav = [
 	{ label: "Schedule", icon: Clock, href: "/schedule" },
 	{ label: "Planner", icon: MapIcon, href: "/planner" },
 	{ label: "Explore", icon: Compass, href: "/explore" },
-	{ label: "Insights", icon: Sparkles, href: "/insights" },
+	{ label: "Recommendations", icon: Sparkles, href: "/recommendations" },
 ];
 
 const accountNav = [

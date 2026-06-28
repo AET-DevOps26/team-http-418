@@ -15,6 +15,10 @@ export type { ApiFetchOptions } from "#/api/client";
 export { ApiError, apiFetch } from "#/api/client";
 export { getDashboard } from "#/api/dashboard";
 export { queryClient } from "#/api/query-client";
+export {
+	generateRecommendations,
+	getRecommendations,
+} from "#/api/recommendations";
 export type {
 	AlertSeverity,
 	AlertType,
@@ -25,10 +29,14 @@ export type {
 	DashboardProgress,
 	DashboardRecommendation,
 	DashboardRequirement,
+	GenerateRecommendationsBody,
 	IsoDateString,
 	LoginRequest,
 	Page,
 	ProblemDetail,
+	Recommendation,
+	RecommendationList,
+	RecommendationParams,
 	SemesterKey,
 	UpcomingCourse,
 } from "#/api/types";
