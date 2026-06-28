@@ -5,6 +5,7 @@ import { GenerateRoadmapModal } from "#/components/roadmap/GenerateRoadmapModal"
 import { GeneratingState } from "#/components/roadmap/GeneratingState";
 import { RoadmapTimeline } from "#/components/roadmap/RoadmapTimeline";
 import {
+	useAddCourseToSemester,
 	useGenerateRoadmap,
 	useRemoveCourseFromSemester,
 	useRoadmap,
@@ -56,6 +57,7 @@ function PlannerSkeleton() {
 function Planner() {
 	const { data, isLoading, isError, refetch } = useRoadmap();
 	const generateMutation = useGenerateRoadmap();
+	const addMutation = useAddCourseToSemester();
 	const removeMutation = useRemoveCourseFromSemester();
 	const [modalOpen, setModalOpen] = useState(false);
 
@@ -179,6 +181,9 @@ function Planner() {
 
 			<RoadmapTimeline
 				semesters={data.semesters}
+				onAddCourse={(semesterKey, courseId) =>
+					addMutation.mutate({ semesterKey, courseId })
+				}
 				onRemoveCourse={(semesterKey, courseId) =>
 					removeMutation.mutate({ semesterKey, courseId })
 				}

@@ -496,6 +496,50 @@ body {
   background: var(--blue-50);
 }
 
+.semester-add-course {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.semester-add-course input {
+  min-width: 0;
+  flex: 1;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.semester-add-course button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  background: var(--paper);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.semester-add-course button:hover:not(:disabled) {
+  color: var(--blue-700);
+  border-color: var(--blue-300);
+}
+
+.semester-add-course button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .course-pill {
   display: flex;
   align-items: center;

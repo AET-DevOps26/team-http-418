@@ -5,7 +5,7 @@ import {
 	getRoadmap,
 	removeCourseFromSemester,
 } from "#/api/roadmap";
-import type { Roadmap } from "#/api/types";
+import type { Roadmap, SemesterPlanDetail } from "#/api/types";
 
 export function useRoadmap() {
 	return useQuery({
@@ -45,35 +45,71 @@ export function useAddCourseToSemester() {
 		}) => addCourseToSemester(semesterKey, { courseId }),
 		onMutate: async ({ semesterKey, courseId }) => {
 			await queryClient.cancelQueries({ queryKey: ["roadmap"] });
-			const prev = queryClient.getQueryData<Roadmap>(["roadmap"]);
-			if (prev) {
-				queryClient.setQueryData<Roadmap>(["roadmap"], {
+			const prevRoadmap = queryClient.getQueryData<Roadmap>(["roadmap"]);
+			const prevSemesters = queryClient.getQueryData<SemesterPlanDetail[]>([
+				"roadmap",
+				"semesters",
+			]);
+			const prevSemester = queryClient.getQueryData<SemesterPlanDetail>([
+				"roadmap",
+				"semesters",
+				semesterKey,
+			]);
+			const optimisticCourse = {
+				courseId,
+				courseCode: courseId.toUpperCase(),
+				courseName: "Loading...",
+				credits: 5,
+				status: "PLANNED" as const,
+			};
+			const updateSemester = (semester: SemesterPlanDetail) =>
+				semester.semesterKey === semesterKey
+					? {
+							...semester,
+							totalCredits: semester.totalCredits + optimisticCourse.credits,
+							courses: [...semester.courses, optimisticCourse],
+						}
+					: semester;
+
+			queryClient.setQueryData<Roadmap>(["roadmap"], (prev) => {
+				if (
+					!prev ||
+					!prev.semesters.some((s) => s.semesterKey === semesterKey)
+				) {
+					return prev;
+				}
+				return {
 					...prev,
-					semesters: prev.semesters.map((s) =>
-						s.semesterKey === semesterKey
-							? {
-									...s,
-									totalCredits: s.totalCredits + 5,
-									courses: [
-										...s.courses,
-										{
-											courseId,
-											courseCode: "...",
-											courseName: "Loading...",
-											credits: 5,
-											status: "PLANNED" as const,
-										},
-									],
-								}
-							: s,
-					),
-				});
-			}
-			return { prev };
+					totalPlannedCredits:
+						prev.totalPlannedCredits + optimisticCourse.credits,
+					semesters: prev.semesters.map(updateSemester),
+				};
+			});
+			queryClient.setQueryData<SemesterPlanDetail[]>(
+				["roadmap", "semesters"],
+				(prev) => prev?.map(updateSemester),
+			);
+			queryClient.setQueryData<SemesterPlanDetail>(
+				["roadmap", "semesters", semesterKey],
+				(prev) => (prev ? updateSemester(prev) : prev),
+			);
+			return { prevRoadmap, prevSemesters, prevSemester };
 		},
 		onError: (_err, _vars, context) => {
-			if (context?.prev) {
-				queryClient.setQueryData(["roadmap"], context.prev);
+			if (context?.prevRoadmap) {
+				queryClient.setQueryData(["roadmap"], context.prevRoadmap);
+			}
+			if (context?.prevSemesters) {
+				queryClient.setQueryData(
+					["roadmap", "semesters"],
+					context.prevSemesters,
+				);
+			}
+			if (context?.prevSemester) {
+				queryClient.setQueryData(
+					["roadmap", "semesters", context.prevSemester.semesterKey],
+					context.prevSemester,
+				);
 			}
 		},
 		onSettled: () => {
@@ -94,29 +130,66 @@ export function useRemoveCourseFromSemester() {
 		}) => removeCourseFromSemester(semesterKey, courseId),
 		onMutate: async ({ semesterKey, courseId }) => {
 			await queryClient.cancelQueries({ queryKey: ["roadmap"] });
-			const prev = queryClient.getQueryData<Roadmap>(["roadmap"]);
-			if (prev) {
-				queryClient.setQueryData<Roadmap>(["roadmap"], {
+			const prevRoadmap = queryClient.getQueryData<Roadmap>(["roadmap"]);
+			const prevSemesters = queryClient.getQueryData<SemesterPlanDetail[]>([
+				"roadmap",
+				"semesters",
+			]);
+			const prevSemester = queryClient.getQueryData<SemesterPlanDetail>([
+				"roadmap",
+				"semesters",
+				semesterKey,
+			]);
+			const cachedSemesters =
+				prevRoadmap?.semesters ??
+				prevSemesters ??
+				(prevSemester ? [prevSemester] : []);
+			const removedCredits =
+				cachedSemesters
+					.find((s) => s.semesterKey === semesterKey)
+					?.courses.find((c) => c.courseId === courseId)?.credits ?? 0;
+			const updateSemester = (semester: SemesterPlanDetail) =>
+				semester.semesterKey === semesterKey
+					? {
+							...semester,
+							totalCredits: semester.totalCredits - removedCredits,
+							courses: semester.courses.filter((c) => c.courseId !== courseId),
+						}
+					: semester;
+
+			queryClient.setQueryData<Roadmap>(["roadmap"], (prev) => {
+				if (!prev || removedCredits === 0) return prev;
+				return {
 					...prev,
-					semesters: prev.semesters.map((s) =>
-						s.semesterKey === semesterKey
-							? {
-									...s,
-									totalCredits:
-										s.totalCredits -
-										(s.courses.find((c) => c.courseId === courseId)?.credits ??
-											0),
-									courses: s.courses.filter((c) => c.courseId !== courseId),
-								}
-							: s,
-					),
-				});
-			}
-			return { prev };
+					totalPlannedCredits: prev.totalPlannedCredits - removedCredits,
+					semesters: prev.semesters.map(updateSemester),
+				};
+			});
+			queryClient.setQueryData<SemesterPlanDetail[]>(
+				["roadmap", "semesters"],
+				(prev) => prev?.map(updateSemester),
+			);
+			queryClient.setQueryData<SemesterPlanDetail>(
+				["roadmap", "semesters", semesterKey],
+				(prev) => (prev ? updateSemester(prev) : prev),
+			);
+			return { prevRoadmap, prevSemesters, prevSemester };
 		},
 		onError: (_err, _vars, context) => {
-			if (context?.prev) {
-				queryClient.setQueryData(["roadmap"], context.prev);
+			if (context?.prevRoadmap) {
+				queryClient.setQueryData(["roadmap"], context.prevRoadmap);
+			}
+			if (context?.prevSemesters) {
+				queryClient.setQueryData(
+					["roadmap", "semesters"],
+					context.prevSemesters,
+				);
+			}
+			if (context?.prevSemester) {
+				queryClient.setQueryData(
+					["roadmap", "semesters", context.prevSemester.semesterKey],
+					context.prevSemester,
+				);
 			}
 		},
 		onSettled: () => {

@@ -1,3 +1,5 @@
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import type { PlannedCourse } from "#/api/types";
 import { CoursePill } from "./CoursePill";
 
@@ -6,6 +8,7 @@ type Props = {
 	totalCredits: number;
 	courses: PlannedCourse[];
 	isCurrent: boolean;
+	onAddCourse?: (courseId: string) => void;
 	onRemoveCourse?: (courseId: string) => void;
 };
 
@@ -14,8 +17,19 @@ export function SemesterColumn({
 	totalCredits,
 	courses,
 	isCurrent,
+	onAddCourse,
 	onRemoveCourse,
 }: Props) {
+	const [courseId, setCourseId] = useState("");
+
+	function handleAddCourse(e: React.FormEvent) {
+		e.preventDefault();
+		const trimmedCourseId = courseId.trim();
+		if (!trimmedCourseId || !onAddCourse) return;
+		onAddCourse(trimmedCourseId);
+		setCourseId("");
+	}
+
 	return (
 		<div
 			className={`card semester-col${isCurrent ? " semester-col--current" : ""}`}
@@ -59,6 +73,23 @@ export function SemesterColumn({
 						}
 					/>
 				))
+			)}
+			{onAddCourse && (
+				<form className="semester-add-course" onSubmit={handleAddCourse}>
+					<input
+						value={courseId}
+						onChange={(e) => setCourseId(e.target.value)}
+						placeholder="Course ID"
+						aria-label={`Course ID to add to ${label}`}
+					/>
+					<button
+						type="submit"
+						aria-label={`Add course to ${label}`}
+						disabled={courseId.trim().length === 0}
+					>
+						<Plus size={14} strokeWidth={2} />
+					</button>
+				</form>
 			)}
 		</div>
 	);

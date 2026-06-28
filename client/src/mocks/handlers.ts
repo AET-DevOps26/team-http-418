@@ -273,9 +273,18 @@ export const handlers = [
 		const buildRoadmap = () => ({
 			status: generating ? "GENERATING" : "READY",
 			semesters: mockSemesters,
-			totalPlannedCredits: 180,
+			totalPlannedCredits: mockSemesters.reduce(
+				(total, semester) => total + semester.totalCredits,
+				0,
+			),
 			estimatedGraduation: "SS2026",
 		});
+
+		const notFound = () =>
+			HttpResponse.json(
+				{ type: "about:blank", title: "Not Found", status: 404 },
+				{ status: 404 },
+			);
 
 		return [
 			http.get(`/api/${API_VERSION}/me/roadmap`, () => {
@@ -302,6 +311,39 @@ export const handlers = [
 				return HttpResponse.json(mockSemesters);
 			}),
 
+			http.get(
+				`/api/${API_VERSION}/me/roadmap/semesters/:key`,
+				({ params }) => {
+					if (!isMocked("GET", "/me/roadmap/semesters/:key"))
+						return passthrough();
+					const semester = mockSemesters.find(
+						(s) => s.semesterKey === params.key,
+					);
+					if (!semester) return notFound();
+					return HttpResponse.json(semester);
+				},
+			),
+
+			http.put(
+				`/api/${API_VERSION}/me/roadmap/semesters/:key`,
+				async ({ params, request }) => {
+					if (!isMocked("PUT", "/me/roadmap/semesters/:key"))
+						return passthrough();
+					const body = (await request.json()) as Partial<
+						(typeof mockSemesters)[number]
+					>;
+					const semester = mockSemesters.find(
+						(s) => s.semesterKey === params.key,
+					);
+					if (!semester) return notFound();
+					Object.assign(semester, {
+						...body,
+						semesterKey: semester.semesterKey,
+					});
+					return HttpResponse.json(semester);
+				},
+			),
+
 			http.post(
 				`/api/${API_VERSION}/me/roadmap/semesters/:key/courses`,
 				async ({ params, request }) => {
@@ -311,11 +353,7 @@ export const handlers = [
 					const semester = mockSemesters.find(
 						(s) => s.semesterKey === params.key,
 					);
-					if (!semester)
-						return HttpResponse.json(
-							{ type: "about:blank", title: "Not Found", status: 404 },
-							{ status: 404 },
-						);
+					if (!semester) return notFound();
 					semester.courses.push({
 						courseId: body.courseId,
 						courseCode: body.courseId.toUpperCase(),
@@ -324,7 +362,7 @@ export const handlers = [
 						status: "PLANNED",
 					});
 					semester.totalCredits += 5;
-					return HttpResponse.json(semester);
+					return HttpResponse.json(semester, { status: 201 });
 				},
 			),
 
@@ -336,11 +374,7 @@ export const handlers = [
 					const semester = mockSemesters.find(
 						(s) => s.semesterKey === params.key,
 					);
-					if (!semester)
-						return HttpResponse.json(
-							{ type: "about:blank", title: "Not Found", status: 404 },
-							{ status: 404 },
-						);
+					if (!semester) return notFound();
 					const idx = semester.courses.findIndex(
 						(c) => c.courseId === params.courseId,
 					);

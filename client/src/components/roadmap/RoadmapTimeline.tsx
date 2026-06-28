@@ -4,10 +4,15 @@ import { SemesterColumn } from "./SemesterColumn";
 
 type Props = {
 	semesters: SemesterPlanDetail[];
+	onAddCourse: (semesterKey: string, courseId: string) => void;
 	onRemoveCourse: (semesterKey: string, courseId: string) => void;
 };
 
-export function RoadmapTimeline({ semesters, onRemoveCourse }: Props) {
+export function RoadmapTimeline({
+	semesters,
+	onAddCourse,
+	onRemoveCourse,
+}: Props) {
 	const currentRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -26,6 +31,7 @@ export function RoadmapTimeline({ semesters, onRemoveCourse }: Props) {
 						totalCredits={s.totalCredits}
 						courses={s.courses}
 						isCurrent={s.isCurrent}
+						onAddCourse={(courseId) => onAddCourse(s.semesterKey, courseId)}
 						onRemoveCourse={(courseId) =>
 							onRemoveCourse(s.semesterKey, courseId)
 						}
