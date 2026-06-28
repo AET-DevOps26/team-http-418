@@ -3,6 +3,10 @@ import type { DashboardRecommendation } from "#/api/types";
 
 type Props = { recommendations: DashboardRecommendation[] };
 
+function courseDetailHref(courseId: string) {
+	return `/courses?course=${encodeURIComponent(courseId)}`;
+}
+
 export function RecommendationPreview({ recommendations }: Props) {
 	const top3 = recommendations.slice(0, 3);
 
@@ -34,7 +38,7 @@ export function RecommendationPreview({ recommendations }: Props) {
 					{top3.map((rec) => (
 						<a
 							key={rec.courseId}
-							href={`/courses/${rec.courseId}`}
+							href={courseDetailHref(rec.courseId)}
 							style={{ textDecoration: "none", display: "flex" }}
 						>
 							<div className="rec-card">
