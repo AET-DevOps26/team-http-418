@@ -21,6 +21,7 @@ export {
 	getCourses,
 } from "#/api/courses";
 export { getDashboard } from "#/api/dashboard";
+export { getProfile, patchProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
 	dropCourse,
@@ -43,6 +44,9 @@ export {
 	updateRoadmap,
 	updateSemester,
 } from "#/api/roadmap";
+	generateRecommendations,
+	getRecommendations,
+} from "#/api/recommendations";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
@@ -70,6 +74,7 @@ export type {
 	EnrollCourseRequest,
 	EnrolledCourse,
 	GenerateRoadmapRequest,
+	GenerateRecommendationsBody,
 	ImportError,
 	ImportedCourse,
 	Instructor,
@@ -85,6 +90,9 @@ export type {
 	PrerequisiteTree,
 	PrerequisiteType,
 	ProblemDetail,
+	Recommendation,
+	RecommendationList,
+	RecommendationParams,
 	RequirementAlert,
 	RequirementCategory,
 	RequirementCourse,
@@ -94,7 +102,10 @@ export type {
 	ScheduleType,
 	SemesterKey,
 	SemesterPlanDetail,
+	StudentProfile,
+	StudentProfileUpdate,
 	StudyProgram,
+	StudyProgramRef,
 	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";

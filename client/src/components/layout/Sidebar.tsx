@@ -20,8 +20,8 @@ const mainNav = [
 	{ label: "Schedule", icon: Clock, href: "/schedule" },
 	{ label: "Planner", icon: MapIcon, href: "/planner" },
 	{ label: "Explore", icon: Compass, href: "/explore" },
+	{ label: "Recommendations", icon: Sparkles, href: "/recommendations" },
 	{ label: "Insights", icon: Sparkles, href: "/insights" },
-	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 ];
 
 const accountNav = [
