@@ -34,11 +34,11 @@ export {
 	uploadTranscript,
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
-export { getSchedule } from "#/api/schedule";
 export {
 	generateRecommendations,
 	getRecommendations,
 } from "#/api/recommendations";
+export { getSchedule } from "#/api/schedule";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
