@@ -505,6 +505,8 @@ export const handlers = [
 		currentRecommendations = personalizedRecommendations;
 		recommendationsGeneratedAt = PERSONALIZED_RECOMMENDATIONS_GENERATED_AT;
 		return HttpResponse.json(toRecommendationList(currentRecommendations));
+	}),
+
 	http.get(`/api/${API_VERSION}/me`, () => {
 		if (!isMocked("GET", "/me")) return passthrough();
 		return HttpResponse.json(mockProfile);
