@@ -50,6 +50,17 @@ services:
       timeout: 5s
       retries: 5
 
+  genai:
+    build: ghcr.io/aet-devops26/team-http-418/genai:${IMAGE_TAG:-latest}
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - db
+
   client:
     image: ghcr.io/aet-devops26/team-http-418/client:${IMAGE_TAG:-latest}
     ports:
