@@ -44,6 +44,7 @@ export {
 	updateRoadmap,
 	updateSemester,
 } from "#/api/roadmap";
+export {
 	generateRecommendations,
 	getRecommendations,
 } from "#/api/recommendations";
