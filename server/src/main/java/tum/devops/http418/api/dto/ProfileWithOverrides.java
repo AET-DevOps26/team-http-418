@@ -1,7 +1,4 @@
-package tum.devops.http418.api;
-
-import tum.devops.http418.api.dto.PostRecommendationsBody;
-import tum.devops.http418.api.dto.Profile;
+package tum.devops.http418.api.dto;
 
 import java.util.List;
 

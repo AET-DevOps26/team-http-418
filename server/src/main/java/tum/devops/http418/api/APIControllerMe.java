@@ -7,6 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tum.devops.http418.api.dto.PostRecommendationsBody;
 import tum.devops.http418.api.dto.Profile;
+import tum.devops.http418.api.dto.ProfileWithOverrides;
 
 import static tum.devops.http418.Http418Application.*;
 
@@ -56,6 +57,9 @@ public class APIControllerMe {
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid,
 			@RequestBody PostRecommendationsBody prompt) {
 		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
+		if (profile == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 		final ProfileWithOverrides newProfile = new ProfileWithOverrides(profile, prompt);
 		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/recommendations")
 				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().body(String.class));

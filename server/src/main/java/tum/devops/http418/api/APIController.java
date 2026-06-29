@@ -53,7 +53,7 @@ public class APIController {
 							.queryParamIfPresent("department", Optional.ofNullable(department))
 							.queryParamIfPresent("language", Optional.ofNullable(language))
 							.queryParamIfPresent("level", Optional.ofNullable(level))
-							.build()) //TODO use other params too
+							.build())
 					.retrieve()
 					.body(new ParameterizedTypeReference<List<GenAICourseResponse>>() {
 					});
