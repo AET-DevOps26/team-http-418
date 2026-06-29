@@ -19,75 +19,75 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Configuration
 public class DataSourceConfig {
 
-    private final Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
+	private final Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
 
-    @Value("${SPRING_DATASOURCE_URL}")
-    private String baseUrl;
+	@Value("${SPRING_DATASOURCE_URL}")
+	private String baseUrl;
 
-    @Value("${SPRING_DATASOURCE_USERNAME}")
-    private String username;
+	@Value("${SPRING_DATASOURCE_USERNAME}")
+	private String username;
 
-    @Value("${SPRING_DATASOURCE_PASSWORD}")
-    private String password;
+	@Value("${SPRING_DATASOURCE_PASSWORD}")
+	private String password;
 
-    @Bean
-    @Primary
-    @Profile("!test")
-    public DataSource profileDataSource() {
-        createProfilesDatabaseIfNotExists();
-        final HikariDataSource dataSource = new HikariDataSource();
+	@Bean
+	@Primary
+	@Profile("!test")
+	public DataSource profileDataSource() {
+		createProfilesDatabaseIfNotExists();
+		final HikariDataSource dataSource = new HikariDataSource();
 
-        dataSource.setJdbcUrl(baseUrl + "/profiles");
-        dataSource.setUsername(username);
-        dataSource.setPassword(password);
-        dataSource.setDriverClassName("org.postgresql.Driver");
+		dataSource.setJdbcUrl(baseUrl + "/profiles");
+		dataSource.setUsername(username);
+		dataSource.setPassword(password);
+		dataSource.setDriverClassName("org.postgresql.Driver");
 
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        try {
-            jdbcTemplate.execute("SELECT version();");
-        } catch (CannotGetJdbcConnectionException e) {
-            logger.error("Could not connect to database", e);
-            throw new RuntimeException("Could not connect to database 'profiles'");
-        }
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		try {
+			jdbcTemplate.execute("SELECT version();");
+		} catch (CannotGetJdbcConnectionException e) {
+			logger.error("Could not connect to database", e);
+			throw new RuntimeException("Could not connect to database 'profiles'");
+		}
 
-        jdbcTemplate.execute("CREATE DATABASE profiles");
-        jdbcTemplate.execute("""
-                    CREATE TABLE IF NOT EXISTS profiles (
-                                              id TEXT PRIMARY KEY,
-                                              student TEXT NOT NULL,
-                                              completed_courses TEXT NOT NULL,
-                                              enrolled_courses TEXT NOT NULL,
-                                              available_courses TEXT NOT NULL,
-                                              "limit" INT NOT NULL,
-                                              category TEXT,
-                                              semester TEXT
-                                          );
-                """);
-        return dataSource;
-    }
+		jdbcTemplate.execute("CREATE DATABASE profiles");
+		jdbcTemplate.execute("""
+				    CREATE TABLE IF NOT EXISTS profiles (
+				                              id TEXT PRIMARY KEY,
+				                              student TEXT NOT NULL,
+				                              completed_courses TEXT NOT NULL,
+				                              enrolled_courses TEXT NOT NULL,
+				                              available_courses TEXT NOT NULL,
+				                              "limit" INT NOT NULL,
+				                              category TEXT,
+				                              semester TEXT
+				                          );
+				""");
+		return dataSource;
+	}
 
-    private void createProfilesDatabaseIfNotExists() {
-        final HikariDataSource adminDataSource = new HikariDataSource();
+	private void createProfilesDatabaseIfNotExists() {
+		final HikariDataSource adminDataSource = new HikariDataSource();
 
-        adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-        adminDataSource.setUsername(username);
-        adminDataSource.setPassword(password);
-        adminDataSource.setDriverClassName("org.postgresql.Driver");
+		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+		adminDataSource.setUsername(username);
+		adminDataSource.setPassword(password);
+		adminDataSource.setDriverClassName("org.postgresql.Driver");
 
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
 
-        final Boolean exists = jdbcTemplate.queryForObject(
-                "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-                Boolean.class, "profiles");
-        if (Boolean.FALSE.equals(exists)) {
-            jdbcTemplate.execute("CREATE DATABASE profiles");
-        }
-        adminDataSource.close();
-    }
+		final Boolean exists = jdbcTemplate.queryForObject(
+				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+				Boolean.class, "profiles");
+		if (Boolean.FALSE.equals(exists)) {
+			jdbcTemplate.execute("CREATE DATABASE profiles");
+		}
+		adminDataSource.close();
+	}
 
-    @Bean
-    @Profile("!test")
-    public NamedParameterJdbcTemplate profilesJdbcTemplate(@Qualifier("profileDataSource") DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
-    }
+	@Bean
+	@Profile("!test")
+	public NamedParameterJdbcTemplate profilesJdbcTemplate(@Qualifier("profileDataSource") DataSource dataSource) {
+		return new NamedParameterJdbcTemplate(dataSource);
+	}
 }

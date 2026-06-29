@@ -29,7 +29,7 @@ public class APIController {
 	public ResponseEntity<Profile> getProfile(@PathVariable String id) {
 		try {
 			return ResponseEntity.status(HttpStatus.OK).body(userProfileManager.get(id));
-		} catch (EmptyResultDataAccessException ex){
+		} catch (EmptyResultDataAccessException ex) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 	}
