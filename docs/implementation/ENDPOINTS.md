@@ -52,12 +52,12 @@
 
 ### Authentication
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/auth/register` | Body: `{ tumId, password }` | 200 / 409 | Register a new user | Student Service |
-| [ ] | `POST` | `/auth/login` | Body: `{ tumId, password }` | 200 / 401 | Exchange TUM credentials for JWT access + refresh tokens | Student Service |
-| [ ] | `POST` | `/auth/refresh` | Body: `{ refreshToken }` | 200 / 401 | Rotate tokens using a valid refresh token | Student Service |
-| [ ] | `POST` | `/auth/logout` | Header: `Authorization` | 204 | Invalidate the current session | Student Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/auth/register` | Body: `{ tumId, password }` | 200 / 409 | Register a new user | Student Service |
+| [ x ] | `POST` | `/auth/login` | Body: `{ tumId, password }` | 200 / 401 | Exchange TUM credentials for JWT access + refresh tokens | Student Service |
+| [ x ] | `POST` | `/auth/refresh` | Body: `{ refreshToken }` | 200 / 401 | Rotate tokens using a valid refresh token | Student Service |
+| [ x ] | `POST` | `/auth/logout` | Header: `Authorization` | 204 | Invalidate the current session | Student Service |
 
 <details>
 <summary>Request / response schemas</summary>
@@ -100,17 +100,11 @@
 
 ### Academic Tracking (AIDAN 1)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
-| [ ] | `GET` | `/me/courses/completed` | Query: `page, size, sort` | 200 | Paginated list of completed courses with grades | Student Service |
-| [ ] | `POST` | `/me/courses/completed` | Body: `{ courseId, grade, semester }` | 201 | Mark a course as completed | Student Service |
-| [ ] | `DELETE` | `/me/courses/completed/{courseId}` | — | 204 | Remove a completion record | Student Service |
-| [ ] | `GET` | `/me/courses/enrolled` | Query: `page, size, sort` | 200 | Paginated list of currently enrolled courses | Student Service |
-| [ ] | `POST` | `/me/courses/enrolled` | Body: `{ courseId, semester }` | 201 | Enroll in a course for a given semester | Student Service |
-| [ ] | `DELETE` | `/me/courses/enrolled/{courseId}` | — | 204 | Drop an enrolled course | Student Service |
-| [ ] | `GET` | `/me/requirements` | Query: `studyProgramId` | 200 | Degree requirement breakdown — fulfilled vs. missing | Student Service + Catalog Service |
-| [ ] | `POST` | `/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+|  [ ]  | `GET` | `/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
+|  [ ]  | `POST` | `/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
+to update fields do a full profile update using POST /me
 
 <details>
 <summary>Response schemas</summary>
@@ -208,14 +202,14 @@
 
 ### Course Catalog & Search (AIDAN 2)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against the Vector DB instead of a keyword filter | Browsing Service + AI Service |
-| [ ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
-| [ ] | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
-| [ ] | `GET` | `/study-programs` | Query: `departmentId` | 200 | Study programs, optionally filtered by department | Catalog Service |
-| [ ] | `GET` | `/study-programs/{programId}` | — | 200 / 404 | Study program detail with credit breakdown | Catalog Service |
-| [ ] | `GET` | `/study-programs/{programId}/courses` | Query: `page, size, category, semester` | 200 | Courses offered within a study program | Catalog Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against the Vector DB instead of a keyword filter | Browsing Service + AI Service |
+| [ x ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
+|  [ ]  | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
+|  [ ]  | `GET` | `/study-programs` | — | 200 | Study programs | Catalog Service |
+| [ - ] | `GET` | `/study-programs/{programId}` | — | 200 / 404 | Study program detail with credit breakdown | Catalog Service |
+| [ - ] | `GET` | `/study-programs/{programId}/courses` | Query: `page, size, category, semester` | 200 | Courses offered within a study program | Catalog Service |
 
 <details>
 <summary>Response schemas</summary>
@@ -293,11 +287,10 @@
 
 ### Student Profile (AIDAN 3)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me` | — | 200 | Get the authenticated student's full profile | Student Service |
-| [ ] | `PUT` | `/me` | Body: `StudentProfileUpdate` | 200 | Replace profile fields (career goals, interests, workload) | Student Service |
-| [ ] | `PATCH` | `/me` | Body: partial `StudentProfileUpdate` | 200 | Partially update profile | Student Service |
+| Impl | Method | Endpoint | Params / Body | Status | Description                                  | Service |
+| :---: |:------:| :--- | :--- | :---: |:---------------------------------------------| :--- |
+| [ ] | `GET`  | `/me` | — | 200 | Get the authenticated student's full profile | Student Service |
+| [ ] | `POST` | `/me` | Body: `StudentProfile` | 200 | replace the current with the given profile   | Student Service |
 
 <details>
 <summary>Request / response schemas</summary>
@@ -307,8 +300,6 @@
 {
   "id": "uuid",
   "tumId": "ga12abc",
-  "name": "Max Mustermann",
-  "email": "max.mustermann@tum.de",
   "semester": 5,
   "studyPrograms": [
     { "id": "uuid", "name": "Informatics M.Sc.", "department": "Informatics" }
@@ -317,71 +308,21 @@
   "preferredWorkload": 30,
   "careerGoals": ["AI researcher", "ML engineer"],
   "interests": ["computer vision", "NLP"],
-  "createdAt": "2024-10-01T08:00:00Z",
-  "updatedAt": "2025-05-13T10:00:00Z"
 }
 ```
 
 **`StudentProfileUpdate`** *(request body for PUT / PATCH)*
 ```json
 {
-  "semester": 5,
-  "preferredWorkload": 30,
-  "careerGoals": ["AI researcher"],
-  "interests": ["computer vision", "NLP"]
-}
-```
-</details>
-
----
-
-### Prerequisite Mapping (AIDAN 6)
-
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/courses/{courseId}/prerequisites` | — | 200 / 404 | Full recursive prerequisite tree for a course | Catalog Service |
-| [ ] | `GET` | `/courses/{courseId}/prerequisites/check` | — (uses auth token) | 200 / 404 | Check if the authenticated student meets all prerequisites | Catalog Service + Student Service |
-
-<details>
-<summary>Response schemas</summary>
-
-**`GET /courses/{courseId}/prerequisites` — `PrerequisiteTree`**
-```json
-{
-  "courseId": "uuid",
-  "courseCode": "IN2349",
-  "courseName": "Advanced Deep Learning",
-  "prerequisites": [
-    {
-      "courseId": "uuid",
-      "courseCode": "IN2346",
-      "courseName": "Introduction to Deep Learning",
-      "type": "REQUIRED",
-      "prerequisites": []
-    },
-    {
-      "courseId": "uuid",
-      "courseCode": "MA2001",
-      "courseName": "Linear Algebra",
-      "type": "RECOMMENDED",
-      "prerequisites": []
-    }
-  ]
-}
-```
-
-**`GET /courses/{courseId}/prerequisites/check` — `PrerequisiteCheck`**
-```json
-{
-  "courseId": "uuid",
-  "courseCode": "IN2349",
-  "eligible": false,
-  "unmetPrerequisites": [
-    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "type": "REQUIRED" }
+  "tumId": "ga12abc",
+  "semester": 6,
+  "studyPrograms": [
+    { "id": "uuid", "name": "Informatics M.Sc.", "department": "Informatics" }
   ],
-  "metPrerequisites": [
-    { "courseId": "uuid", "courseCode": "MA2001", "courseName": "Linear Algebra", "type": "RECOMMENDED" }
-  ]
+  "totalCredits": 90,
+  "preferredWorkload": 30,
+  "careerGoals": ["AI researcher", "ML engineer"],
+  "interests": ["computer vision", "NLP"],
 }
 ```
 </details>
@@ -515,6 +456,58 @@
 </details>
 
 ---
+
+### Prerequisite Mapping (AIDAN 6)
+
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ - ] | `GET` | `/courses/{courseId}/prerequisites` | — | 200 / 404 | Full recursive prerequisite tree for a course | Catalog Service |
+| [ - ] | `GET` | `/courses/{courseId}/prerequisites/check` | — (uses auth token) | 200 / 404 | Check if the authenticated student meets all prerequisites | Catalog Service + Student Service |
+
+<details>
+<summary>Response schemas</summary>
+
+**`GET /courses/{courseId}/prerequisites` — `PrerequisiteTree`**
+```json
+{
+  "courseId": "uuid",
+  "courseCode": "IN2349",
+  "courseName": "Advanced Deep Learning",
+  "prerequisites": [
+    {
+      "courseId": "uuid",
+      "courseCode": "IN2346",
+      "courseName": "Introduction to Deep Learning",
+      "type": "REQUIRED",
+      "prerequisites": []
+    },
+    {
+      "courseId": "uuid",
+      "courseCode": "MA2001",
+      "courseName": "Linear Algebra",
+      "type": "RECOMMENDED",
+      "prerequisites": []
+    }
+  ]
+}
+```
+
+**`GET /courses/{courseId}/prerequisites/check` — `PrerequisiteCheck`**
+```json
+{
+  "courseId": "uuid",
+  "courseCode": "IN2349",
+  "eligible": false,
+  "unmetPrerequisites": [
+    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "type": "REQUIRED" }
+  ],
+  "metPrerequisites": [
+    { "courseId": "uuid", "courseCode": "MA2001", "courseName": "Linear Algebra", "type": "RECOMMENDED" }
+  ]
+}
+```
+</details>
+
 
 ### Dashboard Aggregation
 

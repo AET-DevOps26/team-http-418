@@ -22,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      user-profile-service:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget --spider http://localhost:8080/health 2>&1 || exit 1" ]
       interval: 10s
@@ -37,6 +39,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  user-profile-service:
+    build: ./user-profile-service
+    ports:
+      - "8070:8080"
+    env_file: .env
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider http://localhost:8080/v1/health 2>&1 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
 
   client:
     build: ./client
