@@ -10,7 +10,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tum.devops.http418.api.dto.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Repository
 public class CoursesDataDB {
@@ -24,7 +28,18 @@ public class CoursesDataDB {
 	public List<SimpleCourseData> getByIds(List<String> ids) {
 		final String query = "SELECT c.id, c.title_ger, c.title_en, ct.key FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
-		return template.query(query, parameters, new DataClassRowMapper<>(SimpleCourseData.class));
+		final List<SimpleCourseData> courses = template.query(query, parameters,
+				new DataClassRowMapper<>(SimpleCourseData.class));
+
+		// preserve the order of the IDs in the original list
+		// Map each ID to its original index for O(1) lookup speed during sorting
+		final Map<String, Integer> idOrderMap = IntStream.range(0, ids.size())
+				.boxed()
+				.collect(Collectors.toMap(ids::get, index -> index));
+
+		// Sort the results based on the original index map
+		courses.sort(Comparator.comparingInt(course -> idOrderMap.getOrDefault(course.id(), Integer.MAX_VALUE)));
+		return courses;
 	}
 
 	public DetailedCourseData getById(int id) {

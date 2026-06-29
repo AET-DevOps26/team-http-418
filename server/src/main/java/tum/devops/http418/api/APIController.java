@@ -2,6 +2,7 @@ package tum.devops.http418.api;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +17,9 @@ import java.util.Optional;
 import static tum.devops.http418.Http418Application.GENAI_PATH;
 import static tum.devops.http418.Http418Application.restClient;
 
-`@RequiredArgsConstructor`
-`@RestController`
-`@RequestMapping`("/api/${API_VERSION}")
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/${API_VERSION}")
 public class APIController {
 
 	private final CoursesDataDB coursesDataDB;
@@ -65,7 +66,7 @@ public class APIController {
 					return ResponseEntity.status(HttpStatus.OK).body(courses);
 				}
 			} catch (Exception e) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 			}
 		}
 		final List<SimpleCourseData> courses = coursesDataDB.getByQuery(query, department, departmentID, language,
@@ -76,8 +77,12 @@ public class APIController {
 
 	@GetMapping("/courses/{id}")
 	public ResponseEntity<DetailedCourseData> getCourseById(@PathVariable int id) {
-		final DetailedCourseData course = coursesDataDB.getById(id);
-		return ResponseEntity.status(HttpStatus.OK).body(course);
+		try {
+			final DetailedCourseData course = coursesDataDB.getById(id);
+			return ResponseEntity.status(HttpStatus.OK).body(course);
+		} catch (EmptyResultDataAccessException ex) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
 	@GetMapping("/courses/{id}/prerequisites")
