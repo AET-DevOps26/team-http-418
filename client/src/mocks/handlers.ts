@@ -6,10 +6,233 @@ import type {
 	ConversationSummary,
 	IsoDateString,
 } from "#/api/types";
+import type { Recommendation, RecommendationList } from "#/api/types";
 import { isMocked } from "./config";
 
 const MOCK_ACCESS_TOKEN = "mock-access-token";
 const MOCK_REFRESH_TOKEN = "mock-refresh-token";
+const INITIAL_RECOMMENDATIONS_GENERATED_AT = "2026-06-28T10:00:00Z";
+const PERSONALIZED_RECOMMENDATIONS_GENERATED_AT = "2026-06-28T10:05:00Z";
+
+type MockRecommendation = Recommendation & {
+	semesters: string[];
+};
+
+const initialRecommendations: MockRecommendation[] = [
+	{
+		courseId: "in0001",
+		courseCode: "IN0001",
+		courseName: "Fundamentals of Programming",
+		relevanceScore: 0.97,
+		reason:
+			"Core requirement for your Computer Science degree, not yet completed.",
+		tags: ["core", "programming"],
+		prerequisitesMet: true,
+		semesters: ["WS2025", "SS2026"],
+	},
+	{
+		courseId: "in2322",
+		courseCode: "IN2322",
+		courseName: "Advanced Algorithms",
+		relevanceScore: 0.88,
+		reason:
+			"Highly rated by students with your profile. Builds on Algorithms & Data Structures.",
+		tags: ["core", "algorithms"],
+		prerequisitesMet: false,
+		semesters: ["WS2025"],
+	},
+	{
+		courseId: "in0012",
+		courseCode: "IN0012",
+		courseName: "Database Systems",
+		relevanceScore: 0.82,
+		reason: "Prerequisite for several courses in your remaining curriculum.",
+		tags: ["core", "databases"],
+		prerequisitesMet: true,
+		semesters: ["SS2026"],
+	},
+	{
+		courseId: "in2346",
+		courseCode: "IN2346",
+		courseName: "Machine Learning",
+		relevanceScore: 0.79,
+		reason:
+			"High demand elective aligned with your interests in AI and data science.",
+		tags: ["electives", "machine-learning"],
+		prerequisitesMet: true,
+		semesters: ["WS2025"],
+	},
+	{
+		courseId: "in0020",
+		courseCode: "IN0020",
+		courseName: "Computer Networks",
+		relevanceScore: 0.74,
+		reason: "Essential for distributed systems specialisation.",
+		tags: ["core", "networks"],
+		prerequisitesMet: true,
+		semesters: ["SS2026"],
+	},
+	{
+		courseId: "ma0001",
+		courseCode: "MA0001",
+		courseName: "Analysis 1",
+		relevanceScore: 0.7,
+		reason:
+			"Mathematics requirement — foundational for theoretical CS courses.",
+		tags: ["mathematics"],
+		prerequisitesMet: true,
+		semesters: ["WS2025"],
+	},
+	{
+		courseId: "in2305",
+		courseCode: "IN2305",
+		courseName: "Operating Systems",
+		relevanceScore: 0.68,
+		reason: "Core systems course. Students who took this rated it highly.",
+		tags: ["core", "systems"],
+		prerequisitesMet: false,
+		semesters: ["SS2026"],
+	},
+	{
+		courseId: "in2219",
+		courseCode: "IN2219",
+		courseName: "Practical Course: Database Engineering",
+		relevanceScore: 0.62,
+		reason: "Applied elective that complements Database Systems theory.",
+		tags: ["electives", "databases"],
+		prerequisitesMet: false,
+		semesters: ["WS2025", "SS2026"],
+	},
+];
+
+const personalizedRecommendations: MockRecommendation[] = [
+	{
+		courseId: "in2346",
+		courseCode: "IN2346",
+		courseName: "Machine Learning",
+		relevanceScore: 0.95,
+		reason: "Directly aligned with your stated goals. High career value.",
+		tags: ["electives", "machine-learning"],
+		prerequisitesMet: true,
+		semesters: ["WS2025"],
+	},
+	{
+		courseId: "in2157",
+		courseCode: "IN2157",
+		courseName: "Deep Learning",
+		relevanceScore: 0.91,
+		reason: "Top elective for your specified interests in AI.",
+		tags: ["electives", "machine-learning"],
+		prerequisitesMet: false,
+		semesters: ["SS2026"],
+	},
+	{
+		courseId: "in0012",
+		courseCode: "IN0012",
+		courseName: "Database Systems",
+		relevanceScore: 0.85,
+		reason: "Prerequisite for several courses in your remaining curriculum.",
+		tags: ["core", "databases"],
+		prerequisitesMet: true,
+		semesters: ["SS2026"],
+	},
+	{
+		courseId: "in0001",
+		courseCode: "IN0001",
+		courseName: "Fundamentals of Programming",
+		relevanceScore: 0.8,
+		reason: "Core requirement for your Computer Science degree.",
+		tags: ["core", "programming"],
+		prerequisitesMet: true,
+		semesters: ["WS2025", "SS2026"],
+	},
+	{
+		courseId: "in2362",
+		courseCode: "IN2362",
+		courseName: "Distributed Systems",
+		relevanceScore: 0.76,
+		reason: "Strong alignment with your distributed systems interest.",
+		tags: ["electives", "systems"],
+		prerequisitesMet: true,
+		semesters: ["WS2025"],
+	},
+	{
+		courseId: "in2219",
+		courseCode: "IN2219",
+		courseName: "Practical Course: Database Engineering",
+		relevanceScore: 0.71,
+		reason: "Hands-on experience complements your academic interests.",
+		tags: ["electives", "databases"],
+		prerequisitesMet: false,
+		semesters: ["WS2025", "SS2026"],
+	},
+];
+
+let currentRecommendations = initialRecommendations;
+let recommendationsGeneratedAt = INITIAL_RECOMMENDATIONS_GENERATED_AT;
+
+function toRecommendationList(
+	recommendations: MockRecommendation[],
+): RecommendationList {
+	return {
+		generatedAt:
+			recommendationsGeneratedAt as RecommendationList["generatedAt"],
+		recommendations: recommendations.map(({ semesters, ...recommendation }) => {
+			void semesters;
+			return recommendation;
+		}),
+	};
+}
+
+function filterRecommendations(
+	recommendations: MockRecommendation[],
+	searchParams: URLSearchParams,
+) {
+	const category = searchParams.get("category");
+	const semester = searchParams.get("semester");
+	const limit = Number(searchParams.get("limit"));
+
+	const filtered = recommendations.filter((recommendation) => {
+		const matchesCategory =
+			category == null || recommendation.tags.includes(category);
+		const matchesSemester =
+			semester == null || recommendation.semesters.includes(semester);
+		return matchesCategory && matchesSemester;
+	});
+
+	if (Number.isInteger(limit) && limit > 0) return filtered.slice(0, limit);
+	return filtered;
+}
+
+let mockProfile = {
+	id: "stu-001",
+	tumId: "ga12abc",
+	name: "Max Mustermann",
+	email: "max.mustermann@tum.de",
+	semester: 5,
+	studyPrograms: [
+		{
+			id: "sp-cs-bsc",
+			name: "Computer Science B.Sc.",
+			department: "Department of Informatics",
+		},
+		{
+			id: "sp-math-minor",
+			name: "Mathematics (Minor)",
+			department: "Department of Mathematics",
+		},
+	],
+	totalCredits: 84,
+	preferredWorkload: 30,
+	careerGoals: [
+		"Software Engineering",
+		"Machine Learning",
+		"Distributed Systems",
+	],
+	interests: ["Algorithms", "Cloud Computing", "Open Source"],
+	createdAt: "2024-04-01T08:00:00Z",
+	updatedAt: "2026-06-15T14:30:00Z",
+};
 
 function isoNow(): IsoDateString {
 	return new Date().toISOString() as IsoDateString;
@@ -566,6 +789,50 @@ export const handlers = [
 				category: "Academic Performance",
 			},
 		]);
+	}),
+
+	http.get(`/api/${API_VERSION}/me/recommendations`, ({ request }) => {
+		if (!isMocked("GET", "/me/recommendations")) return passthrough();
+		const url = new URL(request.url);
+		return HttpResponse.json(
+			toRecommendationList(
+				filterRecommendations(currentRecommendations, url.searchParams),
+			),
+		);
+	}),
+
+	http.post(`/api/${API_VERSION}/me/recommendations`, () => {
+		if (!isMocked("POST", "/me/recommendations")) return passthrough();
+		currentRecommendations = personalizedRecommendations;
+		recommendationsGeneratedAt = PERSONALIZED_RECOMMENDATIONS_GENERATED_AT;
+		return HttpResponse.json(toRecommendationList(currentRecommendations));
+	}),
+
+	http.get(`/api/${API_VERSION}/me`, () => {
+		if (!isMocked("GET", "/me")) return passthrough();
+		return HttpResponse.json(mockProfile);
+	}),
+
+	http.put(`/api/${API_VERSION}/me`, async ({ request }) => {
+		if (!isMocked("PUT", "/me")) return passthrough();
+		const body = (await request.json()) as Record<string, unknown>;
+		mockProfile = {
+			...mockProfile,
+			...body,
+			updatedAt: new Date().toISOString(),
+		};
+		return HttpResponse.json(mockProfile);
+	}),
+
+	http.patch(`/api/${API_VERSION}/me`, async ({ request }) => {
+		if (!isMocked("PATCH", "/me")) return passthrough();
+		const body = (await request.json()) as Record<string, unknown>;
+		mockProfile = {
+			...mockProfile,
+			...body,
+			updatedAt: new Date().toISOString(),
+		};
+		return HttpResponse.json(mockProfile);
 	}),
 
 	http.post(`/api/${API_VERSION}/me/transcript/upload`, async () => {
