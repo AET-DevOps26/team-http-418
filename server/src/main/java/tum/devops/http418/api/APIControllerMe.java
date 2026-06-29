@@ -30,13 +30,13 @@ public class APIControllerMe {
 		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
 	}
 
-	@GetMapping("/")
+	@GetMapping("")
 	public ResponseEntity<Profile> getProfile(@AuthenticationPrincipal String tumid) {
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class));
 	}
 
-	@PutMapping("/")
+	@PutMapping("")
 	public ResponseEntity<String> upsertProfile(@RequestBody Profile profile, @AuthenticationPrincipal String tumid) {
 		final ResponseEntity<String> entity = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
 				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().toEntity(String.class);

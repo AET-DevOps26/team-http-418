@@ -1,8 +1,10 @@
 package tum.devops.http418.data;
 
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,9 +22,9 @@ public class CoursesDataDB {
 	private final NamedParameterJdbcTemplate template;
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
-		final String query = "SELECT * FROM courses JOIN course_types on courses.course_type_id = course_types.id WHERE courses.id IN (:ids)";
+		final String query = "SELECT c.id, c.title_ger, c.title_en, ct.key FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
-		return template.query(query, parameters, new BeanPropertyRowMapper<>(SimpleCourseData.class));
+		return template.query(query, parameters, new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
 	public DetailedCourseData getById(int id) {
@@ -49,12 +51,6 @@ public class CoursesDataDB {
 				FROM courses c
 				JOIN organizations org ON c.organization_id = org.id
 				JOIN semesters sem ON c.semester_id = sem.id
-				JOIN curriculum_connections cc ON cc.course_id = c.id
-				JOIN (
-					Select * from lectureship
-					JOIN persons ON persons.id = lectureship.person_id
-				 ) as lectureXperson ON lectureXperson.course_id = c.id
-				JOIN course_appointments app on app.course_id = c.id
 				JOIN course_types ctype on ctype.id = c.course_type_id
 				WHERE c.id = :id
 				""";
@@ -73,7 +69,7 @@ public class CoursesDataDB {
 				SELECT * FROM curriculum_connections WHERE course_id = :id
 				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", id);
-		return template.query(query, parameters, new BeanPropertyRowMapper<>(CurriculumConnections.class));
+		return template.query(query, parameters, new DataClassRowMapper<>(CurriculumConnections.class));
 	}
 
 	private @NonNull List<Person> getPeople(int id) {
@@ -83,7 +79,7 @@ public class CoursesDataDB {
 				         WHERE ls.course_id = :id
 				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", id);
-		return template.query(query, parameters, new BeanPropertyRowMapper<>(Person.class));
+		return template.query(query, parameters, new DataClassRowMapper<>(Person.class));
 	}
 
 	public @NonNull List<Appointment> getAppointments(int course_id) {
@@ -92,21 +88,21 @@ public class CoursesDataDB {
 				WHERE course_id = :id
 				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", course_id);
-		return template.query(query, parameters, new BeanPropertyRowMapper<>(Appointment.class));
+		return template.query(query, parameters, new DataClassRowMapper<>(Appointment.class));
 	}
 
 	public List<SimpleCourseData> getByQuery(String query,
-			String department,
+			@Nullable String department,
 			int departmentID,
-			String language, //TODO we have no info about language
-			String level, //bachelor, master, doctorate, etc
+			@Nullable String language, //TODO we have no info about language
+			@Nullable String level, //bachelor, master, doctorate, etc
 			int page,
 			int credits_min, //TODO we have no info about credit count
 			int credits_max, //TODO we have no info about credit count
 			int size,
 			int sort,
 			int semester,
-			String studyProgramId) {
+			@Nullable String studyProgramId) {
 		final StringBuilder sqlQuery = new StringBuilder("SELECT * FROM courses");
 
 		if ((department != null && !department.isBlank()) || departmentID != 0) { //TODO remove condition if its information is used in result anyways
@@ -115,7 +111,7 @@ public class CoursesDataDB {
 		if (semester != 0) { //TODO remove condition if its information is used in result anyways
 			sqlQuery.append(" JOIN semesters ON courses.semester_id = semesters.id");
 		}
-		if (studyProgramId != null && !studyProgramId.isBlank()) { // this is expensive, so we only do it if we need it
+		if ((studyProgramId != null && !studyProgramId.isBlank()) || (level != null && !level.isBlank())) { // this is expensive, so we only do it if we need it
 			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = courses.id");
 		}
 		sqlQuery.append(" WHERE 1=1");
@@ -128,37 +124,37 @@ public class CoursesDataDB {
 		// 1. Text Search (Matches title or description in EN/GER)
 		if (query != null && !query.trim().isEmpty()) {
 			sqlQuery.append("""
-					AND (title_ger ILIKE %:query%
-					OR title_en ILIKE %:query%
-					OR description_ger ILIKE %:query%
-					OR description_en ILIKE %:query%)
+					AND (title_ger ILIKE :query
+					OR title_en ILIKE :query
+					OR description_ger ILIKE :query
+					OR description_en ILIKE :query)
 					""");
-			params.addValue("query", query.trim());
+			params.addValue("query", "%" + query.trim() + "%");
 		}
 
-		if (!department.isBlank()) {
+		if (department != null && !department.isBlank()) {
 			sqlQuery.append("""
-					AND organization.name_ger ILIKE %:department%
-					OR organization.name_en ILIKE %:department%
-					"""); // Assuming department maps to organization_id
-			params.addValue("department", department);
+					AND (organizations.name_ger ILIKE :department
+					OR organizations.name_en ILIKE :department)
+					""");
+			params.addValue("department", "%" + department + "%");
 		}
 
 		if (departmentID != 0) {
 			sqlQuery.append("""
-					AND organization.id ILIKE %:department%
-					"""); // Assuming department maps to organization_id
-			params.addValue("department", departmentID);
-		}
-
-		if (!studyProgramId.isBlank()) {
-			sqlQuery.append("""
-					AND curriculum_connections.study_program_id ILIKE %:studyProgramId%
+					AND organizations.id = :departmentid
 					""");
-			params.addValue("studyProgramId", studyProgramId);
+			params.addValue("departmentid", "%" + departmentID + "%");
 		}
 
-		if (!level.isBlank()) {
+		if (studyProgramId != null && !studyProgramId.isBlank()) {
+			sqlQuery.append("""
+					AND curriculum_connections.study_program_id ILIKE :studyProgramId
+					""");
+			params.addValue("studyProgramId", "%" + studyProgramId + "%");
+		}
+
+		if (level != null && !level.isBlank()) {
 			sqlQuery.append("""
 					AND curriculum_connections.path @@ ('$[*].name like_regex ' || :levelRegex || ' flag "i"')::jsonpath
 					""");
@@ -180,6 +176,6 @@ public class CoursesDataDB {
 		sqlQuery.append(" LIMIT :limit OFFSET :offset");
 		params.addValue("limit", pageSize);
 		params.addValue("offset", offset);
-		return template.query(sqlQuery.toString(), new BeanPropertyRowMapper<>(SimpleCourseData.class));
+		return template.query(sqlQuery.toString(), params, new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 }

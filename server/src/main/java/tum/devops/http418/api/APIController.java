@@ -13,6 +13,7 @@ import tum.devops.http418.data.CoursesDataDB;
 import java.util.List;
 import java.util.Optional;
 
+import static tum.devops.http418.Http418Application.GENAI_PATH;
 import static tum.devops.http418.Http418Application.restClient;
 
 @RequiredArgsConstructor
@@ -30,37 +31,41 @@ public class APIController {
 	@GetMapping("/courses")
 	public ResponseEntity<List<SimpleCourseData>> getCourses(
 			@RequestParam(required = false, defaultValue = "") String query,
-			@RequestParam(required = false, defaultValue = "20") int limit,
 			@RequestParam(required = false) String department,
 			@RequestParam(required = false) int departmentID,
 			@RequestParam(required = false, defaultValue = "en") String language,
-			@RequestParam(required = false) String level,
+			@RequestParam(required = false) String level, //bachelor, master, doctorate, etc
 			@RequestParam(required = false, defaultValue = "false") boolean ai,
 			@RequestParam(required = false, defaultValue = "0") int page,
 			@RequestParam(required = false, defaultValue = "0") int credits_min,
-			@RequestParam(required = false, defaultValue = "0", name = "size") int pageSize,
+			@RequestParam(required = false, defaultValue = "20", name = "size") int pageSize,
 			@RequestParam(required = false, defaultValue = "0") int sort,
 			@RequestParam(required = false, defaultValue = "0") int semester,
 			@RequestParam(required = false, defaultValue = "0") int credits_max,
 			@RequestParam(required = false) String studyProgramId) {
 
 		if (ai) {
-			final List<GenAICourseResponse> aiResponse = restClient.get()
-					.uri(uriBuilder -> uriBuilder
-							.path("/v1/courses")
-							.queryParamIfPresent("query", Optional.ofNullable(query))
-							.queryParam("limit", limit)
-							.queryParamIfPresent("department", Optional.ofNullable(department))
-							.queryParamIfPresent("language", Optional.ofNullable(language))
-							.queryParamIfPresent("level", Optional.ofNullable(level))
-							.build())
-					.retrieve()
-					.body(new ParameterizedTypeReference<List<GenAICourseResponse>>() {
-					});
-			if (aiResponse != null && !aiResponse.isEmpty()) {
-				final List<SimpleCourseData> courses = coursesDataDB
-						.getByIds(aiResponse.stream().map(GenAICourseResponse::courseId).toList());
-				return ResponseEntity.status(HttpStatus.OK).body(courses);
+			try {
+				final List<GenAICourseResponse> aiResponse = restClient.get()
+						.uri(uriBuilder -> uriBuilder
+								.path(GENAI_PATH + "/v1/courses")
+								.queryParamIfPresent("query", Optional.ofNullable(query))
+								.queryParam("limit", pageSize)
+								.queryParamIfPresent("department", Optional.ofNullable(department))
+								.queryParamIfPresent("language", Optional.ofNullable(language))
+								.queryParamIfPresent("level", Optional.ofNullable(level))
+								.build())
+						.retrieve()
+						.body(new ParameterizedTypeReference<List<GenAICourseResponse>>() {
+						});
+
+				if (aiResponse != null && !aiResponse.isEmpty()) {
+					final List<SimpleCourseData> courses = coursesDataDB
+							.getByIds(aiResponse.stream().map(GenAICourseResponse::courseId).toList());
+					return ResponseEntity.status(HttpStatus.OK).body(courses);
+				}
+			} catch (Exception e) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 			}
 		}
 		final List<SimpleCourseData> courses = coursesDataDB.getByQuery(query, department, departmentID, language,
