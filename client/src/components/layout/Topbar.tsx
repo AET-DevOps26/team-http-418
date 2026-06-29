@@ -8,6 +8,7 @@ const PAGE_LABELS: Record<string, string> = {
 	"/schedule": "Schedule",
 	"/planner": "Planner",
 	"/explore": "Explore",
+	"/advisor": "AI Advisor",
 	"/insights": "Insights",
 	"/profile": "Profile",
 	"/preferences": "Preferences",
@@ -15,7 +16,12 @@ const PAGE_LABELS: Record<string, string> = {
 
 export function Topbar() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const pageLabel = PAGE_LABELS[pathname] ?? "Dashboard";
+	const pageLabel =
+		PAGE_LABELS[pathname] ??
+		Object.entries(PAGE_LABELS).find(([p]) =>
+			pathname.startsWith(`${p}/`),
+		)?.[1] ??
+		"Dashboard";
 
 	return (
 		<header className="topbar">
