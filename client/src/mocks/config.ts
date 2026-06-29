@@ -12,6 +12,15 @@ export const mockConfig: Record<string, boolean> = {
 	"PUT /me/roadmap/semesters/:key": true,
 	"POST /me/roadmap/semesters/courses": true,
 	"DELETE /me/roadmap/semesters/courses": true,
+	"POST /me/transcript/upload": true,
+	"GET /me/progress": true,
+	"GET /me/courses/completed": true,
+	"POST /me/courses/completed": true,
+	"DELETE /me/courses/completed": true,
+	"GET /me/courses/enrolled": true,
+	"POST /me/courses/enrolled": true,
+	"DELETE /me/courses/enrolled": true,
+	"GET /me/requirements": true,
 	// Add endpoints here — set false to "unlock" (use real backend)
 };
 
