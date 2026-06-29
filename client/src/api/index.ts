@@ -35,6 +35,10 @@ export {
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
 export {
+	generateRecommendations,
+	getRecommendations,
+} from "#/api/recommendations";
+export {
 	addCourseToSemester,
 	generateRoadmap,
 	getRoadmap,
@@ -44,10 +48,6 @@ export {
 	updateRoadmap,
 	updateSemester,
 } from "#/api/roadmap";
-export {
-	generateRecommendations,
-	getRecommendations,
-} from "#/api/recommendations";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
