@@ -63,6 +63,32 @@ export type DashboardRecommendation = {
 	reason: string;
 };
 
+export type Recommendation = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	relevanceScore: number;
+	reason: string;
+	tags: string[];
+	prerequisitesMet: boolean;
+};
+
+export type RecommendationList = {
+	recommendations: Recommendation[];
+	generatedAt: IsoDateString;
+};
+
+export type GenerateRecommendationsBody = {
+	goals?: string;
+	interests?: string;
+};
+
+export type RecommendationParams = {
+	limit?: number;
+	category?: string;
+	semester?: string;
+};
+
 export type CourseSession = {
 	day: string;
 	startTime: string;
@@ -338,6 +364,34 @@ export type StudyProgram = {
 	id: string;
 	name: string;
 	department: string;
+};
+
+export type StudyProgramRef = {
+	id: string;
+	name: string;
+	department: string;
+};
+
+export type StudentProfile = {
+	id: string;
+	tumId: string;
+	name: string;
+	email: string;
+	semester: number;
+	studyPrograms: StudyProgramRef[];
+	totalCredits: number;
+	preferredWorkload: number;
+	careerGoals: string[];
+	interests: string[];
+	createdAt: IsoDateString;
+	updatedAt: IsoDateString;
+};
+
+export type StudentProfileUpdate = {
+	semester?: number;
+	preferredWorkload?: number;
+	careerGoals?: string[];
+	interests?: string[];
 };
 
 export type CourseSearchParams = {

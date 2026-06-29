@@ -436,6 +436,84 @@ body {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
 }
 
+/* ── Rec grid (full page) ── */
+
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+/* ── Relevance bar ── */
+
+.relevance-bar-track {
+  background: var(--line);
+  border-radius: 99px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.relevance-bar-fill {
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+/* ── Filter chips ── */
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.filter-chip:hover {
+  background: var(--line-soft);
+  color: var(--ink);
+}
+
+.filter-chip--active {
+  background: #ede9fe;
+  color: #5b21b6;
+  border-color: #c4b5fd;
+}
+
+/* ── Prereq badge ── */
+
+.prereq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+}
+
+.prereq-badge--met {
+  background: #dcfce7;
+  color: var(--success);
+}
+
+.prereq-badge--missing {
+  background: #fff8ec;
+  color: #92400e;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Skeleton ── */
 
 .skel {
