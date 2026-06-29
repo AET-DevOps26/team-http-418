@@ -6,6 +6,7 @@ import {
 	Home,
 	LogOut,
 	Map as MapIcon,
+	MessageCircle,
 	Settings,
 	Sparkles,
 	TrendingUp,
@@ -20,6 +21,7 @@ const mainNav = [
 	{ label: "Schedule", icon: Clock, href: "/schedule" },
 	{ label: "Planner", icon: MapIcon, href: "/planner" },
 	{ label: "Explore", icon: Compass, href: "/explore" },
+	{ label: "AI Advisor", icon: MessageCircle, href: "/advisor" },
 	{ label: "Recommendations", icon: Sparkles, href: "/recommendations" },
 	{ label: "Insights", icon: Sparkles, href: "/insights" },
 ];

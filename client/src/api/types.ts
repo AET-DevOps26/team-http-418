@@ -146,6 +146,47 @@ export type WeeklySchedule = {
 	conflicts: ScheduleConflict[];
 };
 
+export type MessageRole = "USER" | "ASSISTANT";
+
+export type ReferencedCourse = {
+	courseId: string;
+	courseCode: string;
+};
+
+export type ConversationMessage = {
+	id: string;
+	role: MessageRole;
+	content: string;
+	referencedCourses: ReferencedCourse[];
+	createdAt: IsoDateString;
+};
+
+export type ConversationSummary = {
+	id: string;
+	title: string;
+	lastMessage: string;
+	lastMessageAt: IsoDateString;
+	messageCount: number;
+};
+
+export type Conversation = {
+	id: string;
+	title: string;
+	messages: ConversationMessage[];
+	createdAt: IsoDateString;
+	updatedAt: IsoDateString;
+};
+
+export type SuggestedPrompt = {
+	text: string;
+	category: string;
+};
+
+export type AdvisorSSEEvent =
+	| { token: string }
+	| { done: true; fullContent: string }
+	| { error: string };
+
 export type ImportedCourse = {
 	courseId?: string;
 	courseCode?: string;
@@ -215,7 +256,15 @@ export type EnrolledCourse = {
 	schedule: CourseScheduleEntry[];
 };
 
-export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING";
+export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING" | "PLANNED";
+
+export type PlannedCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	status: CourseStatus;
+};
 
 export type RequirementCourse = {
 	courseId: string;
@@ -256,6 +305,33 @@ export type AddCompletedCourseRequest = {
 export type EnrollCourseRequest = {
 	courseId: string;
 	semester: string;
+};
+
+export type SemesterPlanDetail = {
+	semesterKey: SemesterKey;
+	label: string;
+	totalCredits: number;
+	courses: PlannedCourse[];
+	isCurrent: boolean;
+};
+
+export type RoadmapStatus = "READY" | "GENERATING" | "EMPTY";
+
+export type Roadmap = {
+	status: RoadmapStatus;
+	semesters: SemesterPlanDetail[];
+	totalPlannedCredits: number;
+	estimatedGraduation: SemesterKey;
+};
+
+export type GenerateRoadmapRequest = {
+	aims: string;
+	maxCreditsPerSemester: number;
+	interests: string[];
+};
+
+export type AddCourseRequest = {
+	courseId: string;
 };
 
 // ── Course catalog types ──
