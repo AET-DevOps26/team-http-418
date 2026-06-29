@@ -4,6 +4,8 @@ export const mockConfig: Record<string, boolean> = {
 	"POST /auth/refresh": true,
 	"POST /auth/logout": true,
 	"GET /me/dashboard": true,
+	"GET /me/recommendations": true,
+	"POST /me/recommendations": true,
 	"GET /me": true,
 	"PUT /me": true,
 	"PATCH /me": true,

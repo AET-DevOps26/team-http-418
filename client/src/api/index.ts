@@ -34,6 +34,10 @@ export {
 	uploadTranscript,
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
+export {
+	generateRecommendations,
+	getRecommendations,
+} from "#/api/recommendations";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
@@ -59,6 +63,7 @@ export type {
 	Department,
 	EnrollCourseRequest,
 	EnrolledCourse,
+	GenerateRecommendationsBody,
 	ImportError,
 	ImportedCourse,
 	Instructor,
@@ -73,6 +78,9 @@ export type {
 	PrerequisiteTree,
 	PrerequisiteType,
 	ProblemDetail,
+	Recommendation,
+	RecommendationList,
+	RecommendationParams,
 	RequirementAlert,
 	RequirementCategory,
 	RequirementCourse,
