@@ -5,8 +5,9 @@ import type {
 	ConversationMessage,
 	ConversationSummary,
 	IsoDateString,
+	Recommendation,
+	RecommendationList,
 } from "#/api/types";
-import type { Recommendation, RecommendationList } from "#/api/types";
 import { isMocked } from "./config";
 
 const MOCK_ACCESS_TOKEN = "mock-access-token";
