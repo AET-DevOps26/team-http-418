@@ -50,7 +50,6 @@ public class DataSourceConfig {
 			throw new RuntimeException("Could not connect to database 'profiles'");
 		}
 
-		jdbcTemplate.execute("CREATE DATABASE profiles");
 		jdbcTemplate.execute("""
 				    CREATE TABLE IF NOT EXISTS profiles (
 				                              id TEXT PRIMARY KEY,
