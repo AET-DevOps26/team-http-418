@@ -198,6 +198,36 @@ function filterRecommendations(
 	return filtered;
 }
 
+let mockProfile = {
+	id: "stu-001",
+	tumId: "ga12abc",
+	name: "Max Mustermann",
+	email: "max.mustermann@tum.de",
+	semester: 5,
+	studyPrograms: [
+		{
+			id: "sp-cs-bsc",
+			name: "Computer Science B.Sc.",
+			department: "Department of Informatics",
+		},
+		{
+			id: "sp-math-minor",
+			name: "Mathematics (Minor)",
+			department: "Department of Mathematics",
+		},
+	],
+	totalCredits: 84,
+	preferredWorkload: 30,
+	careerGoals: [
+		"Software Engineering",
+		"Machine Learning",
+		"Distributed Systems",
+	],
+	interests: ["Algorithms", "Cloud Computing", "Open Source"],
+	createdAt: "2024-04-01T08:00:00Z",
+	updatedAt: "2026-06-15T14:30:00Z",
+};
+
 let mockCompletedCourses = [
 	{
 		courseId: "c1",
@@ -475,6 +505,31 @@ export const handlers = [
 		currentRecommendations = personalizedRecommendations;
 		recommendationsGeneratedAt = PERSONALIZED_RECOMMENDATIONS_GENERATED_AT;
 		return HttpResponse.json(toRecommendationList(currentRecommendations));
+	http.get(`/api/${API_VERSION}/me`, () => {
+		if (!isMocked("GET", "/me")) return passthrough();
+		return HttpResponse.json(mockProfile);
+	}),
+
+	http.put(`/api/${API_VERSION}/me`, async ({ request }) => {
+		if (!isMocked("PUT", "/me")) return passthrough();
+		const body = (await request.json()) as Record<string, unknown>;
+		mockProfile = {
+			...mockProfile,
+			...body,
+			updatedAt: new Date().toISOString(),
+		};
+		return HttpResponse.json(mockProfile);
+	}),
+
+	http.patch(`/api/${API_VERSION}/me`, async ({ request }) => {
+		if (!isMocked("PATCH", "/me")) return passthrough();
+		const body = (await request.json()) as Record<string, unknown>;
+		mockProfile = {
+			...mockProfile,
+			...body,
+			updatedAt: new Date().toISOString(),
+		};
+		return HttpResponse.json(mockProfile);
 	}),
 
 	http.post(`/api/${API_VERSION}/me/transcript/upload`, async () => {

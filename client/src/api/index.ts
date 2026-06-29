@@ -21,6 +21,7 @@ export {
 	getCourses,
 } from "#/api/courses";
 export { getDashboard } from "#/api/dashboard";
+export { getProfile, patchProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
 	dropCourse,
@@ -86,7 +87,10 @@ export type {
 	ScheduleSlot,
 	ScheduleType,
 	SemesterKey,
+	StudentProfile,
+	StudentProfileUpdate,
 	StudyProgram,
+	StudyProgramRef,
 	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";
