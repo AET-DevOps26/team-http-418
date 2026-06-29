@@ -47,8 +47,8 @@ export {
 } from "#/api/recommendations";
 export type {
 	AcademicProgress,
-	AdvisorSSEEvent,
 	AddCompletedCourseRequest,
+	AdvisorSSEEvent,
 	AlertSeverity,
 	AlertType,
 	AuthResponse,
@@ -90,10 +90,10 @@ export type {
 	PrerequisiteTree,
 	PrerequisiteType,
 	ProblemDetail,
-	ReferencedCourse,
 	Recommendation,
 	RecommendationList,
 	RecommendationParams,
+	ReferencedCourse,
 	RequirementAlert,
 	RequirementCategory,
 	RequirementCourse,
@@ -103,8 +103,8 @@ export type {
 	StudentProfile,
 	StudentProfileUpdate,
 	StudyProgram,
-	SuggestedPrompt,
 	StudyProgramRef,
+	SuggestedPrompt,
 	TranscriptImportResult,
 	UpcomingCourse,
 } from "#/api/types";
