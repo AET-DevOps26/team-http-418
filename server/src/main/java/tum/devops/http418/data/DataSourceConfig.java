@@ -1,6 +1,7 @@
 package tum.devops.http418.data;
 
 import com.zaxxer.hikari.HikariDataSource;
+
 import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +109,11 @@ public class DataSourceConfig {
 				        authority TEXT NOT NULL,
 				        PRIMARY KEY (username, authority)
 				    )
+				""");
+
+		// TODO dev login
+		jdbcTemplate.execute("""
+						INSERT INTO credentials (username, password) VALUES ('admin', 'test') ON CONFLICT DO NOTHING;
 				""");
 		return dataSource;
 	}

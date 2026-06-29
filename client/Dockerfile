@@ -1,6 +1,8 @@
 # Stage 1: Build
 FROM node:22-slim AS build
 
+ARG API_VERSION
+ENV VITE_API_VERSION=$API_VERSION
 # Install pnpm
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

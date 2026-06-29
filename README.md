@@ -77,6 +77,12 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ### 🧩 Analysis Object Model (Domain Model)
 ![Analysis Object Model (Domain Model)](./docs/diagrams/DomainModel.png)
 
+### Test User
+
+    username: admin
+
+    password: test
+
 ### Build Instructions
 
 **1. Set up environment variables:**
