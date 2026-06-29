@@ -227,7 +227,15 @@ export type EnrolledCourse = {
 	schedule: CourseScheduleEntry[];
 };
 
-export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING";
+export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING" | "PLANNED";
+
+export type PlannedCourse = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	credits: number;
+	status: CourseStatus;
+};
 
 export type RequirementCourse = {
 	courseId: string;
@@ -268,6 +276,33 @@ export type AddCompletedCourseRequest = {
 export type EnrollCourseRequest = {
 	courseId: string;
 	semester: string;
+};
+
+export type SemesterPlanDetail = {
+	semesterKey: SemesterKey;
+	label: string;
+	totalCredits: number;
+	courses: PlannedCourse[];
+	isCurrent: boolean;
+};
+
+export type RoadmapStatus = "READY" | "GENERATING" | "EMPTY";
+
+export type Roadmap = {
+	status: RoadmapStatus;
+	semesters: SemesterPlanDetail[];
+	totalPlannedCredits: number;
+	estimatedGraduation: SemesterKey;
+};
+
+export type GenerateRoadmapRequest = {
+	aims: string;
+	maxCreditsPerSemester: number;
+	interests: string[];
+};
+
+export type AddCourseRequest = {
+	courseId: string;
 };
 
 // ── Course catalog types ──
