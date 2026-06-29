@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdvisorRouteImport } from './routes/_authenticated/advisor'
+import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses/index'
 import { Route as AuthenticatedAdvisorIndexRouteImport } from './routes/_authenticated/advisor/index'
 import { Route as AuthenticatedAdvisorConversationIdRouteImport } from './routes/_authenticated/advisor/$conversationId'
 
@@ -31,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -41,6 +48,12 @@ const AuthenticatedAdvisorRoute = AuthenticatedAdvisorRouteImport.update({
   path: '/advisor',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCoursesIndexRoute =
+  AuthenticatedCoursesIndexRouteImport.update({
+    id: '/courses/',
+    path: '/courses/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdvisorIndexRoute =
   AuthenticatedAdvisorIndexRouteImport.update({
     id: '/',
@@ -59,15 +72,19 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/advisor': typeof AuthenticatedAdvisorRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/advisor/': typeof AuthenticatedAdvisorIndexRoute
+  '/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/advisor': typeof AuthenticatedAdvisorIndexRoute
+  '/courses': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -76,8 +93,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/advisor': typeof AuthenticatedAdvisorRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/_authenticated/advisor/': typeof AuthenticatedAdvisorIndexRoute
+  '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,10 +105,19 @@ export interface FileRouteTypes {
     | '/login'
     | '/advisor'
     | '/dashboard'
+    | '/progress'
     | '/advisor/$conversationId'
     | '/advisor/'
+    | '/courses/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/advisor/$conversationId' | '/advisor'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/progress'
+    | '/advisor/$conversationId'
+    | '/advisor'
+    | '/courses'
   id:
     | '__root__'
     | '/'
@@ -97,8 +125,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/advisor'
     | '/_authenticated/dashboard'
+    | '/_authenticated/progress'
     | '/_authenticated/advisor/$conversationId'
     | '/_authenticated/advisor/'
+    | '/_authenticated/courses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -130,6 +160,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -142,6 +179,13 @@ declare module '@tanstack/react-router' {
       path: '/advisor'
       fullPath: '/advisor'
       preLoaderRoute: typeof AuthenticatedAdvisorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/courses/': {
+      id: '/_authenticated/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof AuthenticatedCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/advisor/': {
@@ -178,11 +222,15 @@ const AuthenticatedAdvisorRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdvisorRoute: typeof AuthenticatedAdvisorRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdvisorRoute: AuthenticatedAdvisorRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

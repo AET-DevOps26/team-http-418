@@ -9,18 +9,21 @@ import {
 	MessageCircle,
 	Settings,
 	Sparkles,
+	TrendingUp,
 	User,
 } from "lucide-react";
 import { logout } from "#/api";
 
 const mainNav = [
 	{ label: "Overview", icon: Home, href: "/dashboard" },
+	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 	{ label: "Courses", icon: BookOpen, href: "/courses" },
 	{ label: "Schedule", icon: Clock, href: "/schedule" },
 	{ label: "Planner", icon: MapIcon, href: "/planner" },
 	{ label: "Explore", icon: Compass, href: "/explore" },
 	{ label: "AI Advisor", icon: MessageCircle, href: "/advisor" },
 	{ label: "Insights", icon: Sparkles, href: "/insights" },
+	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 ];
 
 const accountNav = [

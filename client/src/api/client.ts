@@ -36,7 +36,8 @@ async function doFetch<T>(
 		"Accept",
 		options?.responseType === "text" ? "text/plain" : "application/json",
 	);
-	if (hasBody) headers.set("Content-Type", "application/json");
+	if (hasBody && !(options?.body instanceof FormData))
+		headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
 
 	const res = await fetch(`/api/${API_VERSION}${path}`, {

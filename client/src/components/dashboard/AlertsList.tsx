@@ -25,6 +25,10 @@ function formatType(type: string): string {
 
 type Props = { alerts: DashboardAlert[] };
 
+function courseDetailHref(courseId: string) {
+	return `/courses?course=${encodeURIComponent(courseId)}`;
+}
+
 export function AlertsList({ alerts }: Props) {
 	return (
 		<div className="card" style={{ padding: "20px" }}>
@@ -78,7 +82,7 @@ export function AlertsList({ alerts }: Props) {
 									</div>
 									{alert.relatedEntityId && (
 										<a
-											href={`/courses/${alert.relatedEntityId}`}
+											href={courseDetailHref(alert.relatedEntityId)}
 											style={{
 												display: "inline-block",
 												marginTop: 4,
