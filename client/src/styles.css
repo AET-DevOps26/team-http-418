@@ -878,7 +878,7 @@ dialog.modal::backdrop {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-}
+
 
 /* ── Toast ── */
 
