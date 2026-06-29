@@ -3,16 +3,24 @@ package tum.devops.http418.data;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+@Slf4j
 @Configuration
 public class DataSourceConfig {
+
+	private final Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
 
 	@Value("${SPRING_DATASOURCE_URL}")
 	private String baseUrl;
@@ -34,6 +42,14 @@ public class DataSourceConfig {
 		dataSource.setPassword(password);
 		dataSource.setDriverClassName("org.postgresql.Driver");
 		dataSource.setReadOnly(true);
+
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		try {
+			jdbcTemplate.execute("SELECT version();");
+		} catch (CannotGetJdbcConnectionException e) {
+			logger.error("Could not connect to database", e);
+			throw new RuntimeException("Could not connect to database 'courses-data'");
+		}
 
 		return dataSource;
 	}
@@ -72,6 +88,13 @@ public class DataSourceConfig {
 
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
+		try {
+			jdbcTemplate.execute("SELECT version();");
+		} catch (CannotGetJdbcConnectionException e) {
+			logger.error("Could not connect to database", e);
+			throw new RuntimeException("Could not connect to database 'security'");
+		}
+
 		jdbcTemplate.execute("""
 				    CREATE TABLE IF NOT EXISTS credentials (
 				        username TEXT PRIMARY KEY,
@@ -91,13 +114,13 @@ public class DataSourceConfig {
 
 	@Bean
 	@Profile("!test")
-	public JdbcTemplate coursesJdbcTemplate(@Qualifier("coursesDataSource") DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
+	public NamedParameterJdbcTemplate coursesJdbcTemplate(@Qualifier("coursesDataSource") DataSource dataSource) {
+		return new NamedParameterJdbcTemplate(dataSource);
 	}
 
 	@Bean
 	@Profile("!test")
-	public JdbcTemplate securityJdbcTemplate(@Qualifier("securityDataSource") DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
+	public NamedParameterJdbcTemplate securityJdbcTemplate(@Qualifier("securityDataSource") DataSource dataSource) {
+		return new NamedParameterJdbcTemplate(dataSource);
 	}
 }

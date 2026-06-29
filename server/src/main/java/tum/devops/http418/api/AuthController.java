@@ -1,4 +1,4 @@
-package tum.devops.http418.auth;
+package tum.devops.http418.api;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

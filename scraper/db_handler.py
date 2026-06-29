@@ -117,8 +117,8 @@ class DB:
             await self.conn.execute("""
                                     CREATE TABLE if not exists persons
                                     (
-                                        id                BIGINT PRIMARY KEY, -- identityLibDto.id
-                                        person_id         BIGINT,             -- probably the same as id
+                                        id                BIGINT PRIMARY KEY, -- identityLibDto.id use this to link lectureships to persons
+                                        person_id         BIGINT,             -- most of the time the same as id, not always
                                         -- obfuscated_key      TEXT UNIQUE,
                                         first_name        TEXT,
                                         last_name         TEXT,
