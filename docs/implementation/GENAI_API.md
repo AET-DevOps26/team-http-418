@@ -345,7 +345,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
     "currentSemester": "25S"
   },
   "completedCourses": [
-    "courseName": "Introduction to Deep Learning"
+    "Introduction to Deep Learning"
   ]
 }
 ```

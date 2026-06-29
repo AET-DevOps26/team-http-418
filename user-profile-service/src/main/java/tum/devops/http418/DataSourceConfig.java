@@ -41,7 +41,6 @@ public class DataSourceConfig {
         dataSource.setUsername(username);
         dataSource.setPassword(password);
         dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setReadOnly(true);
 
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         try {
@@ -51,6 +50,19 @@ public class DataSourceConfig {
             throw new RuntimeException("Could not connect to database 'profiles'");
         }
 
+        jdbcTemplate.execute("CREATE DATABASE profiles");
+        jdbcTemplate.execute("""
+                    CREATE TABLE IF NOT EXISTS profiles (
+                                              id TEXT PRIMARY KEY,
+                                              student TEXT NOT NULL,
+                                              completed_courses TEXT NOT NULL,
+                                              enrolled_courses TEXT NOT NULL,
+                                              available_courses TEXT NOT NULL,
+                                              "limit" INT NOT NULL,
+                                              category TEXT,
+                                              semester TEXT
+                                          );
+                """);
         return dataSource;
     }
 
@@ -67,23 +79,9 @@ public class DataSourceConfig {
         final Boolean exists = jdbcTemplate.queryForObject(
                 "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
                 Boolean.class, "profiles");
-
         if (Boolean.FALSE.equals(exists)) {
             jdbcTemplate.execute("CREATE DATABASE profiles");
-            jdbcTemplate.execute("""
-                        CREATE TABLE IF NOT EXISTS profiles (
-                                                  id TEXT PRIMARY KEY,
-                                                  student TEXT NOT NULL,
-                                                  completed_courses TEXT NOT NULL,
-                                                  enrolled_courses TEXT NOT NULL,
-                                                  available_courses TEXT NOT NULL,
-                                                  "limit" INT NOT NULL,
-                                                  category TEXT,
-                                                  semester TEXT
-                                              );
-                    """);
         }
-
         adminDataSource.close();
     }
 

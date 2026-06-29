@@ -32,3 +32,10 @@ repos:
         entry: bash -c 'cd pdf-parser && ./gradlew spotlessApply && ./gradlew rewriteRun'
         files: ^pdf-parser/.*\.java$
         pass_filenames: false
+
+      - id: spotless-user-profile-java
+        name: Spotless Java - user-profile
+        language: system
+        entry: bash -c 'cd user-profile-service && ./gradlew spotlessApply && ./gradlew rewriteRun'
+        files: ^user-profile-service/.*\.java$
+        pass_filenames: false
