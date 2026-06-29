@@ -29,7 +29,7 @@ services:
   user-profile-service:
     image: ghcr.io/aet-devops26/team-http-418/user-profile-service:${IMAGE_TAG:-latest}
     ports:
-      - "8070:8080"
+      - "8060:8080"
     env_file: .env
     healthcheck:
       test: [ "CMD-SHELL", "wget --spider http://localhost:8080/v1/health 2>&1 || exit 1" ]
