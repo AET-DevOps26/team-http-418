@@ -15,12 +15,12 @@ import java.util.Optional;
 
 import static tum.devops.http418.Http418Application.restClient;
 
-@RequiredArgsConstructor
-@RestController
-@RequestMapping("/api/${API_VERSION}")
+`@RequiredArgsConstructor`
+`@RestController`
+`@RequestMapping`("/api/${API_VERSION}")
 public class APIController {
 
-	CoursesDataDB coursesDataDB;
+	private final CoursesDataDB coursesDataDB;
 
 	@GetMapping("/hello")
 	public String sayHello() {
