@@ -8,3 +8,7 @@ data:
   DB_HOST: "postgres-service"
   SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d" (.Values.postgres.port | int) }}
   SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
+  LLM_PROVIDER: {{ .Values.genai.llmProvider | quote }}
+  LOGOS_BASE_URL: {{ .Values.genai.logosBaseUrl | quote }}
+  LOGOS_API_VERSION: {{ .Values.genai.logosApiVersion | quote }}
+  LOGOS_MODEL: {{ .Values.genai.logosModel | quote }}

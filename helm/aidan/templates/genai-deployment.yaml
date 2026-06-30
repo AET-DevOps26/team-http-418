@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: genai
+    {{- include "aidan.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.genai }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: genai
+  template:
+    metadata:
+      labels:
+        app: genai
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 15
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17
+          command: ["sh", "-c", "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres; sleep 2; done"]
+      containers:
+        - name: genai
+          image: {{ printf "%s/%s/%s/genai:%s" .Values.image.registry .Values.image.org .Values.image.repo .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.genai.port }}
+          envFrom:
+            - configMapRef:
+                name: aidan-config
+            - secretRef:
+                name: aidan-secret
+          env:
+            - name: DATABASE_URL
+              value: {{ printf "postgresql://%s:$(DB_PASS)@postgres-service:%d/%s" .Values.postgres.username (.Values.postgres.port | int) .Values.postgres.database }}
+          resources:
+            {{- toYaml .Values.genai.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.genai.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10

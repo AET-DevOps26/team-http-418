@@ -12,6 +12,7 @@ replicaCount:
   server: 1
   client: 1
   postgres: 1
+  genai: 1
 
 server:
   port: 8080
@@ -47,6 +48,21 @@ postgres:
     limits:
       memory: "256Mi"
       cpu: "200m"
+
+genai:
+  port: 8000
+  llmProvider: "cloud"
+  logosBaseUrl: "https://logos.aet.cit.tum.de"
+  logosApiVersion: "v1"
+  logosModel: "openai/gpt-oss-120b"
+  logosApiKey: ""
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
 
 ingress:
   enabled: true
