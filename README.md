@@ -151,17 +151,3 @@ ruff format .          # auto-fix formatting
 ruff check --fix .     # auto-fix lint
 ```
 
-#### Pre-commit Hooks
-
-Install once to automatically format staged files before every commit:
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
-Run manually against all files:
-
-```bash
-pre-commit run --all-files
-```
