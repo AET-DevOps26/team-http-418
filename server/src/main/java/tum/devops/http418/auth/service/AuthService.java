@@ -2,10 +2,11 @@ package tum.devops.http418.auth.service;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tum.devops.http418.auth.dto.AuthResponse;
+import tum.devops.http418.auth.dto.InvalidRefreshTokenException;
 import tum.devops.http418.auth.security.JwtTokenProvider;
 
 @Service
@@ -24,6 +26,7 @@ public class AuthService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final InMemoryRefreshTokenStore refreshTokenStore;
 	private final PasswordEncoder passwordEncoder;
+	private final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
 	public AuthResponse login(String tumId, String password) {
 		final Authentication authentication = authenticationManager
@@ -37,17 +40,21 @@ public class AuthService {
 
 	public AuthResponse refresh(String refreshToken) {
 		final String tumId = refreshTokenStore.consume(refreshToken)
-				.orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+				.orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
+		try {
+			final UserDetails userDetails = userDetailsService.loadUserByUsername(tumId);
 
-		final UserDetails userDetails = userDetailsService.loadUserByUsername(tumId);
+			final Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+					userDetails.getAuthorities());
 
-		final Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
-				userDetails.getAuthorities());
+			final String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+			final String newRefreshToken = refreshTokenStore.create(tumId);
 
-		final String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
-		final String newRefreshToken = refreshTokenStore.create(tumId);
-
-		return new AuthResponse(newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
+			return new AuthResponse(newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw e;
+		}
 	}
 
 	public void logout(String refreshToken) {

@@ -9,12 +9,12 @@ export function KpiBar({ progress }: { progress: AcademicProgress }) {
 		},
 		{
 			label: "GPA",
-			value: progress.gpa.toFixed(2),
+			value: progress.gpa?.toFixed(2),
 			sub: "Current",
 		},
 		{
 			label: "Progress",
-			value: `${progress.progressPercentage.toFixed(1)}%`,
+			value: `${progress.progressPercentage?.toFixed(1)}%`,
 			sub: "Toward degree",
 		},
 		{
