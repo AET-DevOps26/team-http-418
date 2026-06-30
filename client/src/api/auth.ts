@@ -1,4 +1,4 @@
-import { apiFetch } from "#/api/client.ts";
+import { ApiError, apiFetch } from "#/api/client.ts";
 import { queryClient } from "#/api/query-client";
 import type { AuthResponse } from "#/api/types";
 
@@ -8,7 +8,7 @@ const SESSION_REFRESH_KEY = "auth_refresh_token";
 let accessToken: string | null = null;
 let storedRefreshToken: string | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-export const API_VERSION = import.meta.env.VITE_API_VERSION!;
+export const API_VERSION = import.meta.env.VITE_API_VERSION ?? "";
 
 export class AuthError extends Error {
 	status: number;
@@ -70,34 +70,32 @@ export function isAuthenticated(): boolean {
 }
 
 export async function login(tumId: string, password: string): Promise<void> {
-	const res = await apiFetch(`/auth/login`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ tumId, password }),
-	});
-	if (!res.ok) {
-		let message = res.statusText;
-		try {
-			const body = (await res.json()) as { detail?: string; title?: string };
-			message = body.detail ?? body.title ?? message;
-		} catch {}
-		throw new AuthError(res.status, message);
+	try {
+		const data = await apiFetch<AuthResponse>(`/auth/login`, {
+			method: "POST",
+			body: JSON.stringify({ tumId, password }),
+		});
+		setTokens(data);
+	} catch (err) {
+		if (err instanceof ApiError) {
+			throw new AuthError(err.status, err.message);
+		}
+		throw err;
 	}
-	const data = (await res.json()) as AuthResponse;
-	setTokens(data);
 }
 
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
-	const res = await apiFetch(`/auth/refresh`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ refreshToken: storedRefreshToken }),
-	});
-	if (!res.ok) return null;
-	const data = (await res.json()) as AuthResponse;
-	setTokens(data);
-	return data.accessToken;
+	try {
+		const data = await apiFetch<AuthResponse>(`/auth/refresh`, {
+			method: "POST",
+			body: JSON.stringify({ refreshToken: storedRefreshToken }),
+		});
+		setTokens(data);
+		return data.accessToken;
+	} catch {
+		return null;
+	}
 }
 
 export async function logout(): Promise<void> {
