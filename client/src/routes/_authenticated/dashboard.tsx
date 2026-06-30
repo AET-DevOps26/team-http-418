@@ -230,7 +230,10 @@ function Dashboard() {
 					}}
 				>
 					{data.progress.currentSemester} ·{" "}
-					{data.progress.progressPercentage?.toFixed(1)}% toward your degree
+					{data.progress.progressPercentage != null
+						? data.progress.progressPercentage.toFixed(1)
+						: "N/A"}
+					% toward your degree
 				</p>
 			</div>
 
