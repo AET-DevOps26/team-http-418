@@ -38,6 +38,8 @@ spec:
                 secretKeyRef:
                   name: aidan-secret
                   key: DB_PASS
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
