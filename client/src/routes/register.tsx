@@ -117,10 +117,7 @@ function RegisterPage() {
 
 	const errors = {
 		tumId: touched.tumId && !tumId ? "TUM ID is required" : null,
-		password:
-			touched.password && !password
-				? "Password is required"
-				: null,
+		password: touched.password && !password ? "Password is required" : null,
 		confirmPassword:
 			touched.confirmPassword && !confirmPassword
 				? "Please confirm your password"
