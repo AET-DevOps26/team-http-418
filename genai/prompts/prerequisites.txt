@@ -22,8 +22,17 @@ Return ONLY a valid JSON array. No explanation, no markdown, just JSON:
 [
   {{
     "courseId": <int from catalog>,
-    "type": "REQUIRED" | "RECOMMENDED"
+    "type": "REQUIRED" | "RECOMMENDED",
+    "prerequisites": [
+      {{
+        "courseId": <int from catalog>,
+        "type": "REQUIRED" | "RECOMMENDED",
+        "prerequisites": []
+      }}
+    ]
   }}
 ]
+
+Each item may have nested "prerequisites" for transitive dependencies. Only include courses from the catalog. Use empty array [] when there are no nested prerequisites.
 
 If no prerequisites can be matched to the catalog, return an empty array: []

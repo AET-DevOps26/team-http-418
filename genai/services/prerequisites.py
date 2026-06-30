@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from llm.provider import get_llm
 from models.prerequisites import PrerequisiteExtractRequest
+from services.normalize import normalize_prerequisite_nodes
 
 _PREREQUISITES_PROMPT = (Path(__file__).parent.parent / "prompts" / "prerequisites.txt").read_text()
 
@@ -56,19 +57,7 @@ async def extract_prerequisites(request: PrerequisiteExtractRequest) -> dict:
             detail="LLM service unavailable — could not extract prerequisites",
         ) from e
 
-    prerequisites = []
-    for item in raw:
-        course_id = item.get("courseId")
-        if course_id not in available_map:
-            continue
-        course = available_map[course_id]
-        prerequisites.append({
-            "courseId": course_id,
-            "courseCode": str(course_id),
-            "courseName": course.course_name,
-            "type": item.get("type", "RECOMMENDED"),
-            "prerequisites": [],
-        })
+    prerequisites = normalize_prerequisite_nodes(raw, available_map)
 
     return {
         "courseId": request.course_id,

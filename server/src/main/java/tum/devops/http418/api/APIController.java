@@ -105,7 +105,7 @@ public class APIController {
 			final List<PrerequisiteCheck.PrerequisiteCheckRef> metPrereqs = new ArrayList<>();
 			final List<PrerequisiteCheck.PrerequisiteCheckRef> unmetPrereqs = new ArrayList<>();
 
-			for (PrerequisiteTree.PrerequisiteNode node : tree.prerequisites()) {
+			for (PrerequisiteTree.PrerequisiteNode node : flattenPrerequisiteNodes(tree.prerequisites())) {
 				final PrerequisiteCheck.PrerequisiteCheckRef ref = new PrerequisiteCheck.PrerequisiteCheckRef(
 						node.courseId(), node.courseCode(), node.courseName(), node.type());
 				if (completedIds.contains(node.courseId())) {
@@ -177,7 +177,7 @@ public class APIController {
 
 		try {
 			final PrerequisiteTree tree = restClient.post()
-					.uri(GENAI_PATH + "/v1/prerequisites/extract")
+					.uri(GENAI_PATH + "/prerequisites/extract")
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(payload)
 					.retrieve()
@@ -186,5 +186,16 @@ public class APIController {
 		} catch (Exception e) {
 			return new PrerequisiteTree(course.getId(), code, course.getTitle_en(), List.of());
 		}
+	}
+
+	public static List<PrerequisiteTree.PrerequisiteNode> flattenPrerequisiteNodes(List<PrerequisiteTree.PrerequisiteNode> nodes) {
+		final List<PrerequisiteTree.PrerequisiteNode> result = new ArrayList<>();
+		for (PrerequisiteTree.PrerequisiteNode node : nodes) {
+			result.add(node);
+			if (node.prerequisites() != null && !node.prerequisites().isEmpty()) {
+				result.addAll(flattenPrerequisiteNodes(node.prerequisites()));
+			}
+		}
+		return result;
 	}
 }
