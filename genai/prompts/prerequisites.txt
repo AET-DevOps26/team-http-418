@@ -1,0 +1,29 @@
+You are an academic course advisor at Technical University of Munich (TUM).
+Analyze the following prerequisite text for a course and extract structured prerequisite relationships.
+
+Course: {course_name}
+
+Prerequisite text:
+{previous_knowledge_text}
+
+Available courses catalog:
+{available_courses_text}
+
+Instructions:
+- Match prerequisites mentioned in the text to courses from the available catalog
+- Use courseId values exactly as given in the catalog
+- Classify each prerequisite as "REQUIRED" (mandatory/must have) or "RECOMMENDED" (helpful/beneficial) based on language tone
+- Words like "must", "required", "mandatory", "prerequisite", "knowledge of" → REQUIRED
+- Words like "recommended", "helpful", "beneficial", "familiarity with", "ideally" → RECOMMENDED
+- Only include courses that are clearly mentioned or closely match a course in the catalog
+- Do not invent courseIds that are not in the catalog
+
+Return ONLY a valid JSON array. No explanation, no markdown, just JSON:
+[
+  {{
+    "courseId": <int from catalog>,
+    "type": "REQUIRED" | "RECOMMENDED"
+  }}
+]
+
+If no prerequisites can be matched to the catalog, return an empty array: []

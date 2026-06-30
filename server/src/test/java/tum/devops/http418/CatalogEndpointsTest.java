@@ -74,13 +74,37 @@ class CatalogEndpointsTest extends BaseTest {
 		mockMvc.perform(
 				get("/api/" + API_VERSION + "/courses/100/prerequisites").header("Authorization",
 						"Bearer " + getToken()))
-				.andExpect(status().isOk()).andExpect(jsonPath("$.courseId").value(100));
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.courseId").value(100))
+				.andExpect(jsonPath("$.courseCode").exists())
+				.andExpect(jsonPath("$.courseName").exists())
+				.andExpect(jsonPath("$.prerequisites").isArray());
 	}
 
 	@Test
 	void getCoursePrerequisitesNotFound() throws Exception {
 		mockMvc.perform(
 				get("/api/" + API_VERSION + "/courses/99999/prerequisites").header("Authorization",
+						"Bearer " + getToken()))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void checkCoursePrerequisitesReturnsData() throws Exception {
+		mockMvc.perform(
+				get("/api/" + API_VERSION + "/courses/100/prerequisites/check").header("Authorization",
+						"Bearer " + getToken()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.courseId").value(100))
+				.andExpect(jsonPath("$.eligible").exists())
+				.andExpect(jsonPath("$.unmetPrerequisites").isArray())
+				.andExpect(jsonPath("$.metPrerequisites").isArray());
+	}
+
+	@Test
+	void checkCoursePrerequisitesNotFound() throws Exception {
+		mockMvc.perform(
+				get("/api/" + API_VERSION + "/courses/99999/prerequisites/check").header("Authorization",
 						"Bearer " + getToken()))
 				.andExpect(status().isNotFound());
 	}
