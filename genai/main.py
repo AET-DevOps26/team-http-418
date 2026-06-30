@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from db import init_schema
 from llm.embeddings import get_embedding_dimensions
-from llm.provider import check_llm_health, get_provider_info
+from llm.provider import get_provider_info
 from routers import (
     advisor,
     chat,
@@ -37,9 +37,8 @@ router = APIRouter(prefix="/v1")
 
 @router.get("/health")
 async def health():
-    llm_status = check_llm_health()
     provider_info = get_provider_info()
-    return JSONResponse({"status": "UP", "llm": {"status": llm_status, **provider_info}})
+    return JSONResponse({"status": "UP", "llm": provider_info})
 
 
 app.include_router(router)

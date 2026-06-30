@@ -59,10 +59,10 @@ genai:
   logosApiKey: ""
   resources:
     requests:
-      memory: "256Mi"
+      memory: "384Mi"
       cpu: "200m"
     limits:
-      memory: "512Mi"
+      memory: "768Mi"
       cpu: "500m"
 
 ingress:
