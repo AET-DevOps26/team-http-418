@@ -14,8 +14,8 @@ export {
 	isAuthenticated,
 	login,
 	logout,
-	register,
 	refreshAccessToken,
+	register,
 	setAccessToken,
 	setTokens,
 } from "#/api/auth";
