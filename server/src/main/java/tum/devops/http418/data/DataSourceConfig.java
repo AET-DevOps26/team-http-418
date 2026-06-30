@@ -116,8 +116,8 @@ public class DataSourceConfig {
 				    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 				    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
 				    course_id BIGINT NOT NULL,
-				    grade NUMERIC(2,1),
-				    credits INT NOT NULL DEFAULT 0,
+				    grade NUMERIC(2,1) CHECK (grade >= 0),
+				    credits INT NOT NULL DEFAULT 0 CHECK (credits >= 0),
 				    semester_key TEXT,
 				    category TEXT,
 				    UNIQUE (username, course_id)
@@ -165,10 +165,6 @@ public class DataSourceConfig {
 				)
 				""");
 
-		// TODO dev login
-		jdbcTemplate.execute("""
-						INSERT INTO credentials (username, password) VALUES ('admin', 'test') ON CONFLICT DO NOTHING;
-				""");
 		return dataSource;
 	}
 

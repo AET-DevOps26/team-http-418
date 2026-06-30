@@ -6,8 +6,9 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
 	const { data: message, error } = useQuery({
-		queryKey: ["hello"],
-		queryFn: () => apiFetch<string>("/hello", { responseType: "text" }),
+		queryKey: ["health"],
+		queryFn: () =>
+			apiFetch<string>("/health", { responseType: "text", root: true }),
 	});
 
 	return (
