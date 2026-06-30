@@ -1,33 +1,72 @@
 package tum.devops.http418.api;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import tum.devops.http418.api.dto.PostRecommendationsBody;
-import tum.devops.http418.api.dto.Profile;
-import tum.devops.http418.api.dto.ProfileWithOverrides;
+import org.springframework.web.multipart.MultipartFile;
+import tum.devops.http418.api.dto.*;
+import tum.devops.http418.data.CoursesDataDB;
+import tum.devops.http418.data.StudentDataDB;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static tum.devops.http418.Http418Application.*;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/${API_VERSION}/me")
 public class APIControllerMe {
 
+	private final StudentDataDB studentDataDB;
+	private final CoursesDataDB coursesDataDB;
+
+	@Value("${PDF_PARSER_SERVICE:http://pdf-parser:8080}")
+	private String pdfParserService;
+
 	@GetMapping("/progress")
-	public ResponseEntity<String> getProgress() {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<AcademicProgressDTO> getProgress(@AuthenticationPrincipal String tumid) {
+		final int totalCredits = studentDataDB.sumCredits(tumid);
+		final BigDecimal gpa = studentDataDB.avgGrade(tumid);
+		final int completed = studentDataDB.countCompletedCourses(tumid);
+		final int enrolled = studentDataDB.countEnrolledCourses(tumid);
+		final List<AcademicProgressDTO.CreditsByCategory> byCategory = studentDataDB.creditsByCategory(tumid).stream()
+				.map(row -> new AcademicProgressDTO.CreditsByCategory(row.category(), row.totalCredits())).toList();
+		return ResponseEntity.ok(new AcademicProgressDTO(totalCredits, gpa, completed, enrolled, byCategory));
 	}
 
 	@GetMapping("/requirements")
-	public ResponseEntity<String> getRequirements() {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<DegreeRequirementsDTO> getRequirements(@AuthenticationPrincipal String tumid) {
+		final int totalCredits = studentDataDB.sumCredits(tumid);
+		final List<AcademicProgressDTO.CreditsByCategory> byCategory = studentDataDB.creditsByCategory(tumid).stream()
+				.map(row -> new AcademicProgressDTO.CreditsByCategory(row.category(), row.totalCredits())).toList();
+		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(tumid, 0, 1000);
+		final List<CompletedCourseDTO> completedDtos = rows.stream().map(row -> {
+			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
+			return new CompletedCourseDTO(row.courseId(), String.valueOf(row.courseId()),
+					name != null ? name : "Unknown",
+					row.grade(), row.credits(), row.semesterKey(), row.category());
+		}).toList();
+		return ResponseEntity.ok(new DegreeRequirementsDTO(totalCredits, byCategory, completedDtos));
 	}
 
 	@PostMapping("/transcript/upload")
-	public ResponseEntity<Boolean> uploadTranscript() {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<TranscriptImportResultDTO> uploadTranscript(@AuthenticationPrincipal String tumid,
+			@RequestParam("file") MultipartFile file) {
+		try {
+			final String response = restClient.post().uri(pdfParserService + "/parse")
+					.contentType(MediaType.MULTIPART_FORM_DATA).body(file.getBytes()).retrieve().body(String.class);
+			return ResponseEntity
+					.ok(new TranscriptImportResultDTO(0, 0, "Transcript received. Processing: " + response));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+					.body(new TranscriptImportResultDTO(0, 0, "PDF parser unavailable"));
+		}
 	}
 
 	@GetMapping("")
@@ -63,5 +102,44 @@ public class APIControllerMe {
 		final ProfileWithOverrides newProfile = new ProfileWithOverrides(profile, prompt);
 		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/recommendations")
 				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().body(String.class));
+	}
+
+	@GetMapping("/dashboard")
+	public ResponseEntity<DashboardDTO> getDashboard(@AuthenticationPrincipal String tumid) {
+		final int totalCredits = studentDataDB.sumCredits(tumid);
+		final BigDecimal gpa = studentDataDB.avgGrade(tumid);
+		final int completed = studentDataDB.countCompletedCourses(tumid);
+		final int enrolled = studentDataDB.countEnrolledCourses(tumid);
+		final DashboardDTO.DashboardProgress progress = new DashboardDTO.DashboardProgress(totalCredits, gpa, completed,
+				enrolled);
+
+		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 10);
+		final List<EnrolledCourseDTO> upcoming = enrolledRows.stream().map(row -> {
+			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
+			return new EnrolledCourseDTO(row.courseId(), String.valueOf(row.courseId()),
+					name != null ? name : "Unknown",
+					row.semesterKey());
+		}).toList();
+
+		return ResponseEntity.ok(new DashboardDTO(progress, upcoming, List.of(), List.of()));
+	}
+
+	@GetMapping("/schedule")
+	public ResponseEntity<WeeklyScheduleDTO> getSchedule(@AuthenticationPrincipal String tumid,
+			@RequestParam(required = false) String semester) {
+		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 100);
+		final List<ScheduleEventDTO> events = new ArrayList<>();
+
+		for (final StudentDataDB.EnrolledCourseRow row : enrolledRows) {
+			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
+			final List<Appointment> appointments = coursesDataDB.getAppointments((int) row.courseId());
+			for (final Appointment apt : appointments) {
+				events.add(new ScheduleEventDTO(row.courseId(), name != null ? name : "Unknown", apt.weekday_key(),
+						apt.time_from(), apt.time_to(), apt.place()));
+			}
+		}
+
+		return ResponseEntity
+				.ok(new WeeklyScheduleDTO(semester != null ? semester : "current", events));
 	}
 }
