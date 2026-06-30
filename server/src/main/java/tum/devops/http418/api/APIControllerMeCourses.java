@@ -22,7 +22,9 @@ public class APIControllerMeCourses {
 	@GetMapping("/completed")
 	public ResponseEntity<PageDTO<CompletedCourseDTO>> getCompleted(@AuthenticationPrincipal String tumid,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(tumid, page, size);
+		final int normalizedPage = Math.max(0, page);
+		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(tumid, normalizedPage,
+				size);
 		final int total = studentDataDB.countCompletedCourses(tumid);
 		final List<CompletedCourseDTO> dtos = rows.stream().map(row -> {
 			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
@@ -30,7 +32,7 @@ public class APIControllerMeCourses {
 					name != null ? name : "Unknown",
 					row.grade(), row.credits(), row.semesterKey(), row.category());
 		}).toList();
-		return ResponseEntity.ok(PageDTO.of(dtos, page, size, total));
+		return ResponseEntity.ok(PageDTO.of(dtos, normalizedPage, size, total));
 	}
 
 	@PostMapping("/completed")
@@ -57,7 +59,9 @@ public class APIControllerMeCourses {
 	@GetMapping("/enrolled")
 	public ResponseEntity<PageDTO<EnrolledCourseDTO>> getEnrolled(@AuthenticationPrincipal String tumid,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-		final List<StudentDataDB.EnrolledCourseRow> rows = studentDataDB.getEnrolledCourses(tumid, page, size);
+		final int normalizedPage = Math.max(0, page);
+		final List<StudentDataDB.EnrolledCourseRow> rows = studentDataDB.getEnrolledCourses(tumid, normalizedPage,
+				size);
 		final int total = studentDataDB.countEnrolledCourses(tumid);
 		final List<EnrolledCourseDTO> dtos = rows.stream().map(row -> {
 			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
@@ -65,7 +69,7 @@ public class APIControllerMeCourses {
 					name != null ? name : "Unknown",
 					row.semesterKey());
 		}).toList();
-		return ResponseEntity.ok(PageDTO.of(dtos, page, size, total));
+		return ResponseEntity.ok(PageDTO.of(dtos, normalizedPage, size, total));
 	}
 
 	@PostMapping("/enrolled")

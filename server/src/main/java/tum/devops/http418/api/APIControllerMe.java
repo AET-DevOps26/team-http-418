@@ -123,7 +123,10 @@ public class APIControllerMe {
 	@GetMapping("/schedule")
 	public ResponseEntity<WeeklyScheduleDTO> getSchedule(@AuthenticationPrincipal String tumid,
 			@RequestParam(required = false) String semester) {
-		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 100);
+		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 100)
+				.stream()
+				.filter(row -> semester == null || semester.equals(row.semesterKey()))
+				.toList();
 		final List<ScheduleEventDTO> events = new ArrayList<>();
 
 		for (final StudentDataDB.EnrolledCourseRow row : enrolledRows) {
