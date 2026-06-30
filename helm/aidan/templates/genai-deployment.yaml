@@ -43,7 +43,7 @@ spec:
                   name: aidan-secret
                   key: DB_PASS
             - name: DATABASE_URL
-              value: {{ printf "postgresql://%s:$(DB_PASS)@postgres-service:%d/%s" .Values.postgres.username (.Values.postgres.port | int) .Values.postgres.database }}
+              value: {{ printf "postgresql://%s:$(DB_PASS)@postgres-service:%d/courses-data" .Values.postgres.username (.Values.postgres.port | int) }}
           resources:
             {{- toYaml .Values.genai.resources | nindent 12 }}
           startupProbe:
