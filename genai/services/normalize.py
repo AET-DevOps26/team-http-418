@@ -11,11 +11,13 @@ def normalize_prerequisite_nodes(items: list, available_map: dict) -> list:
         if type_val not in ("REQUIRED", "RECOMMENDED"):
             type_val = "RECOMMENDED"
         nested = normalize_prerequisite_nodes(item.get("prerequisites", []), available_map)
-        result.append({
-            "courseId": course_id,
-            "courseCode": str(course_id),
-            "courseName": course.course_name,
-            "type": type_val,
-            "prerequisites": nested,
-        })
+        result.append(
+            {
+                "courseId": course_id,
+                "courseCode": str(course_id),
+                "courseName": course.course_name,
+                "type": type_val,
+                "prerequisites": nested,
+            }
+        )
     return result

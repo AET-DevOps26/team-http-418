@@ -15,8 +15,7 @@ logger = logging.getLogger("genai")
 
 def _build_prompt(request: PrerequisiteExtractRequest) -> str:
     available_text = (
-        "\n".join(f"  - courseId={c.course_id} | {c.course_name}" for c in request.available_courses)
-        or "  none"
+        "\n".join(f"  - courseId={c.course_id} | {c.course_name}" for c in request.available_courses) or "  none"
     )
 
     return _PREREQUISITES_PROMPT.format(

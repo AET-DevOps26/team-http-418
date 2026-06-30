@@ -52,9 +52,7 @@ def test_nested_valid_prerequisites_preserved():
         {
             "courseId": 1,
             "type": "REQUIRED",
-            "prerequisites": [
-                {"courseId": 2, "type": "RECOMMENDED", "prerequisites": []}
-            ],
+            "prerequisites": [{"courseId": 2, "type": "RECOMMENDED", "prerequisites": []}],
         }
     ]
     result = normalize_prerequisite_nodes(raw, _catalog(1, 2))
@@ -68,9 +66,7 @@ def test_nested_unknown_course_id_dropped():
         {
             "courseId": 1,
             "type": "REQUIRED",
-            "prerequisites": [
-                {"courseId": 999, "type": "RECOMMENDED", "prerequisites": []}
-            ],
+            "prerequisites": [{"courseId": 999, "type": "RECOMMENDED", "prerequisites": []}],
         }
     ]
     result = normalize_prerequisite_nodes(raw, _catalog(1))
@@ -86,9 +82,7 @@ def test_deeply_nested_preserved():
                 {
                     "courseId": 2,
                     "type": "RECOMMENDED",
-                    "prerequisites": [
-                        {"courseId": 3, "type": "REQUIRED", "prerequisites": []}
-                    ],
+                    "prerequisites": [{"courseId": 3, "type": "REQUIRED", "prerequisites": []}],
                 }
             ],
         }
