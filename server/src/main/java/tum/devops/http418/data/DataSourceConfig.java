@@ -110,11 +110,6 @@ public class DataSourceConfig {
 				        PRIMARY KEY (username, authority)
 				    )
 				""");
-
-		// TODO dev login test
-		jdbcTemplate.execute("""
-						INSERT INTO credentials (username, password) VALUES ('admin', 'test') ON CONFLICT DO NOTHING;
-				""");
 		return dataSource;
 	}
 
