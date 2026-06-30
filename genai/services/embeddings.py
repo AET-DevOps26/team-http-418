@@ -3,8 +3,8 @@ import logging
 from fastapi import HTTPException
 from psycopg2 import DatabaseError, OperationalError
 
-from db import get_connection
-from llm.embeddings import get_active_model, get_embeddings
+from db import ensure_schema_initialized, get_connection
+from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
 from models.embeddings import EmbedCoursesRequest, EmbedMode
 
 logger = logging.getLogger("genai")
@@ -39,6 +39,7 @@ async def embed_courses(request: EmbedCoursesRequest) -> dict:
     rows = [(course.course_id, vector) for course, vector in zip(request.courses, vectors, strict=False)]
 
     try:
+        ensure_schema_initialized(dimensions=get_embedding_dimensions())
         with get_connection() as connection, connection.cursor() as cursor:
             if request.mode == EmbedMode.FULL_REBUILD:
                 cursor.execute("DELETE FROM course_embeddings")

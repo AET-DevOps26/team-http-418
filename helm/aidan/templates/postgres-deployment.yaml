@@ -44,8 +44,6 @@ spec:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
               subPath: pgdata
-            - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d
           resources:
             {{- toYaml .Values.postgres.resources | nindent 12 }}
           readinessProbe:
@@ -57,6 +55,3 @@ spec:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: postgres-pvc
-        - name: init-scripts
-          configMap:
-            name: postgres-init

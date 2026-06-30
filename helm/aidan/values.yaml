@@ -35,7 +35,7 @@ client:
       cpu: "100m"
 
 postgres:
-  image: pgvector/pgvector:pg17
+  image: ghcr.io/aet-devops26/team-http-418/db:latest
   port: 5432
   database: aidan
   username: postgres

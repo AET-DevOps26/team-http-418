@@ -57,6 +57,14 @@ jobs:
           tags: |
             ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
 
+      - name: Build and push db image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./db
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
+
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
@@ -97,21 +105,13 @@ jobs:
           helm upgrade --install aidan ./helm/aidan \
             -f ./helm/aidan/values-prod.yaml \
             --set image.tag=${{ steps.meta.outputs.sha }} \
+            --set postgres.image=${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
             --set jwt.secret=${{ secrets.APP_JWT_SECRET }} \
             --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
             --namespace aidan \
             --wait \
             --timeout 7m
-
-      - name: Ensure courses-data DB and pgvector extension
-        run: |
-          POSTGRES_POD=$(kubectl get pod -n aidan -l app=postgres -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -tc \
-            "SELECT 1 FROM pg_database WHERE datname = 'courses-data'" | grep -q 1 || \
-            kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -c 'CREATE DATABASE "courses-data";'
-          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -d courses-data -c \
-            'CREATE EXTENSION IF NOT EXISTS vector;'
 
       - name: Comment on PR
         if: success()

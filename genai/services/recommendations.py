@@ -6,7 +6,8 @@ from pathlib import Path
 from fastapi import HTTPException
 from psycopg2 import DatabaseError, OperationalError
 
-from llm.embeddings import get_embeddings
+from db import ensure_schema_initialized
+from llm.embeddings import get_embedding_dimensions, get_embeddings
 from llm.provider import get_llm
 from models.recommendations import CourseRef, RecommendationsRequest
 from repositories.recommendations import find_similar_courses
@@ -72,6 +73,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
     ]
 
     try:
+        ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = find_similar_courses(
             query_vector=query_vector,
             candidate_ids=candidate_ids,

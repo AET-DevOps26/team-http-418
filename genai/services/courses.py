@@ -3,7 +3,8 @@ import logging
 from fastapi import HTTPException
 from psycopg2 import DatabaseError, OperationalError
 
-from llm.embeddings import get_active_model, get_embeddings
+from db import ensure_schema_initialized
+from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
 from repositories.courses import search_courses
 
 logger = logging.getLogger("genai")
@@ -24,6 +25,7 @@ async def semantic_search(query: str, limit: int) -> dict:
         ) from e
 
     try:
+        ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = search_courses(query_vector=query_vector, limit=limit)
     except OperationalError as e:
         logger.error("search | model=%s DB connection failed: %s", model, e)
