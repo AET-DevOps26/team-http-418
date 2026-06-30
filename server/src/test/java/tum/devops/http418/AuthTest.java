@@ -111,6 +111,6 @@ class AuthLifecycleTest extends BaseTest {
 
 		mockMvc.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(new RefreshRequest(refreshResponse.refreshToken()))))
-				.andExpect(status().isUnauthorized());
+				.andExpect(status().isBadRequest());
 	}
 }
