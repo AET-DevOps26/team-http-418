@@ -20,7 +20,7 @@ const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
 type Props = { slots: ScheduleSlot[] };
 
 export function ScheduleTable({ slots }: Props) {
-	if (!slots.length) {
+	if (!slots?.length) {
 		return (
 			<p style={{ fontSize: 13, color: "var(--muted)" }}>
 				No schedule available.

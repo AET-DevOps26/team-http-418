@@ -108,7 +108,7 @@ function Schedule() {
 				/>
 			</div>
 
-			{!bannerDismissed && data.conflicts.length > 0 && (
+			{!bannerDismissed && data.conflicts?.length > 0 && (
 				<ConflictBanner
 					conflicts={data.conflicts}
 					onDismiss={() => setBannerDismissed(true)}

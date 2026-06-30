@@ -71,7 +71,7 @@ export function KpiStrip({ progress, semesterCredits, alerts }: Props) {
 				value={semesterCredits}
 				sub="ECTS enrolled"
 			/>
-			<KpiCard label="GPA" value={gpa.toFixed(2)} sub="cumulative" />
+			<KpiCard label="GPA" value={gpa?.toFixed(2)} sub="cumulative" />
 			<KpiCard
 				label="Active Alerts"
 				value={alerts.length}

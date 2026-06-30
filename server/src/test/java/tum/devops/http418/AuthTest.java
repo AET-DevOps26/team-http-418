@@ -100,7 +100,7 @@ class AuthLifecycleTest extends BaseTest {
 		assertThat(refreshResponse.refreshToken()).isNotEqualTo(loginResponse.refreshToken());
 
 		mockMvc.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(refreshRequest))).andExpect(status().isUnauthorized());
+				.content(objectMapper.writeValueAsString(refreshRequest))).andExpect(status().isBadRequest());
 
 		mockMvc.perform(get(PROTECTED_ENDPOINT).header("Authorization", "Bearer " + refreshResponse.accessToken()))
 				.andExpect(status().isOk());
@@ -111,6 +111,6 @@ class AuthLifecycleTest extends BaseTest {
 
 		mockMvc.perform(post("/api/" + API_VERSION + "/auth/refresh").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(new RefreshRequest(refreshResponse.refreshToken()))))
-				.andExpect(status().isUnauthorized());
+				.andExpect(status().isBadRequest());
 	}
 }

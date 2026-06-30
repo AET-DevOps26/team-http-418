@@ -16,7 +16,7 @@ export function PrerequisiteTree({
 	showBadges,
 	depth = 0,
 }: Props) {
-	if (!nodes.length) return null;
+	if (!nodes?.length) return null;
 
 	return (
 		<ul
@@ -63,7 +63,7 @@ export function PrerequisiteTree({
 								</span>
 							)}
 						</div>
-						{node.prerequisites.length > 0 && (
+						{node.prerequisites?.length > 0 && (
 							<PrerequisiteTree
 								nodes={node.prerequisites}
 								metIds={metIds}

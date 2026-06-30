@@ -181,7 +181,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							</section>
 						)}
 
-						{course.instructors.length > 0 && (
+						{course.instructors?.length > 0 && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Instructors</p>
 								<div
@@ -220,7 +220,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							</section>
 						)}
 
-						{course.studyPrograms.length > 0 && (
+						{course.studyPrograms?.length > 0 && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Study Programs</p>
 								<div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
