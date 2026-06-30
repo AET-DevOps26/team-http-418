@@ -1,4 +1,14 @@
 package tum.devops.http418.api.dto;
 
-public record TranscriptImportResultDTO(int imported, int skipped, String message) {
+import java.util.List;
+
+public record TranscriptImportResultDTO(
+		int importedCount,
+		int skippedCount,
+		List<ImportedCourse> importedCourses,
+		List<String> errors) {
+
+	public record ImportedCourse(String courseId, String courseCode, String courseName,
+			String moduleId, String titleDe, String titleEn, String grade, int credits) {
+	}
 }

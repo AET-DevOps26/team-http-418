@@ -141,6 +141,35 @@ public class CoursesDataDB {
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
+	public record CourseMatchResult(String id, String title_ger, String title_en, String key, String subjectType) {
+	}
+
+	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
+			String studyProgram) {
+		final String query = """
+				SELECT c.id, c.title_ger, c.title_en, ct."key", cc.subject_type AS subjectType
+				FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				LEFT JOIN curriculum_connections cc ON cc.course_id = c.id
+				WHERE LOWER(TRIM(c.title_en)) = :titleEn
+				   OR LOWER(TRIM(c.title_ger)) = :titleDe
+				ORDER BY
+				    CASE WHEN cc.study_id = :studyProgram
+				              OR cc.study_name_en = :studyProgram
+				              OR cc.study_name_ger = :studyProgram
+				         THEN 0 ELSE 1 END,
+				    c.id ASC
+				LIMIT 1
+				""";
+		final MapSqlParameterSource params = new MapSqlParameterSource()
+				.addValue("titleEn", normalizedTitleEn)
+				.addValue("titleDe", normalizedTitleDe)
+				.addValue("studyProgram", studyProgram);
+		final List<CourseMatchResult> results = template.query(query, params,
+				new DataClassRowMapper<>(CourseMatchResult.class));
+		return results.isEmpty() ? null : results.getFirst();
+	}
+
 	public record CourseDataRow(long id, String title_en, String key, int sws) {
 	}
 

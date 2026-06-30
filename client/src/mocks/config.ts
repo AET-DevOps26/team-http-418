@@ -23,7 +23,7 @@ export const mockConfig: Record<string, boolean> = {
 	"GET /me": false,
 	"PUT /me": false,
 	"PATCH /me": false,
-	"POST /me/transcript/upload": true,
+	"POST /me/transcript/upload": false,
 	"GET /me/progress": true,
 	"GET /me/courses/completed": false,
 	"POST /me/courses/completed": false,
