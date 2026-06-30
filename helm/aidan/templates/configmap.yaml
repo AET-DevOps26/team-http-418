@@ -4,7 +4,24 @@ metadata:
   name: aidan-config
   namespace: {{ .Values.namespace }}
 data:
-  DB_USER: {{ .Values.postgres.username | quote }}
-  DB_HOST: "postgres-service"
-  SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d" (.Values.postgres.port | int) }}
-  SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
+  SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.env.DB_USER | quote }}
+  SPRING_DATASOURCE_URL: {{ .Values.server.env.SPRING_DATASOURCE_URL | quote }}
+
+  API_VERSION: {{ .Values.server.env.API_VERSION | quote }}
+  APP_JWT_ACCESS_TOKEN_TTL_SECONDS: {{ .Values.server.env.APP_JWT_ACCESS_TOKEN_TTL_SECONDS | quote }}
+  APP_REFRESH_TOKEN_TTL_SECONDS: {{ .Values.server.env.APP_REFRESH_TOKEN_TTL_SECONDS | quote }}
+
+  DB_HOST: {{ .Values.postgres.env.DB_HOST | quote }}
+  DB_USER: {{ .Values.postgres.env.DB_USER | quote }}
+  COURSES_DB_NAME: {{ .Values.postgres.env.COURSES_DB_NAME | quote }}
+  DB_PORT: {{ .Values.postgres.env.DB_PORT | quote }}
+
+  GENAI_BASE_URL: {{ .Values.genai.env.GENAI_BASE_URL | quote }}
+  GENAI_API_VERSION: {{ .Values.genai.env.GENAI_API_VERSION | quote }}
+  LLM_PROVIDER: {{ .Values.genai.env.LLM_PROVIDER | quote }}
+
+  LOGOS_BASE_URL: {{ .Values.genai.env.LOGOS_BASE_URL | quote }}
+  LOGOS_API_VERSION: {{ .Values.genai.env.LOGOS_API_VERSION | quote }}
+  LOGOS_MODEL: {{ .Values.genai.env.LOGOS_MODEL | quote }}
+
+  EMBEDDING_MODEL_CLOUD: {{ .Values.genai.env.EMBEDDING_MODEL_CLOUD | quote }}
