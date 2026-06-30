@@ -28,3 +28,9 @@ spec:
             - containerPort: {{ .Values.client.port }}
           resources:
             {{- toYaml .Values.client.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.client.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
