@@ -98,7 +98,8 @@ public class APIControllerMe {
 					skipped++;
 					errors.add("Already imported: " + module.moduleId() + " (" + course.title_en() + ")");
 				} else {
-					final String courseName = course.title_en() != null ? course.title_en()
+					final String courseName = course.title_en() != null
+							? course.title_en()
 							: (module.titleEn() != null ? module.titleEn() : module.titleDe());
 					importedCourses.add(new TranscriptImportResultDTO.ImportedCourse(
 							course.id(), module.moduleId(), courseName,
@@ -117,7 +118,8 @@ public class APIControllerMe {
 	}
 
 	private static String normalizeTitle(String s) {
-		if (s == null) return "";
+		if (s == null)
+			return "";
 		return s.trim().replaceAll("\\s+", " ").toLowerCase();
 	}
 

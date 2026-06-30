@@ -59,7 +59,7 @@ class TranscriptUploadTest extends BaseTest {
 			""";
 
 	private static final Profile CS_PROFILE = new Profile(
-			new Profile.Student("Computer Science BSc", 3, new String[] {}, new String[] {}, 20),
+			new Profile.Student("Computer Science BSc", 3, new String[]{}, new String[]{}, 20),
 			List.of(), List.of(), List.of(), 10, null, null);
 
 	@Test
@@ -115,9 +115,10 @@ class TranscriptUploadTest extends BaseTest {
 	void unmatchedModule() throws Exception {
 		final String username = "transcript-unmatched";
 		final String token = getToken(username);
-		when(transcriptService.callPdfParser(any())).thenReturn("""
-				[{"moduleId":"XX999","titleEn":"Unknown Course Title","titleDe":"Unbekannter Kurs","grade":2.0,"credits":3,"page":1}]
-				""");
+		when(transcriptService.callPdfParser(any())).thenReturn(
+				"""
+						[{"moduleId":"XX999","titleEn":"Unknown Course Title","titleDe":"Unbekannter Kurs","grade":2.0,"credits":3,"page":1}]
+						""");
 		when(transcriptService.fetchProfile(any())).thenReturn(null);
 
 		mockMvc.perform(multipart(endpoint())
