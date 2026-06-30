@@ -147,6 +147,15 @@ public class CoursesDataDB {
 		return titles.isEmpty() ? null : titles.getFirst();
 	}
 
+	public record CourseNameRow(long id, String titleEn) {
+	}
+
+	public List<CourseNameRow> getAllCourseNames() {
+		return template.query(
+				"SELECT id, title_en AS titleEn FROM courses WHERE title_en IS NOT NULL ORDER BY id",
+				new DataClassRowMapper<>(CourseNameRow.class));
+	}
+
 	public List<SimpleCourseData> getByQuery(String query,
 			@Nullable String department,
 			int departmentID,
