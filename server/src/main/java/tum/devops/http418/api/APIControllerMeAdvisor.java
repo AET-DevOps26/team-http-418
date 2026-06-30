@@ -1,12 +1,18 @@
 package tum.devops.http418.api;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import tools.jackson.databind.ObjectMapper;
 import tum.devops.http418.api.dto.*;
 import tum.devops.http418.data.StudentDataDB;
 
@@ -14,22 +20,27 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 import static tum.devops.http418.Http418Application.GENAI_PATH;
 import static tum.devops.http418.Http418Application.restClient;
 
+@Slf4j
+@Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/${API_VERSION}/me/advisor")
 public class APIControllerMeAdvisor {
 
 	private final StudentDataDB studentDataDB;
+	private final ObjectMapper objectMapper;
 
 	@GetMapping("/conversations")
 	public ResponseEntity<PageDTO<ConversationSummaryDTO>> getConversations(@AuthenticationPrincipal String tumid,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+			@RequestParam(defaultValue = "0") @Min(0) int page,
+			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
 		final List<StudentDataDB.ConversationRow> rows = studentDataDB.getConversations(tumid, page, size);
 		final int total = studentDataDB.countConversations(tumid);
 		final List<ConversationSummaryDTO> dtos = rows.stream()
@@ -42,8 +53,8 @@ public class APIControllerMeAdvisor {
 
 	@PostMapping("/conversations")
 	public ResponseEntity<ConversationDTO> createConversation(@AuthenticationPrincipal String tumid,
-			@RequestBody(required = false) CreateConversationRequest request) {
-		final String title = request != null && request.title() != null ? request.title() : "New Conversation";
+			@Valid @RequestBody CreateConversationRequest request) {
+		final String title = request.title();
 		final StudentDataDB.ConversationRow row = studentDataDB.insertConversation(tumid, title);
 		return ResponseEntity.status(HttpStatus.CREATED).body(new ConversationDTO(row.id(), row.title(),
 				row.createdAt() != null ? row.createdAt().toString() : null,
@@ -67,13 +78,11 @@ public class APIControllerMeAdvisor {
 	}
 
 	@PostMapping(value = "/conversations/{id}/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter sendMessage(@AuthenticationPrincipal String tumid, @PathVariable String id,
-			@RequestBody SendMessageRequest request) {
+	public ResponseEntity<SseEmitter> sendMessage(@AuthenticationPrincipal String tumid, @PathVariable String id,
+			@Valid @RequestBody SendMessageRequest request) {
 		final StudentDataDB.ConversationRow conv = studentDataDB.getConversation(id, tumid);
 		if (conv == null) {
-			final SseEmitter emitter = new SseEmitter();
-			emitter.completeWithError(new RuntimeException("Conversation not found"));
-			return emitter;
+			return ResponseEntity.notFound().build();
 		}
 
 		studentDataDB.insertMessage(id, "user", request.content(), "[]");
@@ -85,20 +94,22 @@ public class APIControllerMeAdvisor {
 		final SseEmitter emitter = new SseEmitter(60000L);
 
 		Thread.startVirtualThread(() -> {
+			HttpURLConnection connection = null;
 			try {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/chat";
-				final tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
-				final String body = mapper.writeValueAsString(Map.of("messages", historyPayload, "conversationId", id));
+				final String body = objectMapper.writeValueAsString(Map.of("messages", historyPayload, "conversationId", id));
 
-				final HttpURLConnection connection = (HttpURLConnection) URI.create(genaiUrl).toURL().openConnection();
+				connection = (HttpURLConnection) URI.create(genaiUrl).toURL().openConnection();
 				connection.setRequestMethod("POST");
 				connection.setRequestProperty("Content-Type", "application/json");
 				connection.setRequestProperty("Accept", "text/event-stream");
 				connection.setDoOutput(true);
-				connection.getOutputStream().write(body.getBytes());
+				connection.setConnectTimeout(5000);
+				connection.setReadTimeout(30000);
+				connection.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
 
 				final StringBuilder fullResponse = new StringBuilder();
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 					String line;
 					while ((line = reader.readLine()) != null) {
 						if (line.startsWith("data: ")) {
@@ -115,17 +126,23 @@ public class APIControllerMeAdvisor {
 				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), "[]");
 				emitter.complete();
 			} catch (Exception e) {
+				log.error("Error streaming advisor response for conversation {}", id, e);
 				studentDataDB.insertMessage(id, "assistant",
 						"I'm sorry, I'm unable to respond right now. Please try again later.", "[]");
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));
-				} catch (Exception ignored) {
+				} catch (Exception sendErr) {
+					log.debug("Failed to send error SSE event", sendErr);
 				}
 				emitter.complete();
+			} finally {
+				if (connection != null) {
+					connection.disconnect();
+				}
 			}
 		});
 
-		return emitter;
+		return ResponseEntity.ok(emitter);
 	}
 
 	@GetMapping("/suggestions")

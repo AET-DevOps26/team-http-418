@@ -33,17 +33,21 @@ class AdvisorEndpointsTest extends BaseTest {
 	@Value("${API_VERSION}")
 	private String API_VERSION;
 
-	private String getToken() {
+	private String getToken(String username) {
 		try {
-			return authService.register("advisoruser", "pass").accessToken();
+			return authService.register(username, "pass").accessToken();
 		} catch (Exception e) {
-			return authService.login("advisoruser", "pass").accessToken();
+			return authService.login(username, "pass").accessToken();
 		}
+	}
+
+	private String getToken() {
+		return getToken("advisoruser");
 	}
 
 	@Test
 	void conversationCRUD() throws Exception {
-		final String token = getToken();
+		final String token = getToken("advisor_crud_user");
 		final String base = "/api/" + API_VERSION + "/me/advisor";
 
 		mockMvc.perform(get(base + "/conversations").header("Authorization", "Bearer " + token))
@@ -69,5 +73,78 @@ class AdvisorEndpointsTest extends BaseTest {
 	void getConversationNotFound() throws Exception {
 		mockMvc.perform(get("/api/" + API_VERSION + "/me/advisor/conversations/nonexistent").header("Authorization",
 				"Bearer " + getToken())).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void sendMessageToNonExistentConversation() throws Exception {
+		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations/nonexistent/messages")
+				.header("Authorization", "Bearer " + getToken())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"content\": \"hello\"}"))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void createConversationWithEmptyTitle() throws Exception {
+		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
+				.header("Authorization", "Bearer " + getToken())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": \"\"}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void createConversationWithNullTitle() throws Exception {
+		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
+				.header("Authorization", "Bearer " + getToken())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": null}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void createConversationWithNoBody() throws Exception {
+		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
+				.header("Authorization", "Bearer " + getToken())
+				.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void sendMessageWithBlankContent() throws Exception {
+		final String token = getToken("advisor_blank_user");
+		final String base = "/api/" + API_VERSION + "/me/advisor";
+
+		final MvcResult createResult = mockMvc
+				.perform(post(base + "/conversations").header("Authorization", "Bearer " + token)
+						.contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"Blank Test\"}"))
+				.andExpect(status().isCreated()).andReturn();
+
+		final JsonNode created = objectMapper.readTree(createResult.getResponse().getContentAsString());
+		final String convId = created.get("id").asText();
+
+		mockMvc.perform(post(base + "/conversations/" + convId + "/messages")
+				.header("Authorization", "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"content\": \"\"}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void crossUserAccessDenied() throws Exception {
+		final String tokenA = getToken("advisor_user_a");
+		final String tokenB = getToken("advisor_user_b");
+		final String base = "/api/" + API_VERSION + "/me/advisor";
+
+		final MvcResult createResult = mockMvc
+				.perform(post(base + "/conversations").header("Authorization", "Bearer " + tokenA)
+						.contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"Private Chat\"}"))
+				.andExpect(status().isCreated()).andReturn();
+
+		final JsonNode created = objectMapper.readTree(createResult.getResponse().getContentAsString());
+		final String convId = created.get("id").asText();
+
+		mockMvc.perform(get(base + "/conversations/" + convId).header("Authorization", "Bearer " + tokenB))
+				.andExpect(status().isNotFound());
 	}
 }
