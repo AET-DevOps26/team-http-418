@@ -37,7 +37,8 @@ class RoadmapEndpointsTest extends BaseTest {
 	@Test
 	void getRoadmapEmptyByDefault() throws Exception {
 		mockMvc.perform(
-				get("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + getToken("roadmapuser_empty")))
+				get("/api/" + API_VERSION + "/me/roadmap").header("Authorization",
+						"Bearer " + getToken("roadmapuser_empty")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("EMPTY"))
 				.andExpect(jsonPath("$.semesters").isArray())
@@ -50,9 +51,9 @@ class RoadmapEndpointsTest extends BaseTest {
 	void putAndGetRoadmap() throws Exception {
 		final String token = getToken("roadmapuser_put");
 		final String roadmapJson = """
-				[{"semesterKey":"25S","label":"Summer 2025","totalCredits":5,"isCurrent":false,\
-"courses":[{"courseId":100,"courseCode":"VO","courseName":"Intro CS","credits":5,"status":"PLANNED"}]}]
-				""";
+								[{"semesterKey":"25S","label":"Summer 2025","totalCredits":5,"isCurrent":false,\
+				"courses":[{"courseId":100,"courseCode":"VO","courseName":"Intro CS","credits":5,"status":"PLANNED"}]}]
+								""";
 
 		mockMvc.perform(put("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON).content(roadmapJson)).andExpect(status().isOk())

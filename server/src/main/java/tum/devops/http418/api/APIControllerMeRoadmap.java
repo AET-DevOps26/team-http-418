@@ -74,7 +74,8 @@ public class APIControllerMeRoadmap {
 
 			final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0,
 					1000);
-			final List<Long> enrolledIds = enrolledRows.stream().map(StudentDataDB.EnrolledCourseRow::courseId).toList();
+			final List<Long> enrolledIds = enrolledRows.stream().map(StudentDataDB.EnrolledCourseRow::courseId)
+					.toList();
 			final Map<Long, CoursesDataDB.CourseDataRow> enrolledCourseData = coursesDataDB
 					.getCourseDataForIds(enrolledIds).stream()
 					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
@@ -256,7 +257,8 @@ public class APIControllerMeRoadmap {
 				final List<PlannedCourseDTO> courses = new ArrayList<>(sem.courses());
 				courses.removeIf(c -> c.courseId() == courseId);
 				final int newTotalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
-				semesters.set(i, new SemesterPlanDetailDTO(key, sem.label(), newTotalCredits, courses, sem.isCurrent()));
+				semesters.set(i,
+						new SemesterPlanDetailDTO(key, sem.label(), newTotalCredits, courses, sem.isCurrent()));
 				saveSemesters(tumid, semesters);
 				return ResponseEntity.noContent().build();
 			}
@@ -272,11 +274,13 @@ public class APIControllerMeRoadmap {
 			return rawList.stream().map(s -> {
 				final String semKey = (String) s.get("semesterKey");
 				String label = s.get("label") instanceof String lbl ? lbl : null;
-				if (label == null || label.isEmpty()) label = deriveLabel(semKey);
+				if (label == null || label.isEmpty())
+					label = deriveLabel(semKey);
 
 				@SuppressWarnings("unchecked")
 				final List<Map<String, Object>> rawCourses = s.get("courses") instanceof List<?>
-						? (List<Map<String, Object>>) s.get("courses") : List.of();
+						? (List<Map<String, Object>>) s.get("courses")
+						: List.of();
 				final List<PlannedCourseDTO> courses = rawCourses.stream().map(c -> {
 					final long courseId = c.get("courseId") instanceof Number n ? n.longValue() : 0L;
 					final String courseCode = c.get("courseCode") instanceof String cc ? cc : null;
@@ -287,7 +291,8 @@ public class APIControllerMeRoadmap {
 				}).toList();
 
 				int totalCredits = s.get("totalCredits") instanceof Number tc ? tc.intValue() : 0;
-				if (totalCredits == 0) totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
+				if (totalCredits == 0)
+					totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
 
 				final boolean isCurrent = Boolean.TRUE.equals(s.get("isCurrent"));
 				return new SemesterPlanDetailDTO(semKey, label, totalCredits, courses, isCurrent);
@@ -308,7 +313,8 @@ public class APIControllerMeRoadmap {
 	private RoadmapDTO toRoadmapDTO(StudentDataDB.RoadmapRow row) {
 		final List<SemesterPlanDetailDTO> semesters = parseSemesters(row.roadmapJson());
 		final int totalPlannedCredits = semesters.stream().mapToInt(SemesterPlanDetailDTO::totalCredits).sum();
-		final String estimatedGraduation = semesters.isEmpty() ? null
+		final String estimatedGraduation = semesters.isEmpty()
+				? null
 				: semesters.get(semesters.size() - 1).semesterKey();
 		return new RoadmapDTO(row.status(),
 				row.createdAt() != null ? row.createdAt().toString() : null,
@@ -317,12 +323,14 @@ public class APIControllerMeRoadmap {
 	}
 
 	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters) {
-		if (rawSemesters == null) return List.of();
+		if (rawSemesters == null)
+			return List.of();
 
 		final List<Long> allCourseIds = rawSemesters.stream().flatMap(s -> {
 			@SuppressWarnings("unchecked")
 			final List<Map<String, Object>> courses = (List<Map<String, Object>>) s.get("courses");
-			if (courses == null) return Stream.empty();
+			if (courses == null)
+				return Stream.empty();
 			return courses.stream()
 					.filter(c -> c.get("courseId") instanceof Number)
 					.map(c -> ((Number) c.get("courseId")).longValue());
@@ -337,16 +345,21 @@ public class APIControllerMeRoadmap {
 
 			@SuppressWarnings("unchecked")
 			final List<Map<String, Object>> rawCourses = s.get("courses") instanceof List<?>
-					? (List<Map<String, Object>>) s.get("courses") : List.of();
+					? (List<Map<String, Object>>) s.get("courses")
+					: List.of();
 
 			final List<PlannedCourseDTO> courses = rawCourses.stream().map(rc -> {
 				final long courseId = rc.get("courseId") instanceof Number
-						? ((Number) rc.get("courseId")).longValue() : 0L;
+						? ((Number) rc.get("courseId")).longValue()
+						: 0L;
 				final CoursesDataDB.CourseDataRow cd = courseMap.get(courseId);
-				final String courseCode = cd != null ? cd.key()
-						: (rc.get("courseCode") instanceof String ? (String) rc.get("courseCode")
+				final String courseCode = cd != null
+						? cd.key()
+						: (rc.get("courseCode") instanceof String
+								? (String) rc.get("courseCode")
 								: String.valueOf(courseId));
-				final String courseName = cd != null && cd.title_en() != null ? cd.title_en()
+				final String courseName = cd != null && cd.title_en() != null
+						? cd.title_en()
 						: String.valueOf(courseId);
 				final int credits = cd != null ? cd.sws() : 0;
 				return new PlannedCourseDTO(courseId, courseCode, courseName, credits, "PLANNED");
@@ -370,8 +383,10 @@ public class APIControllerMeRoadmap {
 		try {
 			final int year = Integer.parseInt(semesterKey.substring(0, 2));
 			final char type = Character.toUpperCase(semesterKey.charAt(semesterKey.length() - 1));
-			if (type == 'W') return "Winter " + (2000 + year) + "/" + String.format("%02d", (year + 1) % 100);
-			if (type == 'S') return "Summer " + (2000 + year);
+			if (type == 'W')
+				return "Winter " + (2000 + year) + "/" + String.format("%02d", (year + 1) % 100);
+			if (type == 'S')
+				return "Summer " + (2000 + year);
 		} catch (NumberFormatException ignored) {
 		}
 		return semesterKey;

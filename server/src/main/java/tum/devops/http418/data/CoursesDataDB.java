@@ -145,13 +145,15 @@ public class CoursesDataDB {
 	}
 
 	public List<CourseDataRow> getCourseDataForIds(List<Long> ids) {
-		if (ids.isEmpty()) return List.of();
+		if (ids.isEmpty())
+			return List.of();
 		final String query = """
 				SELECT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws \
 				FROM courses c JOIN course_types ct ON c.course_type_id = ct.id \
 				WHERE c.id IN (:ids)""";
 		final MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
-		final List<CourseDataRow> courses = template.query(query, params, new DataClassRowMapper<>(CourseDataRow.class));
+		final List<CourseDataRow> courses = template.query(query, params,
+				new DataClassRowMapper<>(CourseDataRow.class));
 		final Map<Long, Integer> idOrderMap = IntStream.range(0, ids.size())
 				.boxed()
 				.collect(Collectors.toMap(ids::get, index -> index, (a, b) -> a));
@@ -160,7 +162,8 @@ public class CoursesDataDB {
 	}
 
 	public List<CourseDataRow> getCoursesByStudyProgramWithSws(String studyId) {
-		if (studyId == null || studyId.isBlank()) return List.of();
+		if (studyId == null || studyId.isBlank())
+			return List.of();
 		return template.query("""
 				SELECT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws FROM courses c \
 				JOIN course_types ct ON c.course_type_id = ct.id \
