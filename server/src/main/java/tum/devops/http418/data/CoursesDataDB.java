@@ -141,6 +141,21 @@ public class CoursesDataDB {
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
+	public @Nullable SimpleCourseData findCourseByTitle(String titleEn, String titleDe) {
+		final String query = """
+				SELECT c.id, c.title_ger, c.title_en, ct."key"
+				FROM courses c JOIN course_types ct ON c.course_type_id = ct.id
+				WHERE LOWER(c.title_en) = LOWER(:titleEn) OR LOWER(c.title_ger) = LOWER(:titleDe)
+				LIMIT 1
+				""";
+		final MapSqlParameterSource params = new MapSqlParameterSource()
+				.addValue("titleEn", titleEn != null ? titleEn : "")
+				.addValue("titleDe", titleDe != null ? titleDe : "");
+		final List<SimpleCourseData> results = template.query(query, params,
+				new DataClassRowMapper<>(SimpleCourseData.class));
+		return results.isEmpty() ? null : results.getFirst();
+	}
+
 	public String getCourseTitleEn(long courseId) {
 		final List<String> titles = template.queryForList("SELECT title_en FROM courses WHERE id = :id",
 				new MapSqlParameterSource("id", courseId), String.class);
