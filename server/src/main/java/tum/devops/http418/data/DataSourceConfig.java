@@ -32,10 +32,32 @@ public class DataSourceConfig {
 	@Value("${SPRING_DATASOURCE_PASSWORD}")
 	private String password;
 
+	private void createCoursesDatabaseIfNotExists() {
+		final HikariDataSource adminDataSource = new HikariDataSource();
+
+		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+		adminDataSource.setUsername(username);
+		adminDataSource.setPassword(password);
+		adminDataSource.setDriverClassName("org.postgresql.Driver");
+
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+
+		final Boolean exists = jdbcTemplate.queryForObject(
+				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+				Boolean.class, "courses-data");
+
+		if (Boolean.FALSE.equals(exists)) {
+			jdbcTemplate.execute("CREATE DATABASE \"courses-data\"");
+		}
+
+		adminDataSource.close();
+	}
+
 	@Bean
 	@Primary
 	@Profile("!test")
 	public DataSource coursesDataSource() {
+		createCoursesDatabaseIfNotExists();
 		final HikariDataSource dataSource = new HikariDataSource();
 
 		dataSource.setJdbcUrl(baseUrl + "/courses-data");
