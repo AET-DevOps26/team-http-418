@@ -20,6 +20,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17
+          command: ["sh", "-c", "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres; sleep 2; done"]
       containers:
         - name: server
           image: {{ printf "%s/%s/%s/server:%s" .Values.image.registry .Values.image.org .Values.image.repo .Values.image.tag }}
@@ -35,7 +39,7 @@ spec:
             {{- toYaml .Values.server.resources | nindent 12 }}
           readinessProbe:
             httpGet:
-              path: /hello
+              path: /health
               port: {{ .Values.server.port }}
             initialDelaySeconds: 30
             periodSeconds: 10

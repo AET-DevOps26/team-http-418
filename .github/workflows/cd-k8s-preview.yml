@@ -1,21 +1,21 @@
-name: CD — Kubernetes
+name: CD — Preview Deploy
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    types: [labeled, synchronize]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'deployment-preview')
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_tag: ${{ steps.meta.outputs.sha }}
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +31,7 @@ jobs:
 
       - name: Set image tag
         id: meta
-        run: echo "sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "sha=pr-${{ github.event.pull_request.number }}-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Build and push server image
         uses: docker/build-push-action@v6
@@ -39,7 +39,6 @@ jobs:
           context: ./server
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}/server:latest
             ${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.sha }}
 
       - name: Build and push client image
@@ -48,15 +47,7 @@ jobs:
           context: ./client
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}/client:latest
             ${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: ${{ vars.ENABLE_K8S_DEPLOY == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -80,11 +71,23 @@ jobs:
         run: |
           helm upgrade --install aidan ./helm/aidan \
             -f ./helm/aidan/values-prod.yaml \
-            --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
+            --set image.tag=${{ steps.meta.outputs.sha }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
             --namespace aidan \
             --wait \
             --timeout 5m
+
+      - name: Comment on PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Preview deployed from commit \`${context.sha.substring(0, 7)}\`\n\n- Client: https://aidan.aet.cit.tum.de/\n- Server health: https://aidan.aet.cit.tum.de/api/health\n\n⚠️ This replaced the current deployment. Merging to \`main\` will redeploy from main.`
+            })
 
       - name: Debug on failure
         if: failure()

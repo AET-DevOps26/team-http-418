@@ -170,10 +170,50 @@ public class CoursesDataDB {
 		return results.isEmpty() ? null : results.getFirst();
 	}
 
+	public record CourseDataRow(long id, String title_en, String key, int sws) {
+	}
+
+	public List<CourseDataRow> getCourseDataForIds(List<Long> ids) {
+		if (ids.isEmpty())
+			return List.of();
+		final String query = """
+				SELECT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws \
+				FROM courses c JOIN course_types ct ON c.course_type_id = ct.id \
+				WHERE c.id IN (:ids)""";
+		final MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
+		final List<CourseDataRow> courses = template.query(query, params,
+				new DataClassRowMapper<>(CourseDataRow.class));
+		final Map<Long, Integer> idOrderMap = IntStream.range(0, ids.size())
+				.boxed()
+				.collect(Collectors.toMap(ids::get, index -> index, (a, b) -> a));
+		courses.sort(Comparator.comparingInt(c -> idOrderMap.getOrDefault(c.id(), Integer.MAX_VALUE)));
+		return courses;
+	}
+
+	public List<CourseDataRow> getCoursesByStudyProgramWithSws(String studyId) {
+		if (studyId == null || studyId.isBlank())
+			return List.of();
+		return template.query("""
+				SELECT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws FROM courses c \
+				JOIN course_types ct ON c.course_type_id = ct.id \
+				JOIN curriculum_connections cc ON cc.course_id = c.id \
+				WHERE cc.study_id = :studyId ORDER BY c.title_en""",
+				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(CourseDataRow.class));
+	}
+
 	public String getCourseTitleEn(long courseId) {
 		final List<String> titles = template.queryForList("SELECT title_en FROM courses WHERE id = :id",
 				new MapSqlParameterSource("id", courseId), String.class);
 		return titles.isEmpty() ? null : titles.getFirst();
+	}
+
+	public record CourseNameRow(long id, String titleEn) {
+	}
+
+	public List<CourseNameRow> getAllCourseNames() {
+		return template.query(
+				"SELECT id, title_en AS titleEn FROM courses WHERE title_en IS NOT NULL ORDER BY id",
+				new DataClassRowMapper<>(CourseNameRow.class));
 	}
 
 	public List<SimpleCourseData> getByQuery(String query,
