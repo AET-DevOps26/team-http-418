@@ -40,7 +40,7 @@ async function doFetch<T>(
 	if (hasBody && !(options?.body instanceof FormData))
 		headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
-	const domain = window.location.origin.replace(":" + window.location.port, "");
+	const domain = window.location.origin.replace(`:${window.location.port}`, "");
 	const port = 8080;
 	let baseurl = `${domain}:${port}`;
 	if (!options?.root) baseurl = `${baseurl}/api/${API_VERSION}`;
