@@ -114,6 +114,15 @@ jobs:
             --wait \
             --timeout 7m
 
+      - name: Ensure courses-data DB and pgvector extension
+        run: |
+          POSTGRES_POD=$(kubectl get pod -n aidan -l app=postgres -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -tc \
+            "SELECT 1 FROM pg_database WHERE datname = 'courses-data'" | grep -q 1 || \
+            kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -c 'CREATE DATABASE "courses-data";'
+          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -d courses-data -c \
+            'CREATE EXTENSION IF NOT EXISTS vector;'
+
       - name: Debug on failure
         if: failure()
         run: |
