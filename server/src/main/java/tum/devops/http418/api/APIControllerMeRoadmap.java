@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tum.devops.http418.api.dto.*;
+import tum.devops.http418.data.CoursesDataDB;
 import tum.devops.http418.data.StudentDataDB;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static tum.devops.http418.Http418Application.GENAI_PATH;
+import static tum.devops.http418.Http418Application.PROFILE_SERVICE;
 import static tum.devops.http418.Http418Application.restClient;
 
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ import static tum.devops.http418.Http418Application.restClient;
 public class APIControllerMeRoadmap {
 
 	private final StudentDataDB studentDataDB;
+	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
 
 	@GetMapping("")
@@ -46,15 +48,108 @@ public class APIControllerMeRoadmap {
 	@PostMapping("/generate")
 	public ResponseEntity<RoadmapDTO> generateRoadmap(@AuthenticationPrincipal String tumid) {
 		try {
-			final List<Long> completedIds = studentDataDB.getCompletedCourseIds(tumid);
-			final List<Long> enrolledIds = studentDataDB.getEnrolledCourseIds(tumid);
-			final Map<String, Object> payload = Map.of("username", tumid, "completedCourseIds", completedIds,
-					"enrolledCourseIds", enrolledIds);
+			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
+					.body(Profile.class);
+			final Profile.Student profileStudent = profile != null ? profile.student() : null;
+
+			final List<StudentDataDB.CompletedCourseRow> completedRows = studentDataDB.getCompletedCourses(tumid, 0,
+					1000);
+			final List<Long> completedIds = completedRows.stream().map(StudentDataDB.CompletedCourseRow::courseId)
+					.toList();
+			final Map<Long, CoursesDataDB.CourseDataRow> completedCourseData = coursesDataDB
+					.getCourseDataForIds(completedIds).stream()
+					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+
+			final List<Map<String, Object>> completedCourses = completedRows.stream().map(row -> {
+				final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+				final Map<String, Object> m = new HashMap<>();
+				m.put("courseId", row.courseId());
+				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+				m.put("credits", row.credits());
+				m.put("category", row.category());
+				m.put("semester", row.semesterKey());
+				return m;
+			}).toList();
+
+			final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0,
+					1000);
+			final List<Long> enrolledIds = enrolledRows.stream().map(StudentDataDB.EnrolledCourseRow::courseId).toList();
+			final Map<Long, CoursesDataDB.CourseDataRow> enrolledCourseData = coursesDataDB
+					.getCourseDataForIds(enrolledIds).stream()
+					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+
+			final List<Map<String, Object>> enrolledCourses = enrolledRows.stream().map(row -> {
+				final CoursesDataDB.CourseDataRow cd = enrolledCourseData.get(row.courseId());
+				final Map<String, Object> m = new HashMap<>();
+				m.put("courseId", row.courseId());
+				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+				m.put("credits", cd != null ? cd.sws() : 0);
+				m.put("semester", row.semesterKey());
+				return m;
+			}).toList();
+
+			final String studyProgram = profileStudent != null ? profileStudent.studyProgram() : "";
+			final Set<Long> usedIds = new HashSet<>(completedIds);
+			usedIds.addAll(enrolledIds);
+			final List<Map<String, Object>> availableCourses = coursesDataDB
+					.getCoursesByStudyProgramWithSws(studyProgram).stream()
+					.filter(c -> !usedIds.contains(c.id()))
+					.map(c -> {
+						final Map<String, Object> m = new HashMap<>();
+						m.put("courseId", c.id());
+						m.put("courseCode", c.key());
+						m.put("courseName", c.title_en() != null ? c.title_en() : String.valueOf(c.id()));
+						m.put("credits", c.sws());
+						return m;
+					}).toList();
+
+			final int totalCreditsEarned = studentDataDB.sumCredits(tumid);
+			final int totalCreditsRequired = 180;
+			final int remainingSemesters = Math.max(1, (totalCreditsRequired - totalCreditsEarned + 29) / 30);
+			final List<Map<String, Object>> categories = studentDataDB.creditsByCategory(tumid).stream().map(row -> {
+				final Map<String, Object> m = new HashMap<>();
+				m.put("name", row.category());
+				m.put("creditsRequired", 60);
+				m.put("creditsEarned", row.totalCredits());
+				return m;
+			}).toList();
+			final Map<String, Object> degreeRequirements = new HashMap<>();
+			degreeRequirements.put("totalCreditsRequired", totalCreditsRequired);
+			degreeRequirements.put("totalCreditsEarned", totalCreditsEarned);
+			degreeRequirements.put("remainingSemesters", remainingSemesters);
+			degreeRequirements.put("categories", categories);
+
+			final Map<String, Object> preferences = new HashMap<>();
+			preferences.put("maxCreditsPerSemester", profileStudent != null ? profileStudent.preferredWorkload() : 30);
+			final Map<String, Object> student = new HashMap<>();
+			student.put("studyProgram", profileStudent != null ? profileStudent.studyProgram() : "");
+			student.put("semester", profileStudent != null ? profileStudent.semester() : 1);
+			student.put("careerGoals",
+					profileStudent != null && profileStudent.careerGoals() != null
+							? List.of(profileStudent.careerGoals())
+							: List.of());
+			student.put("interests",
+					profileStudent != null && profileStudent.interests() != null
+							? List.of(profileStudent.interests())
+							: List.of());
+			student.put("preferences", preferences);
+
+			final Map<String, Object> payload = new HashMap<>();
+			payload.put("student", student);
+			payload.put("completedCourses", completedCourses);
+			payload.put("enrolledCourses", enrolledCourses);
+			payload.put("degreeRequirements", degreeRequirements);
+			payload.put("availableCourses", availableCourses);
 
 			final String response = restClient.post().uri(GENAI_PATH + "/me/roadmap/generate")
 					.contentType(MediaType.APPLICATION_JSON).body(payload).retrieve().body(String.class);
 
-			studentDataDB.upsertRoadmap(tumid, response, "GENERATED");
+			final Map<String, Object> genaiResponse = objectMapper.readValue(response,
+					new TypeReference<Map<String, Object>>() {
+					});
+			final String semestersJson = objectMapper.writeValueAsString(genaiResponse.get("semesters"));
+
+			studentDataDB.upsertRoadmap(tumid, semestersJson, "GENERATED");
 			final StudentDataDB.RoadmapRow row = studentDataDB.getRoadmap(tumid);
 			return ResponseEntity.ok(toRoadmapDTO(row));
 		} catch (Exception e) {
