@@ -76,6 +76,11 @@ jobs:
             --namespace=aidan \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: fix-existing
+      - run: |
+          kubectl patch deployment postgres -n aidan --type=json \
+          -p '[{"op":"remove","path":"/spec/strategy/rollingUpdate"}]' || true
+
       - name: Deploy via Helm
         run: |
           helm upgrade --install aidan ./helm/aidan \
