@@ -14,6 +14,7 @@ export {
 	isAuthenticated,
 	login,
 	logout,
+	register,
 	refreshAccessToken,
 	setAccessToken,
 	setTokens,
