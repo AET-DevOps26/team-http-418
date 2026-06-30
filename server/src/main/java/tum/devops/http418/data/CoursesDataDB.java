@@ -26,7 +26,8 @@ public class CoursesDataDB {
 	private final NamedParameterJdbcTemplate template;
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
-		final String query = "SELECT c.id, c.title_ger, c.title_en, ct.key FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)";
+		final String query = """
+				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
 		final List<SimpleCourseData> courses = template.query(query, parameters,
 				new DataClassRowMapper<>(SimpleCourseData.class));
@@ -58,7 +59,7 @@ public class CoursesDataDB {
 				c.teaching_method_ger,
 				c.teaching_method_en,
 				c.registration_info,
-				ctype.name as course_type,
+				ctype."name" as course_type,
 				sem.semester_key as semester_key,
 				org.name_ger as org_name_ger,
 				org.name_en as org_name_en,
@@ -104,6 +105,46 @@ public class CoursesDataDB {
 				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("id", course_id);
 		return template.query(query, parameters, new DataClassRowMapper<>(Appointment.class));
+	}
+
+	public record DepartmentRow(long id, String nameEn) {
+	}
+
+	public List<DepartmentRow> getDepartments() {
+		return template.query(
+				"SELECT DISTINCT o.id, o.name_en AS nameEn FROM organizations o WHERE o.name_en IS NOT NULL ORDER BY o.name_en",
+				new DataClassRowMapper<>(DepartmentRow.class));
+	}
+
+	public record StudyProgramRow(String studyId, String studyNameEn, String studyNameGer) {
+	}
+
+	public List<StudyProgramRow> getStudyPrograms() {
+		return template.query(
+				"SELECT DISTINCT study_id AS studyId, study_name_en AS studyNameEn, study_name_ger AS studyNameGer FROM curriculum_connections WHERE study_name_en IS NOT NULL ORDER BY study_name_en",
+				new DataClassRowMapper<>(StudyProgramRow.class));
+	}
+
+	public StudyProgramRow getStudyProgramById(String id) {
+		final List<StudyProgramRow> rows = template.query(
+				"SELECT DISTINCT study_id AS studyId, study_name_en AS studyNameEn, study_name_ger AS studyNameGer FROM curriculum_connections WHERE study_id = :id LIMIT 1",
+				new MapSqlParameterSource("id", id), new DataClassRowMapper<>(StudyProgramRow.class));
+		return rows.isEmpty() ? null : rows.getFirst();
+	}
+
+	public List<SimpleCourseData> getCoursesByStudyProgram(String studyId) {
+		return template.query("""
+				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c \
+				JOIN course_types ct ON c.course_type_id = ct.id \
+				JOIN curriculum_connections cc ON cc.course_id = c.id \
+				WHERE cc.study_id = :studyId ORDER BY c.title_en""",
+				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
+	}
+
+	public String getCourseTitleEn(long courseId) {
+		final List<String> titles = template.queryForList("SELECT title_en FROM courses WHERE id = :id",
+				new MapSqlParameterSource("id", courseId), String.class);
+		return titles.isEmpty() ? null : titles.getFirst();
 	}
 
 	public List<SimpleCourseData> getByQuery(String query,
