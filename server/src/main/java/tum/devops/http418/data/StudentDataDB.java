@@ -1,6 +1,7 @@
 package tum.devops.http418.data;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -52,9 +53,13 @@ public class StudentDataDB {
 		params.addValue("credits", credits);
 		params.addValue("semesterKey", semesterKey);
 		params.addValue("category", category);
-		template.update(
-				"INSERT INTO student_completed_courses (username, course_id, grade, credits, semester_key, category) VALUES (:username, :courseId, :grade, :credits, :semesterKey, :category)",
-				params);
+		try {
+			template.update(
+					"INSERT INTO student_completed_courses (username, course_id, grade, credits, semester_key, category) VALUES (:username, :courseId, :grade, :credits, :semesterKey, :category)",
+					params);
+		} catch (DuplicateKeyException e) {
+			return null;
+		}
 		final List<CompletedCourseRow> rows = template.query(
 				"SELECT id, username, course_id AS courseId, grade, credits, semester_key AS semesterKey, category FROM student_completed_courses WHERE username = :username AND course_id = :courseId",
 				params, new DataClassRowMapper<>(CompletedCourseRow.class));
@@ -97,9 +102,13 @@ public class StudentDataDB {
 		params.addValue("username", username);
 		params.addValue("courseId", courseId);
 		params.addValue("semesterKey", semesterKey);
-		template.update(
-				"INSERT INTO student_enrolled_courses (username, course_id, semester_key) VALUES (:username, :courseId, :semesterKey)",
-				params);
+		try {
+			template.update(
+					"INSERT INTO student_enrolled_courses (username, course_id, semester_key) VALUES (:username, :courseId, :semesterKey)",
+					params);
+		} catch (DuplicateKeyException e) {
+			return null;
+		}
 		final List<EnrolledCourseRow> rows = template.query(
 				"SELECT id, username, course_id AS courseId, semester_key AS semesterKey FROM student_enrolled_courses WHERE username = :username AND course_id = :courseId",
 				params, new DataClassRowMapper<>(EnrolledCourseRow.class));
@@ -213,9 +222,15 @@ public class StudentDataDB {
 				"UPDATE student_roadmaps SET roadmap_json = :roadmapJson, status = :status, updated_at = CURRENT_TIMESTAMP WHERE username = :username",
 				params);
 		if (updated == 0) {
-			template.update(
-					"INSERT INTO student_roadmaps (username, roadmap_json, status) VALUES (:username, :roadmapJson, :status)",
-					params);
+			try {
+				template.update(
+						"INSERT INTO student_roadmaps (username, roadmap_json, status) VALUES (:username, :roadmapJson, :status)",
+						params);
+			} catch (DuplicateKeyException e) {
+				template.update(
+						"UPDATE student_roadmaps SET roadmap_json = :roadmapJson, status = :status, updated_at = CURRENT_TIMESTAMP WHERE username = :username",
+						params);
+			}
 		}
 	}
 

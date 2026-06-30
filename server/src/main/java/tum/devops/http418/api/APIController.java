@@ -6,9 +6,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tum.devops.http418.api.dto.DetailedCourseData;
-import tum.devops.http418.api.dto.SimpleCourseData;
-import tum.devops.http418.api.dto.GenAICourseResponse;
+import tum.devops.http418.api.dto.*;
 import tum.devops.http418.data.CoursesDataDB;
 
 import java.util.List;
@@ -86,27 +84,43 @@ public class APIController {
 	}
 
 	@GetMapping("/courses/{id}/prerequisites")
-	public ResponseEntity<DetailedCourseData> getCoursePrerequisites(@PathVariable int id) {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<PrerequisiteTree> getCoursePrerequisites(@PathVariable int id) {
+		try {
+			final DetailedCourseData course = coursesDataDB.getById(id);
+			final PrerequisiteTree tree = new PrerequisiteTree(course.getId(), course.getTitle_en(),
+					course.getPrevious_knowledge_en(), course.getPrevious_knowledge_ger());
+			return ResponseEntity.ok(tree);
+		} catch (EmptyResultDataAccessException ex) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	@GetMapping("/departments")
-	public ResponseEntity<String> getDepartments() {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<List<Department>> getDepartments() {
+		final List<Department> departments = coursesDataDB.getDepartments().stream()
+				.map(row -> new Department(row.id(), row.nameEn())).toList();
+		return ResponseEntity.ok(departments);
 	}
 
 	@GetMapping("/study-programs")
-	public ResponseEntity<String> getStudyPrograms() {
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<List<StudyProgram>> getStudyPrograms() {
+		final List<StudyProgram> programs = coursesDataDB.getStudyPrograms().stream()
+				.map(row -> new StudyProgram(row.studyId(), row.studyNameEn(), row.studyNameGer())).toList();
+		return ResponseEntity.ok(programs);
 	}
 
 	@GetMapping("/study-programs/{id}")
-	public ResponseEntity<String> getStudyProgram(@PathVariable int id) {
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	public ResponseEntity<StudyProgram> getStudyProgram(@PathVariable String id) {
+		final CoursesDataDB.StudyProgramRow row = coursesDataDB.getStudyProgramById(id);
+		if (row == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(new StudyProgram(row.studyId(), row.studyNameEn(), row.studyNameGer()));
 	}
 
 	@GetMapping("/study-programs/{id}/courses")
-	public ResponseEntity<String> getStudyPrograms(@PathVariable int id) { //filter from courseconnections backwards, not exhaustive
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	public ResponseEntity<List<SimpleCourseData>> getStudyProgramCourses(@PathVariable String id) {
+		final List<SimpleCourseData> courses = coursesDataDB.getCoursesByStudyProgram(id);
+		return ResponseEntity.ok(courses);
 	}
 }
