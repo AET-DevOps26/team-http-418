@@ -37,6 +37,11 @@ spec:
             - secretRef:
                 name: aidan-secret
           env:
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: aidan-secret
+                  key: DB_PASS
             - name: DATABASE_URL
               value: {{ printf "postgresql://%s:$(DB_PASS)@postgres-service:%d/%s" .Values.postgres.username (.Values.postgres.port | int) .Values.postgres.database }}
           resources:

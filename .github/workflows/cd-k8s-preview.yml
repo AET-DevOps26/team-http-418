@@ -98,6 +98,7 @@ jobs:
             -f ./helm/aidan/values-prod.yaml \
             --set image.tag=${{ steps.meta.outputs.sha }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
+            --set jwt.secret=${{ secrets.APP_JWT_SECRET }} \
             --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
             --namespace aidan \
             --wait \

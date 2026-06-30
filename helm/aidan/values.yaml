@@ -70,4 +70,7 @@ ingress:
   host: ""
   annotations: {}
 
+jwt:
+  secret: ""
+
 namespace: aidan
