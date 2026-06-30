@@ -188,7 +188,8 @@ public class APIController {
 		}
 	}
 
-	public static List<PrerequisiteTree.PrerequisiteNode> flattenPrerequisiteNodes(List<PrerequisiteTree.PrerequisiteNode> nodes) {
+	public static List<PrerequisiteTree.PrerequisiteNode> flattenPrerequisiteNodes(
+			List<PrerequisiteTree.PrerequisiteNode> nodes) {
 		final List<PrerequisiteTree.PrerequisiteNode> result = new ArrayList<>();
 		for (PrerequisiteTree.PrerequisiteNode node : nodes) {
 			result.add(node);
