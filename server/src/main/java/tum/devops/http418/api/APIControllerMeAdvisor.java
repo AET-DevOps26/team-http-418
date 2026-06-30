@@ -97,7 +97,8 @@ public class APIControllerMeAdvisor {
 			HttpURLConnection connection = null;
 			try {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/chat";
-				final String body = objectMapper.writeValueAsString(Map.of("messages", historyPayload, "conversationId", id));
+				final String body = objectMapper
+						.writeValueAsString(Map.of("messages", historyPayload, "conversationId", id));
 
 				connection = (HttpURLConnection) URI.create(genaiUrl).toURL().openConnection();
 				connection.setRequestMethod("POST");
@@ -109,7 +110,8 @@ public class APIControllerMeAdvisor {
 				connection.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
 
 				final StringBuilder fullResponse = new StringBuilder();
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+				try (BufferedReader reader = new BufferedReader(
+						new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 					String line;
 					while ((line = reader.readLine()) != null) {
 						if (line.startsWith("data: ")) {
