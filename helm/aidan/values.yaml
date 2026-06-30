@@ -55,14 +55,15 @@ genai:
   logosBaseUrl: "https://logos.aet.cit.tum.de"
   logosApiVersion: "v1"
   logosModel: "openai/gpt-oss-120b"
+  embeddingModelCloud: "Qwen/Qwen3-Embedding-8B"
   logosApiKey: ""
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
-    limits:
       memory: "256Mi"
-      cpu: "250m"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
 
 ingress:
   enabled: true
