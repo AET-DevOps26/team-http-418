@@ -76,10 +76,6 @@ jobs:
             --namespace=aidan \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: fix-existing
-        run: |
-          kubectl delete deployment postgres -n aidan --ignore-not-found || true
-
       - name: Deploy via Helm
         run: |
           helm upgrade --install aidan ./helm/aidan \
