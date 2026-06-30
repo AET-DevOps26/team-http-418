@@ -28,7 +28,7 @@ public class APIControllerMe {
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
-	private final TranscriptService transcriptService;
+	private final ExternalServices transcriptService;
 
 	@GetMapping("/progress")
 	public ResponseEntity<AcademicProgressDTO> getProgress(@AuthenticationPrincipal String tumid) {

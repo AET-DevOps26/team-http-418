@@ -7,7 +7,7 @@ import tum.devops.http418.api.dto.Profile;
 import static tum.devops.http418.Http418Application.*;
 
 @Service
-public class TranscriptService {
+public class ExternalServices {
 
 	public String callPdfParser(byte[] fileBytes) {
 		return restClient.post()

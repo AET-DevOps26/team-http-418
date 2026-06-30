@@ -18,7 +18,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import tum.devops.http418.api.TranscriptService;
+import tum.devops.http418.api.ExternalServices;
 import tum.devops.http418.api.dto.Profile;
 import tum.devops.http418.auth.service.AuthService;
 import tum.devops.http418.data.StudentDataDB;
@@ -37,7 +37,7 @@ class TranscriptUploadTest extends BaseTest {
 	private StudentDataDB studentDataDB;
 
 	@MockitoBean
-	private TranscriptService transcriptService;
+	private ExternalServices transcriptService;
 
 	@Value("${API_VERSION}")
 	private String API_VERSION;
