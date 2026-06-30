@@ -86,11 +86,6 @@ jobs:
             --wait \
             --timeout 5m
 
-      - name: Reset postgres PVC (one-time)
-        run: |
-          kubectl delete pvc postgres-pvc -n aidan --ignore-not-found
-          kubectl delete deployment postgres -n aidan --ignore-not-found
-
       - name: Debug on failure
         if: failure()
         run: |
