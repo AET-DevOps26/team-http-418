@@ -120,9 +120,7 @@ function RegisterPage() {
 		password:
 			touched.password && !password
 				? "Password is required"
-				: touched.password && password.length < 8
-					? "Password must be at least 8 characters"
-					: null,
+				: null,
 		confirmPassword:
 			touched.confirmPassword && !confirmPassword
 				? "Please confirm your password"
@@ -134,7 +132,6 @@ function RegisterPage() {
 	const isDisabled =
 		!tumId ||
 		!password ||
-		password.length < 8 ||
 		!confirmPassword ||
 		confirmPassword !== password ||
 		mutation.isPending;
