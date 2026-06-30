@@ -2,6 +2,8 @@ package tum.devops.http418.auth.service;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -59,5 +61,14 @@ public class AuthService {
 		userDetailsService
 				.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
 		return login(tumid, password);
+	}
+
+	@Bean
+	public CommandLineRunner createTestUser() {
+		return args -> {
+			if (!userDetailsService.userExists("admin")) {
+				register("admin", "test");
+			}
+		};
 	}
 }

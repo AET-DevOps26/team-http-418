@@ -1,3 +1,4 @@
+import { apiFetch } from "#/api/client.ts";
 import { queryClient } from "#/api/query-client";
 import type { AuthResponse } from "#/api/types";
 
@@ -69,7 +70,7 @@ export function isAuthenticated(): boolean {
 }
 
 export async function login(tumId: string, password: string): Promise<void> {
-	const res = await fetch(`/api/${API_VERSION}/auth/login`, {
+	const res = await apiFetch(`/auth/login`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ tumId, password }),
@@ -88,7 +89,7 @@ export async function login(tumId: string, password: string): Promise<void> {
 
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
-	const res = await fetch(`/api/${API_VERSION}/auth/refresh`, {
+	const res = await apiFetch(`/auth/refresh`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ refreshToken: storedRefreshToken }),

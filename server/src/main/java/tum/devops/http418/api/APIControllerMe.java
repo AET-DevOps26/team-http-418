@@ -1,7 +1,6 @@
 package tum.devops.http418.api;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +24,6 @@ public class APIControllerMe {
 
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
-
-	@Value("${PDF_PARSER_SERVICE:http://pdf-parser:8080}")
-	private String pdfParserService;
 
 	@GetMapping("/progress")
 	public ResponseEntity<AcademicProgressDTO> getProgress(@AuthenticationPrincipal String tumid) {
@@ -59,7 +55,7 @@ public class APIControllerMe {
 	public ResponseEntity<TranscriptImportResultDTO> uploadTranscript(@AuthenticationPrincipal String tumid,
 			@RequestParam("file") MultipartFile file) {
 		try {
-			final String response = restClient.post().uri(pdfParserService + "/parse")
+			final String response = restClient.post().uri(PDF_PARSER_SERVICE + "/parse")
 					.contentType(MediaType.MULTIPART_FORM_DATA).body(file.getBytes()).retrieve().body(String.class);
 			return ResponseEntity
 					.ok(new TranscriptImportResultDTO(0, 0, "Transcript received. Processing: " + response));
