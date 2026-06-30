@@ -73,6 +73,10 @@ jobs:
             -f ./helm/aidan/values-prod.yaml \
             --set image.tag=${{ steps.meta.outputs.sha }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
+            --set secrets.SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD   }} \
+            --set secrets.APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET   }} \
+            --set secrets.DB_PASS=${{ secrets.DB_PASS   }} \
+            --set secrets.LOGOS_API_KEY=${{ secrets.LOGOS_API_KEY   }} \
             --namespace aidan \
             --wait \
             --timeout 5m

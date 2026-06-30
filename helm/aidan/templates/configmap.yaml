@@ -15,6 +15,7 @@ data:
   DB_USER: {{ .Values.postgres.env.DB_USER | quote }}
   COURSES_DB_NAME: {{ .Values.postgres.env.COURSES_DB_NAME | quote }}
   DB_PORT: {{ .Values.postgres.env.DB_PORT | quote }}
+  DATABASE_URL: {{ .Values.postgres.env.DATABASE_URL | quote }}
 
   GENAI_BASE_URL: {{ .Values.genai.env.GENAI_BASE_URL | quote }}
   GENAI_API_VERSION: {{ .Values.genai.env.GENAI_API_VERSION | quote }}
