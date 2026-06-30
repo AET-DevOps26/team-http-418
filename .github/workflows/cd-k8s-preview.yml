@@ -67,6 +67,13 @@ jobs:
             --namespace=aidan \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Clean up stuck pods
+        run: |
+          kubectl delete pods -n aidan --field-selector=status.phase==Failed --ignore-not-found
+          for pod in $(kubectl get pods -n aidan -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
+            kubectl delete pod "$pod" -n aidan --force --grace-period=0 || true
+          done
+
       - name: Deploy via Helm
         run: |
           helm upgrade --install aidan ./helm/aidan \
@@ -75,7 +82,7 @@ jobs:
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
             --namespace aidan \
             --wait \
-            --timeout 5m
+            --timeout 7m
 
       - name: Comment on PR
         if: success()
