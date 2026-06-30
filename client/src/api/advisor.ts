@@ -1,9 +1,4 @@
-import {
-	API_VERSION,
-	getAccessToken,
-	refreshAccessToken,
-	setAccessToken,
-} from "#/api/auth";
+import { getAccessToken, refreshAccessToken, setAccessToken } from "#/api/auth";
 import { apiFetch } from "#/api/client";
 import type {
 	AdvisorSSEEvent,
@@ -46,15 +41,12 @@ export async function* sendMessage(
 		};
 		if (token) headers.Authorization = `Bearer ${token}`;
 
-		return fetch(
-			`/api/${API_VERSION}/me/advisor/conversations/${conversationId}/messages`,
-			{
-				method: "POST",
-				headers,
-				body: JSON.stringify({ content }),
-				signal,
-			},
-		);
+		return apiFetch(`/me/advisor/conversations/${conversationId}/messages`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify({ content }),
+			signal,
+		});
 	};
 
 	let res = await doRequest(getAccessToken());
