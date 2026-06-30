@@ -39,9 +39,9 @@ public class AuthService {
 	}
 
 	public AuthResponse refresh(String refreshToken) {
-		final String tumId = refreshTokenStore.consume(refreshToken)
-				.orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
 		try {
+			final String tumId = refreshTokenStore.consume(refreshToken)
+					.orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
 			final UserDetails userDetails = userDetailsService.loadUserByUsername(tumId);
 
 			final Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
@@ -52,7 +52,7 @@ public class AuthService {
 
 			return new AuthResponse(newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenTtlSeconds());
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Invalid refresh token | {}", e.getMessage());
 			throw e;
 		}
 	}

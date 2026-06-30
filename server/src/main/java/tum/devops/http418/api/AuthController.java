@@ -84,7 +84,7 @@ public class AuthController {
 	public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(InvalidRefreshTokenException e) {
 		logger.error(e.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body(ErrorResponse.of("BAD_REQUEST", "Invalid refresh token"));
+				.body(ErrorResponse.of("bad_request", "Invalid refresh token"));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

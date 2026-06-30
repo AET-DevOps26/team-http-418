@@ -36,7 +36,7 @@ export function AlertsList({ alerts }: Props) {
 				Needs your attention
 			</div>
 
-			{alerts?.length === 0 ? (
+			{!alerts?.length ? (
 				<p style={{ fontSize: 13, color: "var(--muted)" }}>
 					No alerts right now.
 				</p>
@@ -51,7 +51,7 @@ export function AlertsList({ alerts }: Props) {
 						gap: 8,
 					}}
 				>
-					{alerts.map((alert) => (
+					{alerts?.map((alert) => (
 						<li
 							key={`${alert.type}-${alert.message}`}
 							className={`alert-item ${alertClass[alert.severity]}`}
