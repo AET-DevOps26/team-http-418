@@ -85,7 +85,7 @@ public class APIControllerMe {
 		if (profile == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/recommendations")
+		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/me/recommendations")
 				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().body(String.class));
 	}
 
@@ -97,7 +97,7 @@ public class APIControllerMe {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 		final ProfileWithOverrides newProfile = new ProfileWithOverrides(profile, prompt);
-		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/recommendations")
+		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/me/recommendations")
 				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().body(String.class));
 	}
 
