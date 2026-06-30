@@ -12,6 +12,7 @@ replicaCount:
   server: 1
   client: 1
   postgres: 1
+  genai: 1
 
 server:
   port: 8080
@@ -34,7 +35,7 @@ client:
       cpu: "100m"
 
 postgres:
-  image: postgres:17
+  image: pgvector/pgvector:pg17
   port: 5432
   database: aidan
   username: postgres
@@ -48,10 +49,29 @@ postgres:
       memory: "256Mi"
       cpu: "200m"
 
+genai:
+  port: 8000
+  llmProvider: "cloud"
+  logosBaseUrl: "https://logos.aet.cit.tum.de"
+  logosApiVersion: "v1"
+  logosModel: "openai/gpt-oss-120b"
+  embeddingModelCloud: "Qwen/Qwen3-Embedding-8B"
+  logosApiKey: ""
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
 ingress:
   enabled: true
   className: nginx
   host: ""
   annotations: {}
+
+jwt:
+  secret: ""
 
 namespace: aidan

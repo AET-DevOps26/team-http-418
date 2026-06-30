@@ -51,6 +51,15 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/client:latest
             ${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
 
+      - name: Build and push genai image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./genai
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/genai:latest
+            ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
+
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -72,9 +81,26 @@ jobs:
           kubectl create secret docker-registry ghcr-pull-secret \
             --docker-server=ghcr.io \
             --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-password=${{ secrets.GHCR_PULL_TOKEN }} \
             --namespace=aidan \
             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Reset failed Helm release
+        run: |
+          STATUS=$(helm status aidan -n aidan -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
+          if [ "$STATUS" = "pending-install" ] || [ "$STATUS" = "pending-upgrade" ] || [ "$STATUS" = "pending-rollback" ]; then
+            echo "Helm release stuck in $STATUS — rolling back"
+            helm rollback aidan 0 -n aidan --force || helm uninstall aidan -n aidan --no-hooks || true
+          elif [ "$STATUS" = "failed" ]; then
+            echo "Helm release in failed state — will let upgrade --install handle it"
+          fi
+
+      - name: Clean up stuck pods
+        run: |
+          kubectl delete pods -n aidan --field-selector=status.phase==Failed --ignore-not-found
+          for pod in $(kubectl get pods -n aidan -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
+            kubectl delete pod "$pod" -n aidan --force --grace-period=0 || true
+          done
 
       - name: Deploy via Helm
         run: |
@@ -82,9 +108,20 @@ jobs:
             -f ./helm/aidan/values-prod.yaml \
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \
+            --set jwt.secret=${{ secrets.APP_JWT_SECRET }} \
+            --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
             --namespace aidan \
             --wait \
-            --timeout 5m
+            --timeout 7m
+
+      - name: Ensure courses-data DB and pgvector extension
+        run: |
+          POSTGRES_POD=$(kubectl get pod -n aidan -l app=postgres -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -tc \
+            "SELECT 1 FROM pg_database WHERE datname = 'courses-data'" | grep -q 1 || \
+            kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -c 'CREATE DATABASE "courses-data";'
+          kubectl exec -n aidan "$POSTGRES_POD" -- psql -U postgres -d courses-data -c \
+            'CREATE EXTENSION IF NOT EXISTS vector;'
 
       - name: Debug on failure
         if: failure()
@@ -96,3 +133,4 @@ jobs:
           kubectl logs -l app=postgres -n aidan --tail=50 || true
           kubectl logs -l app=client -n aidan --tail=50 || true
           kubectl logs -l app=server -n aidan --tail=50 || true
+          kubectl logs -l app=genai -n aidan --tail=50 || true
