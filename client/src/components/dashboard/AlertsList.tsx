@@ -36,7 +36,7 @@ export function AlertsList({ alerts }: Props) {
 				Needs your attention
 			</div>
 
-			{alerts.length === 0 ? (
+			{alerts?.length === 0 ? (
 				<p style={{ fontSize: 13, color: "var(--muted)" }}>
 					No alerts right now.
 				</p>

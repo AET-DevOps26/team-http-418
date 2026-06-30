@@ -9,7 +9,7 @@ type Props = {
 
 export function ConflictBanner({ conflicts, onDismiss }: Props) {
 	const [expanded, setExpanded] = useState(false);
-	if (conflicts.length === 0) return null;
+	if (conflicts?.length === 0) return null;
 
 	const hasError = conflicts.some((c) => c.severity === "ERROR");
 
@@ -50,8 +50,8 @@ export function ConflictBanner({ conflicts, onDismiss }: Props) {
 							color: "var(--ink)",
 						}}
 					>
-						{conflicts.length} schedule{" "}
-						{conflicts.length === 1 ? "conflict" : "conflicts"}
+						{conflicts?.length} schedule{" "}
+						{conflicts?.length === 1 ? "conflict" : "conflicts"}
 					</button>
 				</div>
 				<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
