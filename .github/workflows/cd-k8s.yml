@@ -78,8 +78,7 @@ jobs:
 
       - name: fix-existing
         run: |
-          kubectl patch deployment postgres -n aidan --type=json \
-          -p '[{"op":"remove","path":"/spec/strategy/rollingUpdate"}]' || true
+          kubectl delete deployment postgres -n aidan --ignore-not-found || true
 
       - name: Deploy via Helm
         run: |
