@@ -28,6 +28,7 @@ public class APIControllerMe {
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
+	private final TranscriptService transcriptService;
 
 	@GetMapping("/progress")
 	public ResponseEntity<AcademicProgressDTO> getProgress(@AuthenticationPrincipal String tumid) {
@@ -60,9 +61,7 @@ public class APIControllerMe {
 			@RequestParam("file") MultipartFile file) {
 		final String parserResponse;
 		try {
-			parserResponse = restClient.post().uri(PDF_PARSER_SERVICE + "/parse-pdf")
-					.contentType(MediaType.APPLICATION_OCTET_STREAM).body(file.getBytes()).retrieve()
-					.body(String.class);
+			parserResponse = transcriptService.callPdfParser(file.getBytes());
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
 					.body(new TranscriptImportResultDTO(0, 0, List.of(), List.of("PDF parser unavailable")));
@@ -71,26 +70,38 @@ public class APIControllerMe {
 			final List<ParsedModule> modules = objectMapper.readValue(parserResponse,
 					new TypeReference<List<ParsedModule>>() {
 					});
+
+			final Profile profile = transcriptService.fetchProfile(tumid);
+			final String studyProgram = (profile != null && profile.student() != null)
+					? profile.student().studyProgram()
+					: null;
+
 			final List<TranscriptImportResultDTO.ImportedCourse> importedCourses = new ArrayList<>();
 			final List<String> errors = new ArrayList<>();
 			int skipped = 0;
 
 			for (final ParsedModule module : modules) {
-				final SimpleCourseData course = coursesDataDB.findCourseByTitle(module.titleEn(), module.titleDe());
+				final CoursesDataDB.CourseMatchResult course = coursesDataDB.findCourseMatchByTitle(
+						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgram);
 				if (course == null) {
 					skipped++;
-					errors.add("No catalog match: " + module.titleEn());
+					final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
+					errors.add("No catalog match for " + module.moduleId() + ": " + title);
 					continue;
 				}
 				final BigDecimal grade = new BigDecimal(String.valueOf(module.grade()))
 						.setScale(1, RoundingMode.HALF_UP);
+				final String category = course.subjectType() != null ? course.subjectType() : "Uncategorized";
 				final StudentDataDB.CompletedCourseRow inserted = studentDataDB.insertCompletedCourse(
-						tumid, Long.parseLong(course.id()), grade, module.credits(), null, null);
+						tumid, Long.parseLong(course.id()), grade, module.credits(), null, category);
 				if (inserted == null) {
 					skipped++;
+					errors.add("Already imported: " + module.moduleId() + " (" + course.title_en() + ")");
 				} else {
+					final String courseName = course.title_en() != null ? course.title_en()
+							: (module.titleEn() != null ? module.titleEn() : module.titleDe());
 					importedCourses.add(new TranscriptImportResultDTO.ImportedCourse(
-							course.id(), course.id(), course.title_en(),
+							course.id(), module.moduleId(), courseName,
 							module.moduleId(), module.titleDe(), module.titleEn(),
 							grade.toPlainString(), module.credits()));
 				}
@@ -103,6 +114,11 @@ public class APIControllerMe {
 					.body(new TranscriptImportResultDTO(0, 0, List.of(),
 							List.of("Failed to parse transcript response: " + e.getMessage())));
 		}
+	}
+
+	private static String normalizeTitle(String s) {
+		if (s == null) return "";
+		return s.trim().replaceAll("\\s+", " ").toLowerCase();
 	}
 
 	@GetMapping("")

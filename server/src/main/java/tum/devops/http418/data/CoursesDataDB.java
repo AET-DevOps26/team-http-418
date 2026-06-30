@@ -141,18 +141,32 @@ public class CoursesDataDB {
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
-	public @Nullable SimpleCourseData findCourseByTitle(String titleEn, String titleDe) {
+	public record CourseMatchResult(String id, String title_ger, String title_en, String key, String subjectType) {
+	}
+
+	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
+			String studyProgram) {
 		final String query = """
-				SELECT c.id, c.title_ger, c.title_en, ct."key"
-				FROM courses c JOIN course_types ct ON c.course_type_id = ct.id
-				WHERE LOWER(c.title_en) = LOWER(:titleEn) OR LOWER(c.title_ger) = LOWER(:titleDe)
+				SELECT c.id, c.title_ger, c.title_en, ct."key", cc.subject_type AS subjectType
+				FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				LEFT JOIN curriculum_connections cc ON cc.course_id = c.id
+				WHERE LOWER(TRIM(c.title_en)) = :titleEn
+				   OR LOWER(TRIM(c.title_ger)) = :titleDe
+				ORDER BY
+				    CASE WHEN cc.study_id = :studyProgram
+				              OR cc.study_name_en = :studyProgram
+				              OR cc.study_name_ger = :studyProgram
+				         THEN 0 ELSE 1 END,
+				    c.id ASC
 				LIMIT 1
 				""";
 		final MapSqlParameterSource params = new MapSqlParameterSource()
-				.addValue("titleEn", titleEn != null ? titleEn : "")
-				.addValue("titleDe", titleDe != null ? titleDe : "");
-		final List<SimpleCourseData> results = template.query(query, params,
-				new DataClassRowMapper<>(SimpleCourseData.class));
+				.addValue("titleEn", normalizedTitleEn)
+				.addValue("titleDe", normalizedTitleDe)
+				.addValue("studyProgram", studyProgram);
+		final List<CourseMatchResult> results = template.query(query, params,
+				new DataClassRowMapper<>(CourseMatchResult.class));
 		return results.isEmpty() ? null : results.getFirst();
 	}
 
