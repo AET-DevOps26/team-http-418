@@ -56,7 +56,8 @@ public class APIControllerMe {
 			@RequestParam("file") MultipartFile file) {
 		try {
 			final String response = restClient.post().uri(PDF_PARSER_SERVICE + "/parse-pdf")
-					.contentType(MediaType.APPLICATION_OCTET_STREAM).body(file.getBytes()).retrieve().body(String.class);
+					.contentType(MediaType.APPLICATION_OCTET_STREAM).body(file.getBytes()).retrieve()
+					.body(String.class);
 			return ResponseEntity
 					.ok(new TranscriptImportResultDTO(0, 0, "Transcript received. Processing: " + response));
 		} catch (Exception e) {
