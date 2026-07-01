@@ -146,26 +146,44 @@ public class CoursesDataDB {
 
 	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
 			String studyProgram) {
-		final String query = """
+		return findCourseMatchByTitle(normalizedTitleEn, normalizedTitleDe, studyProgram, null);
+	}
+
+	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
+			String studyProgram, @Nullable String moduleId) {
+		final StringBuilder sql = new StringBuilder("""
 				SELECT c.id, c.title_ger, c.title_en, ct."key", cc.subject_type AS subjectType
 				FROM courses c
 				JOIN course_types ct ON c.course_type_id = ct.id
 				LEFT JOIN curriculum_connections cc ON cc.course_id = c.id
-				WHERE LOWER(TRIM(c.title_en)) = :titleEn
+				WHERE (LOWER(TRIM(c.title_en)) = :titleEn
 				   OR LOWER(TRIM(c.title_ger)) = :titleDe
+				   OR c.title_en ILIKE :titleEnPrefix
+				   OR c.title_ger ILIKE :titleDePrefix""");
+		final MapSqlParameterSource params = new MapSqlParameterSource()
+				.addValue("titleEn", normalizedTitleEn)
+				.addValue("titleDe", normalizedTitleDe)
+				.addValue("titleEnPrefix", normalizedTitleEn + " (%")
+				.addValue("titleDePrefix", normalizedTitleDe + " (%")
+				.addValue("studyProgram", studyProgram);
+		if (moduleId != null && !moduleId.isBlank()) {
+			sql.append(" OR c.title_en ILIKE :modulePattern OR c.title_ger ILIKE :modulePattern");
+			params.addValue("modulePattern", "%(" + moduleId + ")%");
+		}
+		sql.append("""
+				)
 				ORDER BY
+				    CASE WHEN LOWER(TRIM(c.title_en)) = :titleEn OR LOWER(TRIM(c.title_ger)) = :titleDe THEN 0
+				         WHEN c.title_en ILIKE :titleEnPrefix OR c.title_ger ILIKE :titleDePrefix THEN 1
+				         ELSE 2 END,
 				    CASE WHEN cc.study_id = :studyProgram
 				              OR cc.study_name_en = :studyProgram
 				              OR cc.study_name_ger = :studyProgram
 				         THEN 0 ELSE 1 END,
 				    c.id ASC
 				LIMIT 1
-				""";
-		final MapSqlParameterSource params = new MapSqlParameterSource()
-				.addValue("titleEn", normalizedTitleEn)
-				.addValue("titleDe", normalizedTitleDe)
-				.addValue("studyProgram", studyProgram);
-		final List<CourseMatchResult> results = template.query(query, params,
+				""");
+		final List<CourseMatchResult> results = template.query(sql.toString(), params,
 				new DataClassRowMapper<>(CourseMatchResult.class));
 		return results.isEmpty() ? null : results.getFirst();
 	}
@@ -228,7 +246,7 @@ public class CoursesDataDB {
 			int sort,
 			int semester,
 			@Nullable String studyProgramId) {
-		final StringBuilder sqlQuery = new StringBuilder("SELECT * FROM courses");
+		final StringBuilder sqlQuery = new StringBuilder("SELECT courses.id, courses.title_ger, courses.title_en, ct.\"key\" FROM courses JOIN course_types ct ON courses.course_type_id = ct.id");
 
 		if ((department != null && !department.isBlank()) || departmentID != 0) { //TODO remove condition if its information is used in result anyways
 			sqlQuery.append(" JOIN organizations ON courses.organization_id = organizations.id");
@@ -249,10 +267,10 @@ public class CoursesDataDB {
 		// 1. Text Search (Matches title or description in EN/GER)
 		if (query != null && !query.trim().isEmpty()) {
 			sqlQuery.append("""
-					AND (title_ger ILIKE :query
-					OR title_en ILIKE :query
-					OR description_ger ILIKE :query
-					OR description_en ILIKE :query)
+					AND (courses.title_ger ILIKE :query
+					OR courses.title_en ILIKE :query
+					OR courses.description_ger ILIKE :query
+					OR courses.description_en ILIKE :query)
 					""");
 			params.addValue("query", "%" + query.trim() + "%");
 		}
@@ -269,14 +287,14 @@ public class CoursesDataDB {
 			sqlQuery.append("""
 					AND organizations.id = :departmentid
 					""");
-			params.addValue("departmentid", "%" + departmentID + "%");
+			params.addValue("departmentid", departmentID);
 		}
 
 		if (studyProgramId != null && !studyProgramId.isBlank()) {
 			sqlQuery.append("""
-					AND curriculum_connections.study_program_id ILIKE :studyProgramId
+					AND curriculum_connections.study_id = :studyProgramId
 					""");
-			params.addValue("studyProgramId", "%" + studyProgramId + "%");
+			params.addValue("studyProgramId", studyProgramId);
 		}
 
 		if (level != null && !level.isBlank()) {
@@ -288,10 +306,10 @@ public class CoursesDataDB {
 
 		// 6. Sorting
 		switch (sort) {
-			case 1 -> sqlQuery.append(" ORDER BY title_en ASC");
-			case 2 -> sqlQuery.append(" ORDER BY title_en DESC");
-			case 3 -> sqlQuery.append(" ORDER BY created_at DESC");
-			default -> sqlQuery.append(" ORDER BY id ASC"); // Default fallback sorting
+			case 1 -> sqlQuery.append(" ORDER BY courses.title_en ASC");
+			case 2 -> sqlQuery.append(" ORDER BY courses.title_en DESC");
+			case 3 -> sqlQuery.append(" ORDER BY courses.created_at DESC");
+			default -> sqlQuery.append(" ORDER BY courses.id ASC");
 		}
 
 		// 7. Pagination (Limit & Offset)

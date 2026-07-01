@@ -48,7 +48,7 @@ export function PrerequisiteTree({
 										marginRight: 4,
 									}}
 								>
-									{node.courseCode}
+									{node?.courseCode ?? "N/A"}
 								</span>
 								{node.courseName}
 							</span>

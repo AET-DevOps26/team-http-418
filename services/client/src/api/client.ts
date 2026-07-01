@@ -33,10 +33,12 @@ async function doFetch<T>(
 	const hasBody = options?.body != null;
 
 	const headers = new Headers(options?.headers);
-	headers.set(
-		"Accept",
-		options?.responseType === "text" ? "text/plain" : "application/json",
-	);
+	if (!headers.has("Accept")) {
+		headers.set(
+			"Accept",
+			options?.responseType === "text" ? "text/plain" : "application/json",
+		);
+	}
 	if (hasBody && !(options?.body instanceof FormData))
 		headers.set("Content-Type", "application/json");
 	if (token != null) headers.set("Authorization", `Bearer ${token}`);
