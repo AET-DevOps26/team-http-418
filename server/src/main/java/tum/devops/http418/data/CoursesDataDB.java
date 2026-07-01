@@ -228,16 +228,17 @@ public class CoursesDataDB {
 			int sort,
 			int semester,
 			@Nullable String studyProgramId) {
-		final StringBuilder sqlQuery = new StringBuilder("SELECT * FROM courses");
+		final StringBuilder sqlQuery = new StringBuilder("""
+				SELECT c.id, c.title_ger, c.title_en, ct.key, sem.semester_key FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				JOIN semesters sem ON c.semester_id = sem.id
+				""");
 
 		if ((department != null && !department.isBlank()) || departmentID != null) { //TODO remove condition if its information is used in result anyways
-			sqlQuery.append(" JOIN organizations ON courses.organization_id = organizations.id");
-		}
-		if (semester != 0) { //TODO remove condition if its information is used in result anyways
-			sqlQuery.append(" JOIN semesters ON courses.semester_id = semesters.id");
+			sqlQuery.append(" JOIN organizations ON c.organization_id = organizations.id");
 		}
 		if ((studyProgramId != null && !studyProgramId.isBlank()) || (level != null && !level.isBlank())) { // this is expensive, so we only do it if we need it
-			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = courses.id");
+			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = c.id");
 		}
 		sqlQuery.append(" WHERE 1=1");
 		final MapSqlParameterSource params = new MapSqlParameterSource();
