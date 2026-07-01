@@ -73,7 +73,7 @@ export function CurrentCourses({ courses, semester }: Props) {
 											marginRight: 6,
 										}}
 									>
-										{course.courseCode}
+										{course?.courseCode ?? "N/A"}
 									</span>
 									<span
 										style={{

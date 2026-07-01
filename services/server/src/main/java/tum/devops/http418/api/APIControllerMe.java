@@ -1,5 +1,6 @@
 package tum.devops.http418.api;
 
+import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -125,8 +126,14 @@ public class APIControllerMe {
 
 	@GetMapping("")
 	public ResponseEntity<Profile> getProfile(@AuthenticationPrincipal String tumid) {
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class));
+		try {
+			return restClient.get()
+					.uri(PROFILE_SERVICE + "/get/" + tumid)
+					.retrieve()
+					.toEntity(Profile.class);
+		} catch (RestClientResponseException e) {
+			return ResponseEntity.status(e.getStatusCode()).build();
+		}
 	}
 
 	@PutMapping("")

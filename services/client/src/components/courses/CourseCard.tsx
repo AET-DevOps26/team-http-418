@@ -14,32 +14,34 @@ export function CourseCard({ course, onClick }: Props) {
 			onClick={() => onClick(course.id)}
 		>
 			<div className="catalog-course-card-header">
-				<span className="catalog-course-code">{course.courseCode}</span>
+				<span className="catalog-course-code">
+					{course?.courseCode ?? "N/A"}
+				</span>
 				<div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
 					<span
 						className="tag"
 						style={{ background: "var(--blue-50)", color: "var(--blue-700)" }}
 					>
-						{course.language}
+						{course?.language ?? "N/A"}
 					</span>
 					<span
 						className="tag"
 						style={{ background: "var(--canvas-2)", color: "var(--ink-soft)" }}
 					>
-						{course.level}
+						{course?.level ?? "N/A"}
 					</span>
 				</div>
 			</div>
-			<p className="catalog-course-name">{course.name}</p>
+			<p className="catalog-course-name">{course?.title_ger ?? "N/A"}</p>
 			<div className="catalog-course-meta">
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
-					{course.department}
+					{course?.department ?? "N/A"}
 				</span>
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
-					{course.credits} ECTS
+					{course?.credits ?? "N/A"} ECTS
 				</span>
 			</div>
-			{course.hasPrerequisites && (
+			{(course?.hasPrerequisites ?? false) && (
 				<div
 					style={{
 						marginTop: 8,

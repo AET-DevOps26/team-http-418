@@ -34,7 +34,7 @@ export function MessageBubble({ sender, content, referencedCourses }: Props) {
 							href={`/courses/${c.courseId}`}
 							className="course-chip"
 						>
-							{c.courseCode}
+							{c?.courseCode ?? "N/A"}
 						</a>
 					))}
 				</div>

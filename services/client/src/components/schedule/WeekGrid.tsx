@@ -45,7 +45,7 @@ function positionEvents(events: ScheduleEvent[]): PositionedEvent[] {
 				(a, b) =>
 					a.startMinutes - b.startMinutes ||
 					a.endMinutes - b.endMinutes ||
-					a.event.courseCode.localeCompare(b.event.courseCode),
+					a.event.courseName.localeCompare(b.event.courseName),
 			);
 
 		let active: PositionedEvent[] = [];

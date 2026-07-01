@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import tools.jackson.databind.ObjectMapper;
 import tum.devops.http418.api.dto.*;
@@ -78,11 +79,11 @@ public class APIControllerMeAdvisor {
 	}
 
 	@PostMapping(value = "/conversations/{id}/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public ResponseEntity<SseEmitter> sendMessage(@AuthenticationPrincipal String tumid, @PathVariable String id,
+	public SseEmitter sendMessage(@AuthenticationPrincipal String tumid, @PathVariable String id,
 			@Valid @RequestBody SendMessageRequest request) {
 		final StudentDataDB.ConversationRow conv = studentDataDB.getConversation(id, tumid);
 		if (conv == null) {
-			return ResponseEntity.notFound().build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found");
 		}
 
 		studentDataDB.insertMessage(id, "user", request.content(), "[]");
@@ -144,7 +145,7 @@ public class APIControllerMeAdvisor {
 			}
 		});
 
-		return ResponseEntity.ok(emitter);
+		return emitter;
 	}
 
 	@GetMapping("/suggestions")

@@ -27,7 +27,11 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
 		final String query = """
-				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)""";
+				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
+				    JOIN semesters sem on c.semester_id = sem.id
+				    JOIN course_types ct on c.course_type_id = ct.id
+				    WHERE c.id IN (:ids)
+				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
 		final List<SimpleCourseData> courses = template.query(query, parameters,
 				new DataClassRowMapper<>(SimpleCourseData.class));
@@ -134,10 +138,12 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getCoursesByStudyProgram(String studyId) {
 		return template.query("""
-				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c \
-				JOIN course_types ct ON c.course_type_id = ct.id \
-				JOIN curriculum_connections cc ON cc.course_id = c.id \
-				WHERE cc.study_id = :studyId ORDER BY c.title_en""",
+				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				JOIN semesters sem ON c.semester_id = sem.id
+				JOIN curriculum_connections cc ON cc.course_id = c.id
+				WHERE cc.study_id = :studyId ORDER BY c.title_en
+				""",
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
@@ -218,7 +224,7 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getByQuery(String query,
 			@Nullable String department,
-			int departmentID,
+			Integer departmentID,
 			@Nullable String language, //TODO we have no info about language
 			@Nullable String level, //bachelor, master, doctorate, etc
 			int page,
@@ -228,22 +234,23 @@ public class CoursesDataDB {
 			int sort,
 			int semester,
 			@Nullable String studyProgramId) {
-		final StringBuilder sqlQuery = new StringBuilder("SELECT * FROM courses");
+		final StringBuilder sqlQuery = new StringBuilder("""
+				SELECT c.id, c.title_ger, c.title_en, ct.key, sem.semester_key FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				JOIN semesters sem ON c.semester_id = sem.id
+				""");
 
-		if ((department != null && !department.isBlank()) || departmentID != 0) { //TODO remove condition if its information is used in result anyways
-			sqlQuery.append(" JOIN organizations ON courses.organization_id = organizations.id");
-		}
-		if (semester != 0) { //TODO remove condition if its information is used in result anyways
-			sqlQuery.append(" JOIN semesters ON courses.semester_id = semesters.id");
+		if ((department != null && !department.isBlank()) || departmentID != null) { //TODO remove condition if its information is used in result anyways
+			sqlQuery.append(" JOIN organizations ON c.organization_id = organizations.id");
 		}
 		if ((studyProgramId != null && !studyProgramId.isBlank()) || (level != null && !level.isBlank())) { // this is expensive, so we only do it if we need it
-			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = courses.id");
+			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = c.id");
 		}
 		sqlQuery.append(" WHERE 1=1");
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 
 		if (semester != 0) {
-			sqlQuery.append(" AND semesters.id = :semester");
+			sqlQuery.append(" AND sem.id = :semester");
 			params.addValue("semester", semester);
 		}
 		// 1. Text Search (Matches title or description in EN/GER)
@@ -265,11 +272,11 @@ public class CoursesDataDB {
 			params.addValue("department", "%" + department + "%");
 		}
 
-		if (departmentID != 0) {
+		if (departmentID != null) {
 			sqlQuery.append("""
 					AND organizations.id = :departmentid
 					""");
-			params.addValue("departmentid", "%" + departmentID + "%");
+			params.addValue("departmentid", departmentID);
 		}
 
 		if (studyProgramId != null && !studyProgramId.isBlank()) {

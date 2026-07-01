@@ -53,7 +53,7 @@ export function RecommendationPreview({ recommendations }: Props) {
 											display: "inline-flex",
 										}}
 									>
-										{rec.courseCode}
+										{rec?.courseCode ?? "N/A"}
 									</span>
 									<div
 										style={{
