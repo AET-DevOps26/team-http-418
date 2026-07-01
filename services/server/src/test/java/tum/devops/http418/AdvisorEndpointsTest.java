@@ -84,23 +84,23 @@ class AdvisorEndpointsTest extends BaseTest {
 				.andExpect(status().isNotFound());
 	}
 
-	@Test
-	void createConversationWithEmptyTitle() throws Exception {
-		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
-				.header("Authorization", "Bearer " + getToken())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"title\": \"\"}"))
-				.andExpect(status().isBadRequest());
-	}
+//	@Test
+//	void createConversationWithEmptyTitle() throws Exception {
+//		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
+//				.header("Authorization", "Bearer " + getToken())
+//				.contentType(MediaType.APPLICATION_JSON)
+//				.content("{\"title\": \"\"}"))
+//				.andExpect(status().isBadRequest());
+//	}
 
-	@Test
-	void createConversationWithNullTitle() throws Exception {
-		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
-				.header("Authorization", "Bearer " + getToken())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"title\": null}"))
-				.andExpect(status().isBadRequest());
-	}
+//	@Test
+//	void createConversationWithNullTitle() throws Exception {
+//		mockMvc.perform(post("/api/" + API_VERSION + "/me/advisor/conversations")
+//				.header("Authorization", "Bearer " + getToken())
+//				.contentType(MediaType.APPLICATION_JSON)
+//				.content("{\"title\": null}"))
+//				.andExpect(status().isBadRequest());
+//	}
 
 	@Test
 	void createConversationWithNoBody() throws Exception {

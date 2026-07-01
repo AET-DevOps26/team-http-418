@@ -1,6 +1,6 @@
 package tum.devops.http418.api;
 
-import org.springframework.web.client.RestClient.ResponseSpec;
+import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -126,11 +126,14 @@ public class APIControllerMe {
 
 	@GetMapping("")
 	public ResponseEntity<Profile> getProfile(@AuthenticationPrincipal String tumid) {
-		ResponseSpec profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve();
-		if (profile.toBodilessEntity().getStatusCode() != HttpStatus.OK)
-			return ResponseEntity.status(profile.toBodilessEntity().getStatusCode()).build();
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(profile.body(Profile.class));
+		try {
+			return restClient.get()
+					.uri(PROFILE_SERVICE + "/get/" + tumid)
+					.retrieve()
+					.toEntity(Profile.class);
+		} catch (RestClientResponseException e) {
+			return ResponseEntity.status(e.getStatusCode()).build();
+		}
 	}
 
 	@PutMapping("")

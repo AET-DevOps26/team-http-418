@@ -27,7 +27,11 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
 		final String query = """
-				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)""";
+				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
+				    JOIN semesters sem on c.semester_id = sem.id
+				    JOIN course_types ct on c.course_type_id = ct.id
+				    WHERE c.id IN (:ids)
+				""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
 		final List<SimpleCourseData> courses = template.query(query, parameters,
 				new DataClassRowMapper<>(SimpleCourseData.class));
@@ -134,10 +138,12 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getCoursesByStudyProgram(String studyId) {
 		return template.query("""
-				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c \
-				JOIN course_types ct ON c.course_type_id = ct.id \
-				JOIN curriculum_connections cc ON cc.course_id = c.id \
-				WHERE cc.study_id = :studyId ORDER BY c.title_en""",
+				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				JOIN semesters sem ON c.semester_id = sem.id
+				JOIN curriculum_connections cc ON cc.course_id = c.id
+				WHERE cc.study_id = :studyId ORDER BY c.title_en
+				""",
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
 
