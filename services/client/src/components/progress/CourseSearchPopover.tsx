@@ -13,7 +13,12 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 	const [results, setResults] = useState<CourseSummary[]>([]);
 	const [loading, setLoading] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		inputRef.current?.focus();
+	}, []);
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => {
@@ -55,14 +60,16 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 	return (
 		<div ref={ref} className="resolve-popover">
 			<input
-				autoFocus
+				ref={inputRef}
 				className="resolve-popover-input"
 				placeholder="Search courses..."
 				value={query}
 				onChange={(e) => handleInput(e.target.value)}
 			/>
 			{loading && (
-				<div style={{ padding: "12px", display: "flex", justifyContent: "center" }}>
+				<div
+					style={{ padding: "12px", display: "flex", justifyContent: "center" }}
+				>
 					<Loader2
 						size={16}
 						color="var(--muted)"
@@ -71,7 +78,13 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 				</div>
 			)}
 			{!loading && query.trim() && results.length === 0 && (
-				<div style={{ padding: "10px 14px", fontSize: 12.5, color: "var(--muted)" }}>
+				<div
+					style={{
+						padding: "10px 14px",
+						fontSize: 12.5,
+						color: "var(--muted)",
+					}}
+				>
 					No results for "{query}"
 				</div>
 			)}
@@ -92,7 +105,9 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 						>
 							{c.courseCode}
 						</span>
-						<span style={{ fontSize: 12.5, color: "var(--ink)" }}>{c.name}</span>
+						<span style={{ fontSize: 12.5, color: "var(--ink)" }}>
+							{c.name}
+						</span>
 					</button>
 				))}
 		</div>

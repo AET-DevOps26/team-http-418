@@ -2,7 +2,11 @@ import { useState } from "react";
 import type { Dispatch } from "react";
 import { addCompletedCourse } from "#/api/progress";
 import type { CourseSummary } from "#/api/types";
-import type { ImportAction, ReviewableCourse, UnmatchedCourse } from "#/hooks/useImportReducer";
+import type {
+	ImportAction,
+	ReviewableCourse,
+	UnmatchedCourse,
+} from "#/hooks/useImportReducer";
 import { CourseSearchPopover } from "./CourseSearchPopover";
 
 type Props = {
@@ -15,7 +19,10 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 	const [loadingId, setLoadingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
-	async function handleSelect(unmatchedCourse: UnmatchedCourse, course: CourseSummary) {
+	async function handleSelect(
+		unmatchedCourse: UnmatchedCourse,
+		course: CourseSummary,
+	) {
 		const moduleId = unmatchedCourse.module.moduleId ?? "";
 		setResolvingId(null);
 		setLoadingId(moduleId);
@@ -46,7 +53,14 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 
 	if (unmatched.length === 0) {
 		return (
-			<div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
+			<div
+				style={{
+					padding: "32px 0",
+					textAlign: "center",
+					color: "var(--muted)",
+					fontSize: 13,
+				}}
+			>
 				No unmatched courses
 			</div>
 		);
@@ -55,7 +69,10 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 	return (
 		<div>
 			{error && (
-				<div className="alert-item alert-error" style={{ marginBottom: 12, fontSize: 12.5 }}>
+				<div
+					className="alert-item alert-error"
+					style={{ marginBottom: 12, fontSize: 12.5 }}
+				>
 					{error}
 				</div>
 			)}
@@ -74,10 +91,7 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 						const isResolving = resolvingId === u.module.moduleId;
 						const isLoading = loadingId === u.module.moduleId;
 						return (
-							<tr
-								key={id}
-								style={{ opacity: u.skipped ? 0.5 : 1 }}
-							>
+							<tr key={id} style={{ opacity: u.skipped ? 0.5 : 1 }}>
 								<td
 									style={{
 										fontFamily: "var(--font-mono)",
@@ -92,7 +106,10 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 									{u.skipped ? (
 										<span
 											className="status-tag"
-											style={{ background: "var(--line-soft)", color: "var(--muted)" }}
+											style={{
+												background: "var(--line-soft)",
+												color: "var(--muted)",
+											}}
 										>
 											Skipped
 										</span>
@@ -107,14 +124,23 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 								</td>
 								<td>
 									{!u.skipped && (
-										<div style={{ display: "flex", gap: 6, alignItems: "center", position: "relative" }}>
+										<div
+											style={{
+												display: "flex",
+												gap: 6,
+												alignItems: "center",
+												position: "relative",
+											}}
+										>
 											<button
 												type="button"
 												className="btn btn-ghost"
 												style={{ fontSize: 12, padding: "4px 10px" }}
 												disabled={isLoading}
 												onClick={() =>
-													setResolvingId(isResolving ? null : u.module.moduleId ?? null)
+													setResolvingId(
+														isResolving ? null : (u.module.moduleId ?? null),
+													)
 												}
 											>
 												{isLoading ? "Resolving..." : "Resolve"}
@@ -125,7 +151,10 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 												style={{ fontSize: 12, padding: "4px 10px" }}
 												disabled={isLoading}
 												onClick={() =>
-													dispatch({ type: "SKIP_COURSE", moduleId: u.module.moduleId! })
+													dispatch({
+														type: "SKIP_COURSE",
+														moduleId: u.module.moduleId ?? "",
+													})
 												}
 											>
 												Skip

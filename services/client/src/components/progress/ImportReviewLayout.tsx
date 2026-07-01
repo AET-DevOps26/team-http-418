@@ -58,7 +58,14 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 						{state.generalErrors.length} error
 						{state.generalErrors.length > 1 ? "s" : ""}
 					</div>
-					<ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "var(--ink-soft)" }}>
+					<ul
+						style={{
+							margin: 0,
+							paddingLeft: 18,
+							fontSize: 12.5,
+							color: "var(--ink-soft)",
+						}}
+					>
 						{state.generalErrors.map((e) => (
 							<li key={e}>{e}</li>
 						))}
@@ -77,7 +84,9 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 				</div>
 			</div>
 
-			<div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>
+			<div
+				style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}
+			>
 				<button
 					type="button"
 					className="btn btn-primary"

@@ -29,5 +29,10 @@ function Progress() {
 		return <ImportOverview state={state} dispatch={dispatch} />;
 	}
 
-	return <EmptyUploadHero onFileSelected={handleFileSelected} isUploading={isPending} />;
+	return (
+		<EmptyUploadHero
+			onFileSelected={handleFileSelected}
+			isUploading={isPending}
+		/>
+	);
 }

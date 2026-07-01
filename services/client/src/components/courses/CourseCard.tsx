@@ -14,7 +14,9 @@ export function CourseCard({ course, onClick }: Props) {
 			onClick={() => onClick(course.id)}
 		>
 			<div className="catalog-course-card-header">
-				<span className="catalog-course-code">{course?.courseCode ?? "N/A"}</span>
+				<span className="catalog-course-code">
+					{course?.courseCode ?? "N/A"}
+				</span>
 				<div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
 					<span
 						className="tag"

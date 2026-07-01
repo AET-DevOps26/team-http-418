@@ -22,7 +22,7 @@ export function ImportedTable({ imported, dispatch }: Props) {
 
 	function startEdit(course: ReviewableCourse) {
 		setEditing({
-			courseId: course.courseId!,
+			courseId: course.courseId ?? "",
 			grade: course.grade ?? "",
 			credits: String(course.credits),
 			courseName: course.courseName ?? course.titleEn ?? "",
@@ -33,7 +33,7 @@ export function ImportedTable({ imported, dispatch }: Props) {
 	async function handleSave(course: ReviewableCourse) {
 		if (!editing || !course.courseId) return;
 		const newGrade = parseFloat(editing.grade);
-		if (isNaN(newGrade)) {
+		if (Number.isNaN(newGrade)) {
 			setError("Invalid grade value.");
 			return;
 		}
@@ -78,7 +78,14 @@ export function ImportedTable({ imported, dispatch }: Props) {
 
 	if (imported.length === 0) {
 		return (
-			<div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
+			<div
+				style={{
+					padding: "32px 0",
+					textAlign: "center",
+					color: "var(--muted)",
+					fontSize: 13,
+				}}
+			>
 				No imported courses yet
 			</div>
 		);
@@ -87,7 +94,10 @@ export function ImportedTable({ imported, dispatch }: Props) {
 	return (
 		<div>
 			{error && (
-				<div className="alert-item alert-error" style={{ marginBottom: 12, fontSize: 12.5 }}>
+				<div
+					className="alert-item alert-error"
+					style={{ marginBottom: 12, fontSize: 12.5 }}
+				>
 					{error}
 				</div>
 			)}
@@ -122,13 +132,15 @@ export function ImportedTable({ imported, dispatch }: Props) {
 									{isEditing ? (
 										<input
 											className="import-table-input"
-											value={editing!.courseName}
+											value={editing?.courseName}
 											onChange={(e) =>
-												setEditing((s) => s && { ...s, courseName: e.target.value })
+												setEditing(
+													(s) => s && { ...s, courseName: e.target.value },
+												)
 											}
 										/>
 									) : (
-										c.courseName ?? c.titleEn ?? "—"
+										(c.courseName ?? c.titleEn ?? "—")
 									)}
 								</td>
 								<td>
@@ -136,13 +148,13 @@ export function ImportedTable({ imported, dispatch }: Props) {
 										<input
 											className="import-table-input"
 											style={{ width: 60 }}
-											value={editing!.grade}
+											value={editing?.grade}
 											onChange={(e) =>
 												setEditing((s) => s && { ...s, grade: e.target.value })
 											}
 										/>
 									) : (
-										c.grade ?? "—"
+										(c.grade ?? "—")
 									)}
 								</td>
 								<td>
@@ -150,9 +162,11 @@ export function ImportedTable({ imported, dispatch }: Props) {
 										<input
 											className="import-table-input"
 											style={{ width: 60 }}
-											value={editing!.credits}
+											value={editing?.credits}
 											onChange={(e) =>
-												setEditing((s) => s && { ...s, credits: e.target.value })
+												setEditing(
+													(s) => s && { ...s, credits: e.target.value },
+												)
 											}
 										/>
 									) : (
@@ -199,7 +213,11 @@ export function ImportedTable({ imported, dispatch }: Props) {
 											<button
 												type="button"
 												className="btn btn-ghost"
-												style={{ fontSize: 12, padding: "4px 10px", color: "var(--danger)" }}
+												style={{
+													fontSize: 12,
+													padding: "4px 10px",
+													color: "var(--danger)",
+												}}
 												disabled={isLoading}
 												onClick={() => handleUnmatch(c)}
 											>

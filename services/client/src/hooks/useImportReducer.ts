@@ -1,6 +1,10 @@
 import { useReducer } from "react";
 import type { Dispatch } from "react";
-import type { ImportedCourse, TranscriptImportResult, UnmatchedModule } from "#/api/types";
+import type {
+	ImportedCourse,
+	TranscriptImportResult,
+	UnmatchedModule,
+} from "#/api/types";
 
 export type ImportPhase = "empty" | "review" | "done";
 
@@ -26,13 +30,18 @@ export type ImportAction =
 	| { type: "UPLOAD_SUCCESS"; result: TranscriptImportResult }
 	| { type: "RESOLVE_COURSE"; moduleId: string; course: ReviewableCourse }
 	| { type: "UNRESOLVE_COURSE"; courseId: string }
-	| { type: "EDIT_COURSE"; courseId: string; updates: Partial<ReviewableCourse> }
+	| {
+			type: "EDIT_COURSE";
+			courseId: string;
+			updates: Partial<ReviewableCourse>;
+	  }
 	| { type: "SKIP_COURSE"; moduleId: string }
 	| { type: "FINISH_IMPORT" }
 	| { type: "RESET" };
 
 const UNMATCHED_PATTERN = /^No catalog match for ([^:]+): (.+)$/;
-const ALREADY_IMPORTED_PATTERN = /^Already imported: ([^\s(]+)\s*(?:\(([^)]+)\))?/;
+const ALREADY_IMPORTED_PATTERN =
+	/^Already imported: ([^\s(]+)\s*(?:\(([^)]+)\))?/;
 
 type ParsedErrors = {
 	unmatched: UnmatchedCourse[];
@@ -48,7 +57,10 @@ function parseErrors(errors: string[]): ParsedErrors {
 		const unmatchedMatch = UNMATCHED_PATTERN.exec(err);
 		if (unmatchedMatch) {
 			unmatched.push({
-				module: { moduleId: unmatchedMatch[1].trim(), titleEn: unmatchedMatch[2].trim() },
+				module: {
+					moduleId: unmatchedMatch[1].trim(),
+					titleEn: unmatchedMatch[2].trim(),
+				},
 				originalError: err,
 				skipped: false,
 			});
@@ -112,7 +124,9 @@ function reducer(state: ImportState, action: ImportAction): ImportState {
 			return {
 				...state,
 				imported: [...state.imported, action.course],
-				unmatched: state.unmatched.filter((u) => u.module.moduleId !== action.moduleId),
+				unmatched: state.unmatched.filter(
+					(u) => u.module.moduleId !== action.moduleId,
+				),
 			};
 		}
 
@@ -172,7 +186,9 @@ function loadState(): ImportState {
 	try {
 		const raw = sessionStorage.getItem(STORAGE_KEY);
 		if (raw) return JSON.parse(raw);
-	} catch { /* ignore */ }
+	} catch {
+		/* ignore */
+	}
 	return initialState;
 }
 
@@ -183,10 +199,15 @@ function saveState(state: ImportState) {
 		} else {
 			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 		}
-	} catch { /* ignore */ }
+	} catch {
+		/* ignore */
+	}
 }
 
-function persistingReducer(state: ImportState, action: ImportAction): ImportState {
+function persistingReducer(
+	state: ImportState,
+	action: ImportAction,
+): ImportState {
 	const next = reducer(state, action);
 	saveState(next);
 	return next;

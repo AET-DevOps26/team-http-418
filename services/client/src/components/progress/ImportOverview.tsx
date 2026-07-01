@@ -13,7 +13,9 @@ export function ImportOverview({ state, dispatch }: Props) {
 
 	const { imported } = state;
 	const totalCredits = imported.reduce((sum, c) => sum + c.credits, 0);
-	const grades = imported.filter((c) => c.grade).map((c) => parseFloat(c.grade!));
+	const grades = imported
+		.filter((c) => c.grade)
+		.map((c) => parseFloat(c.grade ?? "0"));
 	const avgGrade =
 		grades.length > 0
 			? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)
@@ -46,13 +48,25 @@ export function ImportOverview({ state, dispatch }: Props) {
 					Import Complete
 				</h1>
 				<p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--muted)" }}>
-					{imported.length} course{imported.length !== 1 ? "s" : ""} imported successfully
+					{imported.length} course{imported.length !== 1 ? "s" : ""} imported
+					successfully
 				</p>
 			</div>
 
-			<div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+			<div
+				style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}
+			>
 				<div className="card" style={{ padding: "14px 20px", minWidth: 120 }}>
-					<div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+					<div
+						style={{
+							fontSize: 11,
+							fontWeight: 600,
+							color: "var(--muted)",
+							textTransform: "uppercase",
+							letterSpacing: "0.06em",
+							marginBottom: 4,
+						}}
+					>
 						Courses
 					</div>
 					<div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)" }}>
@@ -60,7 +74,16 @@ export function ImportOverview({ state, dispatch }: Props) {
 					</div>
 				</div>
 				<div className="card" style={{ padding: "14px 20px", minWidth: 120 }}>
-					<div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+					<div
+						style={{
+							fontSize: 11,
+							fontWeight: 600,
+							color: "var(--muted)",
+							textTransform: "uppercase",
+							letterSpacing: "0.06em",
+							marginBottom: 4,
+						}}
+					>
 						Total Credits
 					</div>
 					<div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)" }}>
@@ -69,7 +92,16 @@ export function ImportOverview({ state, dispatch }: Props) {
 				</div>
 				{avgGrade && (
 					<div className="card" style={{ padding: "14px 20px", minWidth: 120 }}>
-						<div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+						<div
+							style={{
+								fontSize: 11,
+								fontWeight: 600,
+								color: "var(--muted)",
+								textTransform: "uppercase",
+								letterSpacing: "0.06em",
+								marginBottom: 4,
+							}}
+						>
 							Avg Grade
 						</div>
 						<div style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)" }}>
@@ -89,7 +121,10 @@ export function ImportOverview({ state, dispatch }: Props) {
 				/>
 			</div>
 
-			<div className="card" style={{ overflow: "hidden", padding: "8px 20px 12px" }}>
+			<div
+				className="card"
+				style={{ overflow: "hidden", padding: "8px 20px 12px" }}
+			>
 				<table className="progress-table">
 					<thead>
 						<tr>
@@ -104,7 +139,11 @@ export function ImportOverview({ state, dispatch }: Props) {
 							<tr>
 								<td
 									colSpan={4}
-									style={{ textAlign: "center", color: "var(--muted)", padding: "24px" }}
+									style={{
+										textAlign: "center",
+										color: "var(--muted)",
+										padding: "24px",
+									}}
 								>
 									{query ? `No results for "${query}"` : "No courses"}
 								</td>
