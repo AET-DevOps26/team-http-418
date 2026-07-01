@@ -27,7 +27,7 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 					Review Import
 				</h1>
 				<p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--muted)" }}>
-					Resolve unmatched courses before finishing the import
+					Resolve or skip unmatched courses, then finish the import
 				</p>
 			</div>
 

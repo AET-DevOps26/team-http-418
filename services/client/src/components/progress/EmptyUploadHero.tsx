@@ -3,9 +3,10 @@ import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
 type Props = {
 	onFileSelected: (file: File) => void;
 	isUploading: boolean;
+	error?: string | null;
 };
 
-export function EmptyUploadHero({ onFileSelected, isUploading }: Props) {
+export function EmptyUploadHero({ onFileSelected, isUploading, error }: Props) {
 	return (
 		<div className="import-hero">
 			<div className="import-hero-card">
@@ -84,6 +85,14 @@ export function EmptyUploadHero({ onFileSelected, isUploading }: Props) {
 					onFileSelected={onFileSelected}
 					isUploading={isUploading}
 				/>
+				{error && (
+					<div
+						className="alert-item alert-error"
+						style={{ marginTop: 16, fontSize: 13 }}
+					>
+						{error}
+					</div>
+				)}
 			</div>
 		</div>
 	);

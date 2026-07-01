@@ -15,6 +15,7 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 	const ref = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const requestId = useRef(0);
 
 	useEffect(() => {
 		inputRef.current?.focus();
@@ -45,14 +46,17 @@ export function CourseSearchPopover({ onSelect, onClose }: Props) {
 			return;
 		}
 		setLoading(true);
+		const currentRequest = ++requestId.current;
 		timerRef.current = setTimeout(async () => {
 			try {
 				const page = await getCourses({ search: value, size: 10 });
+				if (currentRequest !== requestId.current) return;
 				setResults(page.content);
 			} catch {
+				if (currentRequest !== requestId.current) return;
 				setResults([]);
 			} finally {
-				setLoading(false);
+				if (currentRequest === requestId.current) setLoading(false);
 			}
 		}, 300);
 	}

@@ -14,8 +14,8 @@ export function ImportOverview({ state, dispatch }: Props) {
 	const { imported } = state;
 	const totalCredits = imported.reduce((sum, c) => sum + c.credits, 0);
 	const grades = imported
-		.filter((c) => c.grade)
-		.map((c) => parseFloat(c.grade ?? "0"));
+		.map((c) => parseFloat(c.grade ?? ""))
+		.filter(Number.isFinite);
 	const avgGrade =
 		grades.length > 0
 			? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)

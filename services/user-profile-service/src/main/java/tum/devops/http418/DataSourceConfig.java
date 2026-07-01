@@ -95,7 +95,7 @@ public class DataSourceConfig {
 					Thread.sleep(2000L * attempt);
 				} catch (InterruptedException ie) {
 					Thread.currentThread().interrupt();
-					return;
+					throw new RuntimeException("Interrupted while waiting for database readiness", ie);
 				}
 			} finally {
 				if (adminDataSource != null) {

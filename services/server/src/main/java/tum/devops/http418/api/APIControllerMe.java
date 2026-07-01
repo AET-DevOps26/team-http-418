@@ -140,6 +140,7 @@ public class APIControllerMe {
 									.findFirst().orElse(null);
 							if (module == null)
 								continue;
+							aiMatchedIds.add(moduleId);
 							final BigDecimal grade = new BigDecimal(String.valueOf(module.grade()))
 									.setScale(1, RoundingMode.HALF_UP);
 							final StudentDataDB.CompletedCourseRow inserted = studentDataDB.insertCompletedCourse(
@@ -154,7 +155,6 @@ public class APIControllerMe {
 										courseName != null ? courseName : moduleId,
 										moduleId, module.titleDe(), module.titleEn(),
 										grade.toPlainString(), module.credits()));
-								aiMatchedIds.add(moduleId);
 							}
 						}
 					}

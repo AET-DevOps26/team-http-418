@@ -135,7 +135,7 @@ function reducer(state: ImportState, action: ImportAction): ImportState {
 			if (!course) return state;
 			const unmatchedCourse: UnmatchedCourse = {
 				module: {
-					moduleId: course.moduleId,
+					moduleId: course.moduleId ?? "",
 					titleEn: course.titleEn,
 					titleDe: course.titleDe,
 					grade: course.grade,

@@ -206,7 +206,7 @@ export type ImportError =
 	  };
 
 export type UnmatchedModule = {
-	moduleId?: string;
+	moduleId: string;
 	titleEn?: string;
 	titleDe?: string;
 	grade?: string;

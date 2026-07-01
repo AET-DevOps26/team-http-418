@@ -11,8 +11,6 @@ type Props = {
 type EditState = {
 	courseId: string;
 	grade: string;
-	credits: string;
-	courseName: string;
 };
 
 export function ImportedTable({ imported, dispatch }: Props) {
@@ -24,8 +22,6 @@ export function ImportedTable({ imported, dispatch }: Props) {
 		setEditing({
 			courseId: course.courseId ?? "",
 			grade: course.grade ?? "",
-			credits: String(course.credits),
-			courseName: course.courseName ?? course.titleEn ?? "",
 		});
 		setError(null);
 	}
@@ -41,21 +37,26 @@ export function ImportedTable({ imported, dispatch }: Props) {
 		setError(null);
 		try {
 			await removeCompletedCourse(course.courseId);
-			const completed = await addCompletedCourse({
-				courseId: course.courseId,
-				grade: newGrade,
-				semester: "",
-			});
-			dispatch({
-				type: "EDIT_COURSE",
-				courseId: course.courseId,
-				updates: {
-					grade: String(completed.grade),
-					credits: completed.credits,
-					courseName: editing.courseName || course.courseName,
-				},
-			});
-			setEditing(null);
+			try {
+				const completed = await addCompletedCourse({
+					courseId: course.courseId,
+					grade: newGrade,
+					semester: "",
+				});
+				dispatch({
+					type: "EDIT_COURSE",
+					courseId: course.courseId,
+					updates: { grade: String(completed.grade) },
+				});
+				setEditing(null);
+			} catch {
+				await addCompletedCourse({
+					courseId: course.courseId,
+					grade: parseFloat(course.grade ?? "0"),
+					semester: "",
+				}).catch(() => {});
+				setError("Save failed. Original grade restored.");
+			}
 		} catch {
 			setError("Save failed. Try again.");
 		} finally {
@@ -128,21 +129,7 @@ export function ImportedTable({ imported, dispatch }: Props) {
 								>
 									{c.moduleId ?? c.courseCode ?? "—"}
 								</td>
-								<td>
-									{isEditing ? (
-										<input
-											className="import-table-input"
-											value={editing?.courseName}
-											onChange={(e) =>
-												setEditing(
-													(s) => s && { ...s, courseName: e.target.value },
-												)
-											}
-										/>
-									) : (
-										(c.courseName ?? c.titleEn ?? "—")
-									)}
-								</td>
+								<td>{c.courseName ?? c.titleEn ?? "—"}</td>
 								<td>
 									{isEditing ? (
 										<input
@@ -157,22 +144,7 @@ export function ImportedTable({ imported, dispatch }: Props) {
 										(c.grade ?? "—")
 									)}
 								</td>
-								<td>
-									{isEditing ? (
-										<input
-											className="import-table-input"
-											style={{ width: 60 }}
-											value={editing?.credits}
-											onChange={(e) =>
-												setEditing(
-													(s) => s && { ...s, credits: e.target.value },
-												)
-											}
-										/>
-									) : (
-										c.credits
-									)}
-								</td>
+								<td>{c.credits}</td>
 								<td>
 									{!hasCourseId ? (
 										<span style={{ fontSize: 11.5, color: "var(--muted)" }}>

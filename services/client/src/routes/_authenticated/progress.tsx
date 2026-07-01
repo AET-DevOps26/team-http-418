@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { EmptyUploadHero } from "#/components/progress/EmptyUploadHero";
 import { ImportOverview } from "#/components/progress/ImportOverview";
 import { ImportReviewLayout } from "#/components/progress/ImportReviewLayout";
@@ -12,11 +13,16 @@ export const Route = createFileRoute("/_authenticated/progress")({
 function Progress() {
 	const [state, dispatch] = useImportReducer();
 	const { mutate, isPending } = useTranscriptUpload();
+	const [uploadError, setUploadError] = useState<string | null>(null);
 
 	function handleFileSelected(file: File) {
+		setUploadError(null);
 		mutate(file, {
 			onSuccess: (result) => {
 				dispatch({ type: "UPLOAD_SUCCESS", result });
+			},
+			onError: (error) => {
+				setUploadError(error?.message ?? "Upload failed. Please try again.");
 			},
 		});
 	}
@@ -33,6 +39,7 @@ function Progress() {
 		<EmptyUploadHero
 			onFileSelected={handleFileSelected}
 			isUploading={isPending}
+			error={uploadError}
 		/>
 	);
 }

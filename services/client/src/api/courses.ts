@@ -28,11 +28,13 @@ type ServerCourse = {
 function toCourseSummary(c: ServerCourse): CourseSummary {
 	return {
 		id: String(c.id),
+		title_ger: c.title_ger ?? "",
+		title_en: c.title_en ?? "",
 		courseCode: c.key ?? "",
 		name: c.title_en ?? c.title_ger ?? "",
 		department: "",
 		credits: 0,
-		language: "EN",
+		language: "",
 		level: "",
 		preferredSemester: "",
 		hasPrerequisites: false,
@@ -43,8 +45,9 @@ function toCourseSummary(c: ServerCourse): CourseSummary {
 export async function getCourses(
 	params: CourseSearchParams,
 ): Promise<Page<CourseSummary>> {
-	const { creditsMin, creditsMax, ...rest } = params;
+	const { creditsMin, creditsMax, search, ...rest } = params;
 	const raw: Record<string, unknown> = { ...rest };
+	if (search !== undefined && search !== "") raw.query = search;
 	if (creditsMin !== undefined) raw.credits_min = creditsMin;
 	if (creditsMax !== undefined) raw.credits_max = creditsMax;
 	const data = await apiFetch<ServerCourse[]>(`/courses${buildQuery(raw)}`);
