@@ -44,30 +44,18 @@ class AdvisorResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
     content: str
-    referenced_courses: Annotated[
-        list[ReferencedCourse],
-        Field(default=[], alias="referencedCourses")
-    ]
+    referenced_courses: Annotated[list[ReferencedCourse], Field(default=[], alias="referencedCourses")]
 
 
 class AdvisorRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentAdvisorProfile
-    completed_courses: Annotated[
-        list[CompletedCourseRef],
-        Field(default=[], alias="completedCourses")
-    ]
+    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
 
-    conversation_history: Annotated[
-        list[ConversationMessage],
-        Field(default=[], alias="conversationHistory")
-    ]
+    conversation_history: Annotated[list[ConversationMessage], Field(default=[], alias="conversationHistory")]
 
-    new_message: Annotated[
-        str,
-        Field(alias="newMessage")
-    ]
+    new_message: Annotated[str, Field(alias="newMessage")]
 
 
 class AdvisorPromptSuggestionsRequest(BaseModel):
@@ -75,15 +63,9 @@ class AdvisorPromptSuggestionsRequest(BaseModel):
 
     student: StudentAdvisorProfile
 
-    completed_courses: Annotated[
-        list[CompletedCourseRef],
-        Field(default=[], alias="completedCourses")
-    ]
+    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
 
-    current_semester: Annotated[
-        str | None,
-        Field(default=None, alias="currentSemester")
-    ]
+    current_semester: Annotated[str | None, Field(default=None, alias="currentSemester")]
 
 
 class PromptSuggestionChip(BaseModel):

@@ -86,7 +86,6 @@ public class APIControllerMeAdvisor {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found");
 		}
 
-
 		Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
 		if (profile == null || profile.student() == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found");
