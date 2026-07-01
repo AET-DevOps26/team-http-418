@@ -55,6 +55,7 @@ app.include_router(prerequisites.router, prefix="/v1")
 app.include_router(roadmap.router, prefix="/v1")
 app.include_router(stubs.router, prefix="/v1")
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     # 1. Extract details about the request
@@ -63,12 +64,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     # 2. Log the exact validation errors and payload
     logger.error(
-        "422 Unprocessable Content Error!\n"
-        "URL: %s %s\n"
-        "Errors: %s\n"
-        "Payload received: %s",
+        "422 Unprocessable Content Error!\nURL: %s %s\nErrors: %s\nPayload received: %s",
         request.method,
         request.url,
         exc.errors(),  # This contains exactly which field failed and why
-        decoded_body
+        decoded_body,
     )
