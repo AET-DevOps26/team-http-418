@@ -38,7 +38,7 @@ export function CourseCard({ course, onClick }: Props) {
 					{course?.department ?? "N/A"}
 				</span>
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
-					{course?.credits ?? "N/A"} ECTS
+					{course?.credits != null ? `${course.credits} ECTS` : "N/A"}
 				</span>
 			</div>
 			{(course?.hasPrerequisites ?? false) && (

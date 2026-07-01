@@ -29,5 +29,31 @@ services:
       - server
     restart: unless-stopped
 
+  user-profile-service:
+    image: ghcr.io/aet-devops26/team-http-418/user-profile-service:{{ image_tag }}
+    expose:
+      - "8080"
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pdf-parser:
+    image: ghcr.io/aet-devops26/team-http-418/pdf-parser:{{ image_tag }}
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   pgdata:

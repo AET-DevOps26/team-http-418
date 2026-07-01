@@ -51,6 +51,24 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/client:latest
             ${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
 
+      - name: Build and push user-profile-service image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/user-profile-service
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/user-profile-service:latest
+            ${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.sha }}
+
+      - name: Build and push pdf-parser image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/pdf-parser
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/pdf-parser:latest
+            ${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.sha }}
+
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push

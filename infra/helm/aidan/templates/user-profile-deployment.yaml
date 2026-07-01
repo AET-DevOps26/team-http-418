@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-profile-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: user-profile-service
+    {{- include "aidan.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.userProfile }}
+  selector:
+    matchLabels:
+      app: user-profile-service
+  template:
+    metadata:
+      labels:
+        app: user-profile-service
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 15
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17
+          command: ["sh", "-c", "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres; sleep 2; done"]
+      containers:
+        - name: user-profile-service
+          image: {{ printf "%s/%s/%s/user-profile-service:%s" .Values.image.registry .Values.image.org .Values.image.repo .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.userProfile.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: aidan-config
+            - secretRef:
+                name: aidan-secret
+          resources:
+            {{- toYaml .Values.userProfile.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.userProfile.containerPort }}
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.userProfile.containerPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.userProfile.containerPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3

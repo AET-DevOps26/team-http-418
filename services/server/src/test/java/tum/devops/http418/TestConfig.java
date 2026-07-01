@@ -12,6 +12,10 @@ import javax.sql.DataSource;
 
 @TestConfiguration
 public class TestConfig {
+	public static double h2Similarity(String a, String b) {
+		return 0.0;
+	}
+
 	@Bean
 	@Primary
 	public DataSource dataSource() {
@@ -84,6 +88,8 @@ public class TestConfig {
 	@DependsOn("securityJdbcTemplate")
 	public NamedParameterJdbcTemplate coursesJdbcTemplate(DataSource dataSource) {
 		final NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+		jdbcTemplate.getJdbcOperations().execute(
+				"CREATE ALIAS IF NOT EXISTS SIMILARITY FOR 'tum.devops.http418.TestConfig.h2Similarity'");
 		jdbcTemplate.getJdbcOperations().execute("""
 				CREATE TABLE IF NOT EXISTS semesters (
 				    id INT PRIMARY KEY, semester_key TEXT NOT NULL, academic_year_id INT,

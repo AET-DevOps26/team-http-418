@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdf-parser
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: pdf-parser
+    {{- include "aidan.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.pdfParser }}
+  selector:
+    matchLabels:
+      app: pdf-parser
+  template:
+    metadata:
+      labels:
+        app: pdf-parser
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 15
+      containers:
+        - name: pdf-parser
+          image: {{ printf "%s/%s/%s/pdf-parser:%s" .Values.image.registry .Values.image.org .Values.image.repo .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.pdfParser.containerPort }}
+          resources:
+            {{- toYaml .Values.pdfParser.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.pdfParser.containerPort }}
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.pdfParser.containerPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: {{ .Values.pdfParser.containerPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3

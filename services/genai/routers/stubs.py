@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from models.transcript import TranscriptMatchRequest
+from services.transcript import match_transcript_modules
+
 router = APIRouter()
 
 
@@ -10,6 +13,6 @@ async def roadmap_generate():
     return JSONResponse({"error": "Not implemented"}, status_code=501)
 
 
-@router.post("/me/transcript/upload")
-async def transcript_parse():
-    return JSONResponse({"error": "Not implemented"}, status_code=501)
+@router.post("/transcript/match")
+async def transcript_match(request: TranscriptMatchRequest):
+    return match_transcript_modules(request)

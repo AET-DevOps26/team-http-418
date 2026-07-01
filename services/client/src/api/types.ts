@@ -205,11 +205,20 @@ export type ImportError =
 			message: string;
 	  };
 
+export type UnmatchedModule = {
+	moduleId: string;
+	titleEn?: string;
+	titleDe?: string;
+	grade?: string;
+	credits?: number;
+};
+
 export type TranscriptImportResult = {
 	importedCount: number;
 	skippedCount: number;
 	importedCourses: ImportedCourse[];
 	errors: ImportError[];
+	unmatchedModules?: UnmatchedModule[];
 };
 
 export type CreditsByCategory = {
