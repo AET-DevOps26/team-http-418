@@ -43,6 +43,9 @@ terraform.tfvars
 # Ansible
 *.retry
 
+# DB seed (uncompressed)
+infra/db/init/courses-data.sql
+
 # Python
 .venv/
 venv/

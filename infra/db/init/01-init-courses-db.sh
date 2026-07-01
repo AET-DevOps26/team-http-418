@@ -9,11 +9,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "courses-data" <<-E
     CREATE EXTENSION IF NOT EXISTS vector;
 EOSQL
 
-if [ -f /docker-entrypoint-initdb.d/courses-data.sql ]; then
+if [ -f /docker-entrypoint-initdb.d/courses-data.sql.gz ]; then
     echo "Loading courses seed data..."
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "courses-data" \
-        -f /docker-entrypoint-initdb.d/courses-data.sql
+    gunzip -c /docker-entrypoint-initdb.d/courses-data.sql.gz | \
+        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "courses-data"
     echo "Courses seed data loaded."
 else
-    echo "No courses-data.sql found — starting with empty courses database."
+    echo "No courses-data.sql.gz found — starting with empty courses database."
 fi
