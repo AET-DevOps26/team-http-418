@@ -36,7 +36,7 @@ jobs:
       - name: Build and push server image
         uses: docker/build-push-action@v6
         with:
-          context: ./server
+          context: ./services/server
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/server:latest
@@ -45,7 +45,7 @@ jobs:
       - name: Build and push client image
         uses: docker/build-push-action@v6
         with:
-          context: ./client
+          context: ./services/client
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/client:latest
@@ -68,7 +68,7 @@ jobs:
 
       - name: Update inventory with VM IP
         run: |
-          sed -i "s/PLACEHOLDER_VM_IP/${{ secrets.AZURE_VM_IP }}/" ansible/inventory.ini
+          sed -i "s/PLACEHOLDER_VM_IP/${{ secrets.AZURE_VM_IP }}/" infra/ansible/inventory.ini
 
       - name: Deploy via Ansible
         env:
@@ -77,4 +77,4 @@ jobs:
           GHCR_USERNAME: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
         run: |
-          ansible-playbook ansible/playbook.yml --private-key ~/.ssh/aidan_azure
+          ansible-playbook infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure

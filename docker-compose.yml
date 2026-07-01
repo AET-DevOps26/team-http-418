@@ -1,6 +1,6 @@
 services:
   db:
-    build: db
+    build: infra/db
     ports:
       - "5432:5432"
     environment:
@@ -15,7 +15,7 @@ services:
       retries: 5
 
   server:
-    build: ./server
+    build: ./services/server
     ports:
       - "8080:8080"
     env_file: .env
@@ -35,7 +35,7 @@ services:
       retries: 5
 
   pdf-parser:
-    build: ./pdf-parser
+    build: ./services/pdf-parser
     ports:
       - "8070:8080"
     healthcheck:
@@ -45,7 +45,7 @@ services:
       retries: 5
 
   user-profile-service:
-    build: ./user-profile-service
+    build: ./services/user-profile-service
     ports:
       - "8060:8080"
     env_file: .env
@@ -60,7 +60,7 @@ services:
 
   client:
     build:
-      context: ./client
+      context: ./services/client
       args:
         - API_VERSION=${API_VERSION}
     ports:
@@ -69,7 +69,7 @@ services:
       - server
 
   genai:
-    build: ./genai
+    build: ./services/genai
     env_file: .env
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')\""]
@@ -92,7 +92,7 @@ services:
       retries: 3
 
   scraper:
-    build: ./scraper
+    build: ./services/scraper
     profiles:
       - scraper
     env_file: .env
@@ -103,7 +103,7 @@ services:
         condition: service_healthy
 
   scraper-clean:
-    build: ./scraper
+    build: ./services/scraper
     command: ["--clean"]
     profiles:
       - scraper_clean
