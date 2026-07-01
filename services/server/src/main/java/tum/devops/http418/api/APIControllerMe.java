@@ -16,7 +16,11 @@ import tum.devops.http418.data.StudentDataDB;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static tum.devops.http418.Http418Application.*;
 
@@ -78,15 +82,14 @@ public class APIControllerMe {
 
 			final List<TranscriptImportResultDTO.ImportedCourse> importedCourses = new ArrayList<>();
 			final List<String> errors = new ArrayList<>();
+			final List<ParsedModule> unmatchedModules = new ArrayList<>();
 			int skipped = 0;
 
 			for (final ParsedModule module : modules) {
 				final CoursesDataDB.CourseMatchResult course = coursesDataDB.findCourseMatchByTitle(
 						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgram, module.moduleId());
 				if (course == null) {
-					skipped++;
-					final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
-					errors.add("No catalog match for " + module.moduleId() + ": " + title);
+					unmatchedModules.add(module);
 					continue;
 				}
 				final BigDecimal grade = new BigDecimal(String.valueOf(module.grade()))
@@ -105,6 +108,71 @@ public class APIControllerMe {
 							course.id(), module.moduleId(), courseName,
 							module.moduleId(), module.titleDe(), module.titleEn(),
 							grade.toPlainString(), module.credits()));
+				}
+			}
+
+			if (!unmatchedModules.isEmpty() && transcriptService.isTranscriptAiEnabled()) {
+				try {
+					final List<Map<String, String>> aiModules = new ArrayList<>();
+					for (final ParsedModule m : unmatchedModules) {
+						final Map<String, String> entry = new HashMap<>();
+						entry.put("module_id", m.moduleId());
+						entry.put("title_en", m.titleEn());
+						entry.put("title_de", m.titleDe());
+						aiModules.add(entry);
+					}
+					final String aiBody = objectMapper.writeValueAsString(Map.of("modules", aiModules));
+					final String aiResponse = transcriptService.callTranscriptMatch(aiBody);
+					final Map<String, Object> aiResult = objectMapper.readValue(aiResponse, new TypeReference<>() {});
+					@SuppressWarnings("unchecked")
+					final List<Map<String, Object>> aiMatches = (List<Map<String, Object>>) aiResult.get("matches");
+					final Set<String> aiMatchedIds = new HashSet<>();
+					if (aiMatches != null) {
+						for (final Map<String, Object> match : aiMatches) {
+							final String moduleId = (String) match.get("module_id");
+							final long courseId = ((Number) match.get("course_id")).longValue();
+							final ParsedModule module = unmatchedModules.stream()
+									.filter(m -> moduleId != null && moduleId.equals(m.moduleId()))
+									.findFirst().orElse(null);
+							if (module == null)
+								continue;
+							final BigDecimal grade = new BigDecimal(String.valueOf(module.grade()))
+									.setScale(1, RoundingMode.HALF_UP);
+							final StudentDataDB.CompletedCourseRow inserted = studentDataDB.insertCompletedCourse(
+									tumid, courseId, grade, module.credits(), null, "Uncategorized");
+							if (inserted == null) {
+								skipped++;
+								errors.add("Already imported: " + moduleId);
+							} else {
+								final String courseName = coursesDataDB.getCourseTitleEn(courseId);
+								importedCourses.add(new TranscriptImportResultDTO.ImportedCourse(
+										String.valueOf(courseId), moduleId,
+										courseName != null ? courseName : moduleId,
+										moduleId, module.titleDe(), module.titleEn(),
+										grade.toPlainString(), module.credits()));
+								aiMatchedIds.add(moduleId);
+							}
+						}
+					}
+					for (final ParsedModule module : unmatchedModules) {
+						if (!aiMatchedIds.contains(module.moduleId())) {
+							skipped++;
+							final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
+							errors.add("No catalog match for " + module.moduleId() + ": " + title);
+						}
+					}
+				} catch (Exception e) {
+					for (final ParsedModule module : unmatchedModules) {
+						skipped++;
+						final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
+						errors.add("No catalog match for " + module.moduleId() + ": " + title);
+					}
+				}
+			} else {
+				for (final ParsedModule module : unmatchedModules) {
+					skipped++;
+					final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
+					errors.add("No catalog match for " + module.moduleId() + ": " + title);
 				}
 			}
 

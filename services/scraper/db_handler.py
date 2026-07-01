@@ -89,6 +89,7 @@ class DB:
         Initializes the database tables.
         """
         async with self.conn.transaction():
+            await self.conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
             # semesters table
             await self.conn.execute("""
                                     CREATE TABLE if not exists semesters
