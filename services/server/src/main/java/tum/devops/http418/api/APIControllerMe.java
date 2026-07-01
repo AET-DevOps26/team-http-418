@@ -1,5 +1,6 @@
 package tum.devops.http418.api;
 
+import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -213,24 +214,25 @@ public class APIControllerMe {
 	@GetMapping("")
 	public ResponseEntity<Profile> getProfile(@AuthenticationPrincipal String tumid) {
 		try {
-			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
-					.body(Profile.class);
-			return ResponseEntity.ok(profile);
-		} catch (Exception e) {
-			return ResponseEntity.notFound().build();
+			return restClient.get()
+					.uri(PROFILE_SERVICE + "/get/" + tumid)
+					.retrieve()
+					.toEntity(Profile.class);
+		} catch (RestClientResponseException e) {
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
 	}
 
 	@PutMapping("")
 	public ResponseEntity<String> upsertProfile(@RequestBody Profile profile, @AuthenticationPrincipal String tumid) {
-		final ResponseEntity<String> entity = restClient.post().uri(PROFILE_SERVICE + "/v1/upsert/" + tumid)
+		final ResponseEntity<String> entity = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
 				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().toEntity(String.class);
 		return ResponseEntity.status(entity.getStatusCode()).body(entity.getBody());
 	}
 
 	@GetMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid) {
-		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
+		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
 				.body(Profile.class);
 		if (profile == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -242,7 +244,7 @@ public class APIControllerMe {
 	@PostMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid,
 			@RequestBody PostRecommendationsBody prompt) {
-		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
+		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
 				.body(Profile.class);
 		if (profile == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

@@ -34,7 +34,7 @@ public class APIController {
 	public ResponseEntity<List<SimpleCourseData>> getCourses(
 			@RequestParam(required = false, defaultValue = "") String query,
 			@RequestParam(required = false) String department,
-			@RequestParam(required = false, defaultValue = "0") int departmentID,
+			@RequestParam(required = false) Integer departmentID,
 			@RequestParam(required = false, defaultValue = "en") String language,
 			@RequestParam(required = false) String level, //bachelor, master, doctorate, etc
 			@RequestParam(required = false, defaultValue = "false") boolean ai,

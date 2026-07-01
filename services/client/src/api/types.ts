@@ -352,6 +352,8 @@ export type ScheduleType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM" | string;
 export type PrerequisiteType = "REQUIRED" | "RECOMMENDED" | string;
 
 export type CourseSummary = {
+	title_ger: string;
+	title_en: string;
 	id: string;
 	courseCode: string;
 	name: string;

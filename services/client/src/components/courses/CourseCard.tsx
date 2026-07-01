@@ -32,7 +32,7 @@ export function CourseCard({ course, onClick }: Props) {
 					</span>
 				</div>
 			</div>
-			<p className="catalog-course-name">{course?.name ?? "N/A"}</p>
+			<p className="catalog-course-name">{course?.title_ger ?? "N/A"}</p>
 			<div className="catalog-course-meta">
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
 					{course?.department ?? "N/A"}
@@ -41,7 +41,7 @@ export function CourseCard({ course, onClick }: Props) {
 					{course?.credits ?? "N/A"} ECTS
 				</span>
 			</div>
-			{course.hasPrerequisites && (
+			{(course?.hasPrerequisites ?? false) && (
 				<div
 					style={{
 						marginTop: 8,
