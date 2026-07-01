@@ -27,11 +27,12 @@ public class StudentDataDB {
 	private final ObjectMapper objectMapper;
 	private final Logger logger = LoggerFactory.getLogger(StudentDataDB.class);
 
-	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template, CoursesDataDB coursesDataDB, ObjectMapper objectMapper) {
+	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template,
+			CoursesDataDB coursesDataDB, ObjectMapper objectMapper) {
 		this.template = template;
-        this.coursesDataDB = coursesDataDB;
-        this.objectMapper = objectMapper;
-    }
+		this.coursesDataDB = coursesDataDB;
+		this.objectMapper = objectMapper;
+	}
 
 	// --- Completed courses ---
 
@@ -141,11 +142,13 @@ public class StudentDataDB {
 	public record ConversationRow(String id, String username, String title, Timestamp createdAt, Timestamp updatedAt) {
 	}
 
-	public record IntermediateMessageRow(String id, String conversationId, String role, String content, String referencedCourses,
-							 Timestamp createdAt) {
+	public record IntermediateMessageRow(String id, String conversationId, String role, String content,
+			String referencedCourses,
+			Timestamp createdAt) {
 	}
 
-	public record MessageRow(String id, String conversationId, String role, String content, List<SimpleCourseData> referencedCourses,
+	public record MessageRow(String id, String conversationId, String role, String content,
+			List<SimpleCourseData> referencedCourses,
 			Timestamp createdAt) {
 	}
 
@@ -197,8 +200,10 @@ public class StudentDataDB {
 				new DataClassRowMapper<>(IntermediateMessageRow.class));
 		List<MessageRow> rows = intermediateRows.stream()// TODO when moving to its own db, this part has to stay here
 				.map(row -> {
-					List<SimpleCourseData> referencedCourses = coursesDataDB.getByIds(parseJsonList(row.referencedCourses));
-					return new MessageRow(row.id, row.conversationId, row.role, row.content, referencedCourses, row.createdAt);
+					List<SimpleCourseData> referencedCourses = coursesDataDB
+							.getByIds(parseJsonList(row.referencedCourses));
+					return new MessageRow(row.id, row.conversationId, row.role, row.content, referencedCourses,
+							row.createdAt);
 				})
 				.toList();
 		return rows;
@@ -209,7 +214,8 @@ public class StudentDataDB {
 			return new ArrayList<>();
 		}
 		try {
-			return objectMapper.readValue(jsonString, new TypeReference<List<String>>() {});
+			return objectMapper.readValue(jsonString, new TypeReference<List<String>>() {
+			});
 		} catch (Exception e) {
 			return new ArrayList<>();
 		}
@@ -227,7 +233,8 @@ public class StudentDataDB {
 		}
 	}
 
-	public MessageRow insertMessage(String conversationId, String role, String content, @NonNull List<String> referencedCourses) {
+	public MessageRow insertMessage(String conversationId, String role, String content,
+			@NonNull List<String> referencedCourses) {
 		final String id = UUID.randomUUID().toString();
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("id", id);
@@ -244,8 +251,11 @@ public class StudentDataDB {
 				.query("SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE id = :id",
 						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(IntermediateMessageRow.class))
 				.getFirst();
-		List<SimpleCourseData> referencedCoursesList = coursesDataDB.getByIds(parseJsonList(intermediateMessageRow.referencedCourses));
-		return new MessageRow(intermediateMessageRow.id, intermediateMessageRow.conversationId, intermediateMessageRow.role, intermediateMessageRow.content, referencedCoursesList, intermediateMessageRow.createdAt);
+		List<SimpleCourseData> referencedCoursesList = coursesDataDB
+				.getByIds(parseJsonList(intermediateMessageRow.referencedCourses));
+		return new MessageRow(intermediateMessageRow.id, intermediateMessageRow.conversationId,
+				intermediateMessageRow.role, intermediateMessageRow.content, referencedCoursesList,
+				intermediateMessageRow.createdAt);
 	}
 
 	// --- Roadmap ---
