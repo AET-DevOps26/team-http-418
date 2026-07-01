@@ -66,22 +66,43 @@ public class DataSourceConfig {
 	}
 
 	private void createProfilesDatabaseIfNotExists() {
-		final HikariDataSource adminDataSource = new HikariDataSource();
+		final int maxAttempts = 10;
+		for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+			HikariDataSource adminDataSource = null;
+			try {
+				adminDataSource = new HikariDataSource();
+				adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+				adminDataSource.setUsername(username);
+				adminDataSource.setPassword(password);
+				adminDataSource.setDriverClassName("org.postgresql.Driver");
+				adminDataSource.setMaximumPoolSize(1);
+				adminDataSource.setInitializationFailTimeout(5000);
 
-		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-		adminDataSource.setUsername(username);
-		adminDataSource.setPassword(password);
-		adminDataSource.setDriverClassName("org.postgresql.Driver");
-
-		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
-
-		final Boolean exists = jdbcTemplate.queryForObject(
-				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-				Boolean.class, "profiles");
-		if (Boolean.FALSE.equals(exists)) {
-			jdbcTemplate.execute("CREATE DATABASE profiles");
+				final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+				final Boolean exists = jdbcTemplate.queryForObject(
+						"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+						Boolean.class, "profiles");
+				if (Boolean.FALSE.equals(exists)) {
+					jdbcTemplate.execute("CREATE DATABASE profiles");
+				}
+				return;
+			} catch (Exception e) {
+				logger.warn("DB not ready (attempt {}/{}): {}", attempt, maxAttempts, e.getMessage());
+				if (attempt == maxAttempts) {
+					throw new RuntimeException("Could not connect to database after " + maxAttempts + " attempts", e);
+				}
+				try {
+					Thread.sleep(2000L * attempt);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+			} finally {
+				if (adminDataSource != null) {
+					adminDataSource.close();
+				}
+			}
 		}
-		adminDataSource.close();
 	}
 
 	@Bean

@@ -68,7 +68,7 @@ public class APIControllerMe {
 			parserResponse = transcriptService.callPdfParser(file.getBytes());
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-					.body(new TranscriptImportResultDTO(0, 0, List.of(), List.of("PDF parser unavailable")));
+					.body(new TranscriptImportResultDTO(0, 0, List.of(), List.of("PDF parser unavailable"), List.of()));
 		}
 		try {
 			final List<ParsedModule> modules = objectMapper.readValue(parserResponse,
@@ -83,6 +83,7 @@ public class APIControllerMe {
 			final List<TranscriptImportResultDTO.ImportedCourse> importedCourses = new ArrayList<>();
 			final List<String> errors = new ArrayList<>();
 			final List<ParsedModule> unmatchedModules = new ArrayList<>();
+			final List<TranscriptImportResultDTO.UnmatchedModule> finalUnmatchedDTOs = new ArrayList<>();
 			int skipped = 0;
 
 			for (final ParsedModule module : modules) {
@@ -159,6 +160,11 @@ public class APIControllerMe {
 							skipped++;
 							final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
 							errors.add("No catalog match for " + module.moduleId() + ": " + title);
+							final BigDecimal gradeVal = new BigDecimal(String.valueOf(module.grade()))
+									.setScale(1, RoundingMode.HALF_UP);
+							finalUnmatchedDTOs.add(new TranscriptImportResultDTO.UnmatchedModule(
+									module.moduleId(), module.titleDe(), module.titleEn(),
+									gradeVal.toPlainString(), module.credits()));
 						}
 					}
 				} catch (Exception e) {
@@ -166,6 +172,11 @@ public class APIControllerMe {
 						skipped++;
 						final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
 						errors.add("No catalog match for " + module.moduleId() + ": " + title);
+						final BigDecimal gradeVal = new BigDecimal(String.valueOf(module.grade()))
+								.setScale(1, RoundingMode.HALF_UP);
+						finalUnmatchedDTOs.add(new TranscriptImportResultDTO.UnmatchedModule(
+								module.moduleId(), module.titleDe(), module.titleEn(),
+								gradeVal.toPlainString(), module.credits()));
 					}
 				}
 			} else {
@@ -173,15 +184,20 @@ public class APIControllerMe {
 					skipped++;
 					final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
 					errors.add("No catalog match for " + module.moduleId() + ": " + title);
+					final BigDecimal gradeVal = new BigDecimal(String.valueOf(module.grade()))
+							.setScale(1, RoundingMode.HALF_UP);
+					finalUnmatchedDTOs.add(new TranscriptImportResultDTO.UnmatchedModule(
+							module.moduleId(), module.titleDe(), module.titleEn(),
+							gradeVal.toPlainString(), module.credits()));
 				}
 			}
 
 			return ResponseEntity
-					.ok(new TranscriptImportResultDTO(importedCourses.size(), skipped, importedCourses, errors));
+					.ok(new TranscriptImportResultDTO(importedCourses.size(), skipped, importedCourses, errors, finalUnmatchedDTOs));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
 					.body(new TranscriptImportResultDTO(0, 0, List.of(),
-							List.of("Failed to parse transcript response: " + e.getMessage())));
+							List.of("Failed to parse transcript response: " + e.getMessage()), List.of()));
 		}
 	}
 

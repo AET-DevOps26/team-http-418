@@ -1320,7 +1320,23 @@ export const handlers = [
 					credits: 6,
 				},
 			],
-			errors: ["Could not match course 'XX9999' to catalog"],
+			errors: [],
+			unmatchedModules: [
+				{
+					moduleId: "XX9999",
+					titleEn: "Advanced Topics in Quantum Computing",
+					titleDe: "Fortgeschrittene Themen der Quanteninformatik",
+					grade: "1.7",
+					credits: 5,
+				},
+				{
+					moduleId: "MA1234",
+					titleEn: "Topology for Engineers",
+					titleDe: "Topologie für Ingenieure",
+					grade: "2.3",
+					credits: 4,
+				},
+			],
 		});
 	}),
 

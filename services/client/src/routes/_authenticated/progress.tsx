@@ -1,60 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ImportResultPanel } from "#/components/progress/ImportResultPanel";
-import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
+import { EmptyUploadHero } from "#/components/progress/EmptyUploadHero";
+import { ImportOverview } from "#/components/progress/ImportOverview";
+import { ImportReviewLayout } from "#/components/progress/ImportReviewLayout";
 import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
+import { useImportReducer } from "#/hooks/useImportReducer";
 
 export const Route = createFileRoute("/_authenticated/progress")({
 	component: Progress,
 });
 
 function Progress() {
-	const { mutate, data, isPending, isError, error } = useTranscriptUpload();
+	const [state, dispatch] = useImportReducer();
+	const { mutate, isPending } = useTranscriptUpload();
 
-	return (
-		<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
-			<div style={{ marginBottom: 24 }}>
-				<h1
-					style={{
-						margin: 0,
-						fontSize: 24,
-						fontWeight: 700,
-						color: "var(--ink)",
-						lineHeight: 1.2,
-					}}
-				>
-					Transcript Upload
-				</h1>
-				<p
-					style={{
-						margin: "4px 0 0",
-						fontSize: 14,
-						color: "var(--muted)",
-					}}
-				>
-					Import completed courses from a PDF or CSV transcript
-				</p>
-			</div>
+	function handleFileSelected(file: File) {
+		mutate(file, {
+			onSuccess: (result) => {
+				dispatch({ type: "UPLOAD_SUCCESS", result });
+			},
+		});
+	}
 
-			<div style={{ maxWidth: 640 }}>
-				<TranscriptUploader
-					onFileSelected={(file) => mutate(file)}
-					isUploading={isPending}
-				/>
+	if (state.phase === "review") {
+		return <ImportReviewLayout state={state} dispatch={dispatch} />;
+	}
 
-				{isError && (
-					<div className="alert-item alert-error" style={{ marginTop: 16 }}>
-						<p style={{ margin: 0, fontSize: 13 }}>
-							{error?.message ?? "Upload failed. Please try again."}
-						</p>
-					</div>
-				)}
+	if (state.phase === "done") {
+		return <ImportOverview state={state} dispatch={dispatch} />;
+	}
 
-				{data && (
-					<div style={{ marginTop: 20 }}>
-						<ImportResultPanel result={data} />
-					</div>
-				)}
-			</div>
-		</div>
-	);
+	return <EmptyUploadHero onFileSelected={handleFileSelected} isUploading={isPending} />;
 }
