@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +35,7 @@ public class AuthService {
 	private final InMemoryRefreshTokenStore refreshTokenStore;
 	private final PasswordEncoder passwordEncoder;
 	private final Logger logger = LoggerFactory.getLogger(AuthService.class);
+	private final Environment environment;
 
 	public AuthResponse login(String tumId, String password) {
 		final Authentication authentication = authenticationManager
@@ -73,15 +76,18 @@ public class AuthService {
 		}
 		userDetailsService
 				.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
-		var exists = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().toBodilessEntity()
-				.getStatusCode();
-		if (exists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-			var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid).body(new Profile()).retrieve()
-					.toBodilessEntity().getStatusCode();
-			if (!code.is2xxSuccessful()) {
-				throw new RuntimeException("Failed to create empty profile");
+
+		if (!environment.acceptsProfiles(Profiles.of("test"))) {  // do not attempt to create an empty profile when running tests
+			var exists = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().toBodilessEntity()
+					.getStatusCode();
+			if (exists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
+				var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid).body(new Profile()).retrieve()
+						.toBodilessEntity().getStatusCode();
+				if (!code.is2xxSuccessful()) {
+					throw new RuntimeException("Failed to create empty profile");
+				}
+				logger.info("Created empty profile for {}", tumid);
 			}
-			logger.info("Created empty profile for {}", tumid);
 		}
 		return login(tumid, password);
 	}
@@ -93,16 +99,18 @@ public class AuthService {
 			if (!userDetailsService.userExists(admin)) {
 				register(admin, "test");
 			}
-			var profileExists = restClient.get().uri(PROFILE_SERVICE + "/get/" + admin).retrieve()
-					.onStatus(HttpStatusCode::isError, (request, response) -> {
-					}).toBodilessEntity().getStatusCode();
-			if (profileExists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-				var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile()).retrieve()
-						.toBodilessEntity().getStatusCode();
-				if (!code.is2xxSuccessful()) {
-					throw new RuntimeException("Failed to create empty profile");
+			if (!environment.acceptsProfiles(Profiles.of("test"))) { // do not attempt to create an empty profile when running tests
+				var profileExists = restClient.get().uri(PROFILE_SERVICE + "/get/" + admin).retrieve()
+						.onStatus(HttpStatusCode::isError, (request, response) -> {
+						}).toBodilessEntity().getStatusCode();
+				if (profileExists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
+					var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile()).retrieve()
+							.toBodilessEntity().getStatusCode();
+					if (!code.is2xxSuccessful()) {
+						throw new RuntimeException("Failed to create empty profile");
+					}
+					logger.info("Created empty profile for {}", admin);
 				}
-				logger.info("Created empty profile for {}", admin);
 			}
 		};
 	}
