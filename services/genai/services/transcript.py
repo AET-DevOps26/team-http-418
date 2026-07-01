@@ -25,12 +25,14 @@ def match_transcript_modules(request: TranscriptMatchRequest) -> TranscriptMatch
             results = search_courses(vector, limit=3)
             if results and results[0][1] >= SCORE_THRESHOLD:
                 course_id, score = results[0]
-                matches.append(MatchedModule(
-                    module_id=module.module_id,
-                    course_id=course_id,
-                    score=score,
-                    matched_title=str(course_id),
-                ))
+                matches.append(
+                    MatchedModule(
+                        module_id=module.module_id,
+                        course_id=course_id,
+                        score=score,
+                        matched_title=str(course_id),
+                    )
+                )
             else:
                 unmatched.append(module.module_id)
         except Exception as e:
