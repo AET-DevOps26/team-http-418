@@ -50,7 +50,7 @@ export function EventBlock({
 						color: event.color,
 					}}
 				>
-					{event.courseCode}
+					{event?.courseCode ?? "N/A"}
 				</span>
 				<span
 					style={{

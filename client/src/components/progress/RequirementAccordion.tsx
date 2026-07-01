@@ -82,7 +82,7 @@ export function RequirementAccordion({
 															fontSize: 12,
 														}}
 													>
-														{c.courseCode}
+														{c?.courseCode ?? "N/A"}
 													</td>
 													<td>{c.courseName}</td>
 													<td>{c.credits}</td>

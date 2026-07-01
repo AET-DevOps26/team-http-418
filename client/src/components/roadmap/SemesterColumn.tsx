@@ -65,7 +65,7 @@ export function SemesterColumn({
 				courses.map((c) => (
 					<CoursePill
 						key={c.courseId}
-						courseCode={c.courseCode}
+						courseCode={c?.courseCode ?? "N/A"}
 						credits={c.credits}
 						status={c.status}
 						onRemove={

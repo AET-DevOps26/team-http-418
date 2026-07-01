@@ -96,7 +96,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										fontWeight: 600,
 									}}
 								>
-									{course.courseCode}
+									{course?.courseCode ?? "N/A"}
 								</span>
 								<span
 									className="tag"
@@ -142,7 +142,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									<span>
 										Unmet prerequisites:{" "}
 										{prereqCheck.unmetPrerequisites
-											.map((r) => r.courseCode)
+											.map((r) => r?.courseCode ?? "N/A")
 											.join(", ")}
 									</span>
 								)}

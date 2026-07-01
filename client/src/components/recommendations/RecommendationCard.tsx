@@ -30,7 +30,7 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 						display: "inline-flex",
 					}}
 				>
-					{rec.courseCode}
+					{rec?.courseCode ?? "N/A"}
 				</span>
 				<div
 					style={{

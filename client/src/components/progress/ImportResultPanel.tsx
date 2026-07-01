@@ -15,7 +15,7 @@ function formatImportError(error: ImportError): string {
 }
 
 function getCourseCode(course: ImportedCourse): string {
-	return course.courseCode ?? course.moduleId ?? "Unknown";
+	return course?.courseCode ?? course?.moduleId ?? "Unknown";
 }
 
 function getCourseName(course: ImportedCourse): string {
