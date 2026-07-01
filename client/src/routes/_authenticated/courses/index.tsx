@@ -208,7 +208,7 @@ function CoursesPage() {
 						).map((k) => <SkeletonCard key={k} />)
 					: allCourses.map((c) => (
 							<CourseCard
-								key={c.id}
+								key={c?.id ?? "N/A"}
 								course={c}
 								onClick={(id) => setSearch({ course: id })}
 							/>
