@@ -26,6 +26,8 @@ public class CoursesDataDB {
 	private final NamedParameterJdbcTemplate template;
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
+		if (ids.isEmpty())
+			return List.of();
 		final String query = """
 				SELECT c.id, c.title_ger, c.title_en, ct."key" FROM courses c JOIN course_types ct on c.course_type_id = ct.id WHERE c.id IN (:ids)""";
 		final MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);

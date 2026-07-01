@@ -6,9 +6,13 @@ import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tum.devops.http418.api.dto.SimpleCourseData;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,10 +20,14 @@ import java.util.UUID;
 public class StudentDataDB {
 
 	private final NamedParameterJdbcTemplate template;
+	private final CoursesDataDB coursesDataDB;
+	private final ObjectMapper objectMapper;
 
-	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template) {
+	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template, CoursesDataDB coursesDataDB, ObjectMapper objectMapper) {
 		this.template = template;
-	}
+        this.coursesDataDB = coursesDataDB;
+        this.objectMapper = objectMapper;
+    }
 
 	// --- Completed courses ---
 
@@ -129,7 +137,11 @@ public class StudentDataDB {
 	public record ConversationRow(String id, String username, String title, Timestamp createdAt, Timestamp updatedAt) {
 	}
 
-	public record MessageRow(String id, String conversationId, String role, String content, String referencedCourses,
+	public record IntermediateMessageRow(String id, String conversationId, String role, String content, String referencedCourses,
+							 Timestamp createdAt) {
+	}
+
+	public record MessageRow(String id, String conversationId, String role, String content, List<SimpleCourseData> referencedCourses,
 			Timestamp createdAt) {
 	}
 
@@ -175,12 +187,29 @@ public class StudentDataDB {
 	}
 
 	public List<MessageRow> getMessages(String conversationId) {
-		return template.query(
+		List<IntermediateMessageRow> intermediateRows = template.query(
 				"SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE conversation_id = :conversationId ORDER BY created_at",
 				new MapSqlParameterSource("conversationId", conversationId),
-				new DataClassRowMapper<>(MessageRow.class));
+				new DataClassRowMapper<>(IntermediateMessageRow.class));
+		List<MessageRow> rows = intermediateRows.stream()// TODO when moving to its own db, this part has to stay here
+				.map(row -> {
+					List<SimpleCourseData> referencedCourses = coursesDataDB.getByIds(parseJsonList(row.referencedCourses));
+					return new MessageRow(row.id, row.conversationId, row.role, row.content, referencedCourses, row.createdAt);
+				})
+				.toList();
+		return rows;
 	}
 
+	private List<String> parseJsonList(String jsonString) {
+		if (jsonString == null || jsonString.isBlank()) {
+			return new ArrayList<>();
+		}
+		try {
+			return objectMapper.readValue(jsonString, new TypeReference<List<String>>() {});
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
 	public MessageRow insertMessage(String conversationId, String role, String content, String referencedCourses) {
 		final String id = UUID.randomUUID().toString();
 		final MapSqlParameterSource params = new MapSqlParameterSource();
