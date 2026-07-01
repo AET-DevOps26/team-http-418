@@ -36,7 +36,7 @@ jobs:
       - name: Build and push server image
         uses: docker/build-push-action@v6
         with:
-          context: ./server
+          context: ./services/server
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.sha }}
@@ -44,7 +44,7 @@ jobs:
       - name: Build and push client image
         uses: docker/build-push-action@v6
         with:
-          context: ./client
+          context: ./services/client
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
@@ -52,7 +52,7 @@ jobs:
       - name: Build and push genai image
         uses: docker/build-push-action@v6
         with:
-          context: ./genai
+          context: ./services/genai
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
@@ -60,7 +60,7 @@ jobs:
       - name: Build and push db image
         uses: docker/build-push-action@v6
         with:
-          context: ./db
+          context: ./infra/db
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
@@ -102,8 +102,8 @@ jobs:
 
       - name: Deploy via Helm
         run: |
-          helm upgrade --install aidan ./helm/aidan \
-            -f ./helm/aidan/values-prod.yaml \
+          helm upgrade --install aidan ./infra/helm/aidan \
+            -f ./infra/helm/aidan/values-prod.yaml \
             --set image.tag=${{ steps.meta.outputs.sha }} \
             --set postgres.image=${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }} \
             --set postgres.password=${{ secrets.DB_PASSWORD }} \

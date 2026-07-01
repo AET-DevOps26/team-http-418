@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SERVER_PORT="${SERVER_PORT:-8080}"
 READY_TIMEOUT="${READY_TIMEOUT:-180}"
 
@@ -70,7 +70,7 @@ $START_SCRAPER && START_DB=true
 # ── Prerequisite checks ──────────────────────────────────────────────────────
 check_cmd() { command -v "$1" &>/dev/null || { err "'$1' not found in PATH."; exit 1; }; }
 $START_DB     && check_cmd docker
-$START_SERVER && { [ -f "$SCRIPT_DIR/server/gradlew" ] || { err "server/gradlew not found. Run 'gradle wrapper' in server/."; exit 1; }; }
+$START_SERVER && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
 $START_CLIENT && check_cmd pnpm
 { $START_GENAI || $START_SCRAPER; } && check_cmd python3
 
@@ -143,7 +143,7 @@ fi
 # ── server ───────────────────────────────────────────────────────────────────
 if $START_SERVER; then
   log_srv "Starting Spring Boot on :$SERVER_PORT..."
-  (cd "$SCRIPT_DIR/server" && ./gradlew bootRun --console=plain) &
+  (cd "$SCRIPT_DIR/services/server" && ./gradlew bootRun --console=plain) &
   SERVER_PID=$!
   PIDS+=("$SERVER_PID")
   log_srv "Waiting for backend on :$SERVER_PORT (up to ${READY_TIMEOUT}s)..."
@@ -164,25 +164,25 @@ fi
 # ── genai ────────────────────────────────────────────────────────────────────
 if $START_GENAI; then
   log_gen "Setting up genai venv..."
-  venv=$(ensure_venv "$SCRIPT_DIR/genai")
+  venv=$(ensure_venv "$SCRIPT_DIR/services/genai")
   log_gen "Starting genai on :8000..."
-  (cd "$SCRIPT_DIR/genai" && "$venv/bin/uvicorn" main:app --reload --port 8000) &
+  (cd "$SCRIPT_DIR/services/genai" && "$venv/bin/uvicorn" main:app --reload --port 8000) &
   PIDS+=($!)
 fi
 
 # ── client ───────────────────────────────────────────────────────────────────
 if $START_CLIENT; then
   log_cli "Starting client dev server..."
-  (cd "$SCRIPT_DIR/client" && pnpm install && pnpm dev) &
+  (cd "$SCRIPT_DIR/services/client" && pnpm install && pnpm dev) &
   PIDS+=($!)
 fi
 
 # ── scraper (one-shot) ───────────────────────────────────────────────────────
 if $START_SCRAPER; then
   log_scr "Setting up scraper venv..."
-  venv=$(ensure_venv "$SCRIPT_DIR/scraper")
+  venv=$(ensure_venv "$SCRIPT_DIR/services/scraper")
   log_scr "Running scraper..."
-  (cd "$SCRIPT_DIR/scraper" && "$venv/bin/python" main.py)
+  (cd "$SCRIPT_DIR/services/scraper" && "$venv/bin/python" main.py)
   log_scr "Scraper finished."
 fi
 
