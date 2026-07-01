@@ -250,7 +250,7 @@ public class CoursesDataDB {
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 
 		if (semester != 0) {
-			sqlQuery.append(" AND semesters.id = :semester");
+			sqlQuery.append(" AND sem.id = :semester");
 			params.addValue("semester", semester);
 		}
 		// 1. Text Search (Matches title or description in EN/GER)
@@ -276,7 +276,7 @@ public class CoursesDataDB {
 			sqlQuery.append("""
 					AND organizations.id = :departmentid
 					""");
-			params.addValue("departmentid", "%" + departmentID + "%");
+			params.addValue("departmentid", departmentID);
 		}
 
 		if (studyProgramId != null && !studyProgramId.isBlank()) {
