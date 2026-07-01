@@ -401,6 +401,27 @@ function LoginPage() {
 							{mutation.isPending ? "Signing in…" : "Sign in"}
 						</button>
 					</form>
+
+					<p
+						style={{
+							margin: "20px 0 0",
+							textAlign: "center",
+							fontSize: "13px",
+							color: "#6E7E94",
+						}}
+					>
+						Don't have an account?{" "}
+						<a
+							href="/register"
+							style={{
+								color: "#8A57E0",
+								fontWeight: 500,
+								textDecoration: "none",
+							}}
+						>
+							Sign up
+						</a>
+					</p>
 				</div>
 			</div>
 		</div>

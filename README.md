@@ -125,26 +125,26 @@ docker compose up scraper-clean
 
 Formatting and linting is enforced across all sub-projects.
 
-#### Client (`client/`) — Biome
+#### Client (`services/client/`) — Biome
 
 ```bash
-cd client
+cd services/client
 pnpm check          # check formatting + lint
 pnpm check --write  # auto-fix
 ```
 
-#### Server (`server/`, `pdf-parser`) — Spotless + Google Java Format
+#### Server (`services/server/`, `services/pdf-parser/`) — Spotless + Google Java Format
 
 ```bash
-cd server
+cd services/server
 ./gradlew spotlessCheck  # check
 ./gradlew spotlessApply  # auto-fix
 ```
 
-#### Scraper & GenAI (`scraper/`, `genai/`) — Ruff
+#### Scraper & GenAI (`services/scraper/`, `services/genai/`) — Ruff
 
 ```bash
-cd scraper  # or genai
+cd services/scraper  # or services/genai
 ruff format --check .  # check formatting
 ruff check .           # check lint
 ruff format .          # auto-fix formatting

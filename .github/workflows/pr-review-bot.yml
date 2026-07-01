@@ -39,15 +39,13 @@ jobs:
 
             // Classify each file
             function classifyFile(filename) {
-              if (filename.startsWith('client/')) return { type: 'domain', domain: 'client' };
-              if (filename.startsWith('server/')) return { type: 'domain', domain: 'server' };
-              if (filename.startsWith('genai/')) return { type: 'domain', domain: 'genai' };
-              if (filename.startsWith('scraper/')) return { type: 'infra' };
+              if (filename.startsWith('services/client/')) return { type: 'domain', domain: 'client' };
+              if (filename.startsWith('services/server/')) return { type: 'domain', domain: 'server' };
+              if (filename.startsWith('services/genai/')) return { type: 'domain', domain: 'genai' };
+              if (filename.startsWith('services/scraper/')) return { type: 'infra' };
+              if (filename.startsWith('services/')) return { type: 'infra' };
               if (filename.startsWith('docs/')) return { type: 'infra' };
-              if (filename.startsWith('k8s/')) return { type: 'infra' };
-              if (filename.startsWith('helm/')) return { type: 'infra' };
-              if (filename.startsWith('terraform/')) return { type: 'infra' };
-              if (filename.startsWith('ansible/')) return { type: 'infra' };
+              if (filename.startsWith('infra/')) return { type: 'infra' };
               if (filename.startsWith('.github/')) return { type: 'infra' };
               if (filename.startsWith('docker-compose')) return { type: 'infra' };
               // Root config files (no directory separator)
@@ -122,7 +120,7 @@ jobs:
               : `**${minReviews}** (${reviewers.map(u => `@${u}`).join(', ')} must approve)`;
 
             const changedDomainLines = affectedDomains.length > 0
-              ? affectedDomains.map(d => `- \`${d}/\` → @${DOMAIN_OWNERS[d]}`).join('\n')
+              ? affectedDomains.map(d => `- \`services/${d}/\` → @${DOMAIN_OWNERS[d]}`).join('\n')
               : '- _(none — treated as infra)_';
             const infraLine = hasInfra ? '\n- infrastructure/common files detected' : '';
             const openTime = tier === 'own-domain' ? '12 hours' : 'None (approval-gated)';
