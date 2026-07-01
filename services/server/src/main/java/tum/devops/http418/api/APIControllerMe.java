@@ -88,7 +88,8 @@ public class APIControllerMe {
 
 			for (final ParsedModule module : modules) {
 				final CoursesDataDB.CourseMatchResult course = coursesDataDB.findCourseMatchByTitle(
-						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgram, module.moduleId());
+						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgram,
+						module.moduleId());
 				if (course == null) {
 					unmatchedModules.add(module);
 					continue;
@@ -124,7 +125,8 @@ public class APIControllerMe {
 					}
 					final String aiBody = objectMapper.writeValueAsString(Map.of("modules", aiModules));
 					final String aiResponse = transcriptService.callTranscriptMatch(aiBody);
-					final Map<String, Object> aiResult = objectMapper.readValue(aiResponse, new TypeReference<>() {});
+					final Map<String, Object> aiResult = objectMapper.readValue(aiResponse, new TypeReference<>() {
+					});
 					@SuppressWarnings("unchecked")
 					final List<Map<String, Object>> aiMatches = (List<Map<String, Object>>) aiResult.get("matches");
 					final Set<String> aiMatchedIds = new HashSet<>();
@@ -193,7 +195,8 @@ public class APIControllerMe {
 			}
 
 			return ResponseEntity
-					.ok(new TranscriptImportResultDTO(importedCourses.size(), skipped, importedCourses, errors, finalUnmatchedDTOs));
+					.ok(new TranscriptImportResultDTO(importedCourses.size(), skipped, importedCourses, errors,
+							finalUnmatchedDTOs));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
 					.body(new TranscriptImportResultDTO(0, 0, List.of(),
@@ -227,7 +230,8 @@ public class APIControllerMe {
 
 	@GetMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid) {
-		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve().body(Profile.class);
+		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
+				.body(Profile.class);
 		if (profile == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
@@ -238,7 +242,8 @@ public class APIControllerMe {
 	@PostMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid,
 			@RequestBody PostRecommendationsBody prompt) {
-		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve().body(Profile.class);
+		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
+				.body(Profile.class);
 		if (profile == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
