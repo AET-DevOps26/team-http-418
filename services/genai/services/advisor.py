@@ -22,8 +22,8 @@ def _build_messages(request: AdvisorRequest) -> list:
         semester=request.student.semester or "not specified",
         career_goals=", ".join(request.student.career_goals) or "not specified",
         interests=", ".join(request.student.interests) or "not specified",
-        credits_earned=request.student.total_credits_earned or "not specified",
-        credits_required=request.student.total_credits_required or "not specified",
+        credits_earned=request.student.total_credits_earned if request.student.total_credits_earned is not None else "not specified",
+        credits_required=request.student.total_credits_required if request.student.total_credits_required is not None else "not specified",
         completed_courses=request.completed_courses or "none",
     )
 

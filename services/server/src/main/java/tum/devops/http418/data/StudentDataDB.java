@@ -200,8 +200,8 @@ public class StudentDataDB {
 				new DataClassRowMapper<>(IntermediateMessageRow.class));
 		List<MessageRow> rows = intermediateRows.stream()// TODO when moving to its own db, this part has to stay here
 				.map(row -> {
-					List<SimpleCourseData> referencedCourses = coursesDataDB
-							.getByIds(parseJsonList(row.referencedCourses));
+					List<String> referencedCourseIds = parseJsonList(row.referencedCourses).stream().distinct().toList();
+					List<SimpleCourseData> referencedCourses = coursesDataDB.getByIds(referencedCourseIds);
 					return new MessageRow(row.id, row.conversationId, row.role, row.content, referencedCourses,
 							row.createdAt);
 				})
@@ -241,7 +241,7 @@ public class StudentDataDB {
 		params.addValue("conversationId", conversationId);
 		params.addValue("role", role);
 		params.addValue("content", content);
-		params.addValue("referencedCourses", referencedCourses.isEmpty() ? toJsonString(referencedCourses) : "[]");
+		params.addValue("referencedCourses", toJsonString(referencedCourses));
 		template.update(
 				"INSERT INTO advisor_messages (id, conversation_id, role, content, referenced_courses) VALUES (:id, :conversationId, :role, :content, :referencedCourses)",
 				params);
@@ -251,8 +251,8 @@ public class StudentDataDB {
 				.query("SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE id = :id",
 						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(IntermediateMessageRow.class))
 				.getFirst();
-		List<SimpleCourseData> referencedCoursesList = coursesDataDB
-				.getByIds(parseJsonList(intermediateMessageRow.referencedCourses));
+		List<String> referencedCourseIds = parseJsonList(intermediateMessageRow.referencedCourses).stream().distinct().toList();
+		List<SimpleCourseData> referencedCoursesList = coursesDataDB.getByIds(referencedCourseIds);
 		return new MessageRow(intermediateMessageRow.id, intermediateMessageRow.conversationId,
 				intermediateMessageRow.role, intermediateMessageRow.content, referencedCoursesList,
 				intermediateMessageRow.createdAt);

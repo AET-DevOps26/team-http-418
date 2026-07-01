@@ -24,8 +24,9 @@ def get_connection():
         # This catches "vector type not found". It allows init_schema to run
         # its CREATE EXTENSION command without failing or logging scary warnings.
         if "vector" in str(e):
-            pass
+            conn.rollback()
         else:
+            conn.rollback()
             raise e
     return conn
 

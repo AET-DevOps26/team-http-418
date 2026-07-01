@@ -86,16 +86,17 @@ public class APIControllerMeAdvisor {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found");
 		}
 
-		studentDataDB.insertMessage(id, "user", request.content(), List.of());
 
 		Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
-		if (profile == null) {
+		if (profile == null || profile.student() == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found");
 		}
 
 		final List<StudentDataDB.MessageRow> history = studentDataDB.getMessages(id);
 		final List<Map<String, String>> historyPayload = history.stream()
 				.map(msg -> Map.of("role", msg.role(), "content", msg.content())).toList();
+
+		studentDataDB.insertMessage(id, "user", request.content(), List.of());
 
 		final SseEmitter emitter = new SseEmitter(60000L);
 
@@ -146,12 +147,12 @@ public class APIControllerMeAdvisor {
 					}
 				}
 
-				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), List.of());
+				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), List.of()); // TODO add previous list?
 				emitter.complete();
 			} catch (Exception e) {
 				log.error("Error streaming advisor response for conversation {}", id, e);
 				studentDataDB.insertMessage(id, "assistant",
-						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of());
+						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of()); // TODO add previous list?
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));
 				} catch (Exception sendErr) {
