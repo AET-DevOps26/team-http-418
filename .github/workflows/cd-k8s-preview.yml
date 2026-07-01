@@ -65,6 +65,22 @@ jobs:
           tags: |
             ${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
 
+      - name: Build and push user-profile-service image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/user-profile-service
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.sha }}
+
+      - name: Build and push pdf-parser image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/pdf-parser
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.sha }}
+
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
@@ -136,3 +152,5 @@ jobs:
           kubectl logs -l app=client -n aidan --tail=50 || true
           kubectl logs -l app=server -n aidan --tail=50 || true
           kubectl logs -l app=genai -n aidan --tail=50 || true
+          kubectl logs -l app=user-profile-service -n aidan --tail=50 || true
+          kubectl logs -l app=pdf-parser -n aidan --tail=50 || true

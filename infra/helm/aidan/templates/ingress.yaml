@@ -4,11 +4,10 @@ kind: Ingress
 metadata:
   name: aidan-ingress
   namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
@@ -19,15 +18,22 @@ spec:
     - http:
     {{- end }}
         paths:
-          - path: /api/(.*)
-            pathType: ImplementationSpecific
+          - path: /health
+            pathType: Exact
             backend:
               service:
                 name: server-service
                 port:
                   number: {{ .Values.server.port }}
-          - path: /(.*)
-            pathType: ImplementationSpecific
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: server-service
+                port:
+                  number: {{ .Values.server.port }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: client-service

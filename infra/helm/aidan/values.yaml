@@ -13,6 +13,8 @@ replicaCount:
   client: 1
   postgres: 1
   genai: 1
+  userProfile: 1
+  pdfParser: 1
 
 server:
   port: 8080
@@ -63,6 +65,28 @@ genai:
       cpu: "200m"
     limits:
       memory: "768Mi"
+      cpu: "500m"
+
+userProfile:
+  port: 8060
+  containerPort: 8080
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+pdfParser:
+  port: 8070
+  containerPort: 8080
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
       cpu: "500m"
 
 ingress:
