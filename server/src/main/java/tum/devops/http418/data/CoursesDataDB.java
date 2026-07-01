@@ -265,7 +265,7 @@ public class CoursesDataDB {
 			params.addValue("department", "%" + department + "%");
 		}
 
-		if (departmentID != 0) {
+		if (departmentID != null) {
 			sqlQuery.append("""
 					AND organizations.id = :departmentid
 					""");
