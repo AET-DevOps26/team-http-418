@@ -22,11 +22,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static tum.devops.http418.Http418Application.GENAI_PATH;
-import static tum.devops.http418.Http418Application.restClient;
+import static tum.devops.http418.Http418Application.*;
 
 @Slf4j
 @Validated
@@ -86,7 +86,12 @@ public class APIControllerMeAdvisor {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found");
 		}
 
-		studentDataDB.insertMessage(id, "user", request.content(), "[]");
+		studentDataDB.insertMessage(id, "user", request.content(), List.of());
+
+		Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
+		if (profile == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found");
+		}
 
 		final List<StudentDataDB.MessageRow> history = studentDataDB.getMessages(id);
 		final List<Map<String, String>> historyPayload = history.stream()
@@ -97,9 +102,24 @@ public class APIControllerMeAdvisor {
 		Thread.startVirtualThread(() -> {
 			HttpURLConnection connection = null;
 			try {
-				final String genaiUrl = GENAI_PATH + "/me/advisor/chat";
-				final String body = objectMapper
-						.writeValueAsString(Map.of("messages", historyPayload, "conversationId", id));
+				final String genaiUrl = GENAI_PATH + "/me/advisor/conversations/%s/messages".formatted(id);
+				final Map<String, Object> studentPayload = new LinkedHashMap<>();
+				studentPayload.put("studyProgram", profile.student().studyProgram());
+				studentPayload.put("semester", profile.student().semester());
+				studentPayload.put("careerGoals", profile.student().careerGoals());
+				studentPayload.put("interests", profile.student().interests());
+				studentPayload.put("totalCreditsEarned", profile.student().creditsEarned());
+				studentPayload.put("totalCreditsRequired", profile.student().creditsRequired());
+
+				final List<String> completedCoursesPayload = profile.completedCourses();
+
+				final Map<String, Object> requestBody = new LinkedHashMap<>();
+				requestBody.put("student", studentPayload);
+				requestBody.put("completedCourses", completedCoursesPayload);
+				requestBody.put("conversationHistory", historyPayload);
+				requestBody.put("newMessage", request.content()); // the current user turn, as a plain String
+
+				final String body = objectMapper.writeValueAsString(requestBody);
 
 				connection = (HttpURLConnection) URI.create(genaiUrl).toURL().openConnection();
 				connection.setRequestMethod("POST");
@@ -126,12 +146,12 @@ public class APIControllerMeAdvisor {
 					}
 				}
 
-				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), "[]");
+				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), List.of());
 				emitter.complete();
 			} catch (Exception e) {
 				log.error("Error streaming advisor response for conversation {}", id, e);
 				studentDataDB.insertMessage(id, "assistant",
-						"I'm sorry, I'm unable to respond right now. Please try again later.", "[]");
+						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of());
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));
 				} catch (Exception sendErr) {

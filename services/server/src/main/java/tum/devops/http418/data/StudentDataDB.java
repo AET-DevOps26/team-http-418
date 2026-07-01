@@ -1,5 +1,8 @@
 package tum.devops.http418.data;
 
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.DataClassRowMapper;
@@ -22,6 +25,7 @@ public class StudentDataDB {
 	private final NamedParameterJdbcTemplate template;
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
+	private final Logger logger = LoggerFactory.getLogger(StudentDataDB.class);
 
 	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template, CoursesDataDB coursesDataDB, ObjectMapper objectMapper) {
 		this.template = template;
@@ -210,23 +214,38 @@ public class StudentDataDB {
 			return new ArrayList<>();
 		}
 	}
-	public MessageRow insertMessage(String conversationId, String role, String content, String referencedCourses) {
+
+	private String toJsonString(List<String> list) {
+		if (list == null || list.isEmpty()) {
+			return "[]"; // Return an empty JSON array string
+		}
+		try {
+			return objectMapper.writeValueAsString(list);
+		} catch (Exception e) {
+			logger.error("Failed to serialize list to JSON string", e);
+			return "[]"; // Fallback to safe empty array on failure
+		}
+	}
+
+	public MessageRow insertMessage(String conversationId, String role, String content, @NonNull List<String> referencedCourses) {
 		final String id = UUID.randomUUID().toString();
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("id", id);
 		params.addValue("conversationId", conversationId);
 		params.addValue("role", role);
 		params.addValue("content", content);
-		params.addValue("referencedCourses", referencedCourses != null ? referencedCourses : "[]");
+		params.addValue("referencedCourses", referencedCourses.isEmpty() ? toJsonString(referencedCourses) : "[]");
 		template.update(
 				"INSERT INTO advisor_messages (id, conversation_id, role, content, referenced_courses) VALUES (:id, :conversationId, :role, :content, :referencedCourses)",
 				params);
 		template.update("UPDATE advisor_conversations SET updated_at = now() WHERE id = :conversationId",
 				new MapSqlParameterSource("conversationId", conversationId));
-		return template
+		IntermediateMessageRow intermediateMessageRow = template
 				.query("SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE id = :id",
-						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(MessageRow.class))
+						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(IntermediateMessageRow.class))
 				.getFirst();
+		List<SimpleCourseData> referencedCoursesList = coursesDataDB.getByIds(parseJsonList(intermediateMessageRow.referencedCourses));
+		return new MessageRow(intermediateMessageRow.id, intermediateMessageRow.conversationId, intermediateMessageRow.role, intermediateMessageRow.content, referencedCoursesList, intermediateMessageRow.createdAt);
 	}
 
 	// --- Roadmap ---
