@@ -77,7 +77,7 @@ public class AuthService {
 		userDetailsService
 				.createUser(User.withUsername(tumid).password(passwordEncoder.encode(password)).roles("USER").build());
 
-		if (!environment.acceptsProfiles(Profiles.of("test"))) {  // do not attempt to create an empty profile when running tests
+		if (!environment.acceptsProfiles(Profiles.of("test"))) { // do not attempt to create an empty profile when running tests
 			var exists = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().toBodilessEntity()
 					.getStatusCode();
 			if (exists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
@@ -104,7 +104,8 @@ public class AuthService {
 						.onStatus(HttpStatusCode::isError, (request, response) -> {
 						}).toBodilessEntity().getStatusCode();
 				if (profileExists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-					var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile()).retrieve()
+					var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile())
+							.retrieve()
 							.toBodilessEntity().getStatusCode();
 					if (!code.is2xxSuccessful()) {
 						throw new RuntimeException("Failed to create empty profile");
