@@ -12,6 +12,8 @@ jobs:
       server: ${{ steps.filter.outputs.server }}
       scraper: ${{ steps.filter.outputs.scraper }}
       genai: ${{ steps.filter.outputs.genai }}
+      pdf-parser: ${{ steps.filter.outputs.pdf-parser }}
+      user-profile-service: ${{ steps.filter.outputs.user-profile-service }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -26,6 +28,10 @@ jobs:
               - 'services/scraper/**'
             genai:
               - 'services/genai/**'
+            pdf-parser:
+              - 'services/pdf-parser/**'
+            user-profile-service:
+              - 'services/user-profile-service/**'
 
   lint-client:
     needs: changes
@@ -93,6 +99,48 @@ jobs:
 
       - name: Check lint
         run: ruff check .
+
+  lint-pdf-parser:
+    needs: changes
+    if: needs.changes.outputs.pdf-parser == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/pdf-parser
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Check formatting
+        run: ./gradlew spotlessCheck
+
+  lint-user-profile-service:
+    needs: changes
+    if: needs.changes.outputs.user-profile-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/user-profile-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Check formatting
+        run: ./gradlew spotlessCheck
 
   lint-genai:
     needs: changes
