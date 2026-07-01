@@ -218,7 +218,7 @@ public class CoursesDataDB {
 
 	public List<SimpleCourseData> getByQuery(String query,
 			@Nullable String department,
-			int departmentID,
+			Integer departmentID,
 			@Nullable String language, //TODO we have no info about language
 			@Nullable String level, //bachelor, master, doctorate, etc
 			int page,
@@ -230,7 +230,7 @@ public class CoursesDataDB {
 			@Nullable String studyProgramId) {
 		final StringBuilder sqlQuery = new StringBuilder("SELECT * FROM courses");
 
-		if ((department != null && !department.isBlank()) || departmentID != 0) { //TODO remove condition if its information is used in result anyways
+		if ((department != null && !department.isBlank()) || departmentID != null) { //TODO remove condition if its information is used in result anyways
 			sqlQuery.append(" JOIN organizations ON courses.organization_id = organizations.id");
 		}
 		if (semester != 0) { //TODO remove condition if its information is used in result anyways
