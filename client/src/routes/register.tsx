@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AuthError, isAuthenticated, login } from "#/api";
+import { AuthError, isAuthenticated, register } from "#/api";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/register")({
 	beforeLoad: () => {
 		if (isAuthenticated()) throw redirect({ to: "/dashboard" });
 	},
-	component: LoginPage,
+	component: RegisterPage,
 });
 
 function FloatingShapes() {
@@ -22,7 +22,6 @@ function FloatingShapes() {
 				zIndex: 0,
 			}}
 		>
-			{/* Large purple→blue gradient circle — top right */}
 			<div
 				style={{
 					position: "absolute",
@@ -36,7 +35,6 @@ function FloatingShapes() {
 					animation: "spin 60s linear infinite",
 				}}
 			/>
-			{/* Small gold circle — bottom left */}
 			<div
 				style={{
 					position: "absolute",
@@ -49,7 +47,6 @@ function FloatingShapes() {
 					animation: "bounce 8s ease-in-out infinite",
 				}}
 			/>
-			{/* Lavender ring — center left */}
 			<div
 				style={{
 					position: "absolute",
@@ -62,7 +59,6 @@ function FloatingShapes() {
 					animation: "pulse 10s ease-in-out infinite",
 				}}
 			/>
-			{/* Navy dot cluster — bottom right */}
 			<div
 				style={{
 					position: "absolute",
@@ -75,7 +71,6 @@ function FloatingShapes() {
 					animation: "pulse 12s ease-in-out infinite 2s",
 				}}
 			/>
-			{/* Dashed blue ring — top left */}
 			<div
 				style={{
 					position: "absolute",
@@ -104,34 +99,64 @@ function FloatingShapes() {
 	);
 }
 
-function LoginPage() {
+function RegisterPage() {
 	const navigate = useNavigate();
 	const [tumId, setTumId] = useState("");
 	const [password, setPassword] = useState("");
-	const [touched, setTouched] = useState({ tumId: false, password: false });
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [touched, setTouched] = useState({
+		tumId: false,
+		password: false,
+		confirmPassword: false,
+	});
 
 	const mutation = useMutation({
-		mutationFn: () => login(tumId, password),
+		mutationFn: () => register(tumId, password),
 		onSuccess: () => navigate({ to: "/dashboard" }),
 	});
 
 	const errors = {
 		tumId: touched.tumId && !tumId ? "TUM ID is required" : null,
 		password: touched.password && !password ? "Password is required" : null,
+		confirmPassword:
+			touched.confirmPassword && !confirmPassword
+				? "Please confirm your password"
+				: touched.confirmPassword && confirmPassword !== password
+					? "Passwords do not match"
+					: null,
 	};
 
-	const isDisabled = !tumId || !password || mutation.isPending;
+	const isDisabled =
+		!tumId ||
+		!password ||
+		!confirmPassword ||
+		confirmPassword !== password ||
+		mutation.isPending;
 
 	let errorMessage: string | null = null;
 	if (mutation.isError) {
 		const err = mutation.error;
 		errorMessage =
-			err instanceof AuthError && err.status === 401
-				? "Invalid TUM ID or password"
+			err instanceof AuthError && err.status === 409
+				? "A user with this TUM ID already exists"
 				: err instanceof Error
 					? err.message
 					: "An error occurred";
 	}
+
+	const inputStyle = (hasError: boolean) => ({
+		width: "100%",
+		boxSizing: "border-box" as const,
+		padding: "10px 12px",
+		fontSize: "14px",
+		color: "#0B1F33",
+		background: "#FFFFFF",
+		border: hasError ? "1px solid #C03A2E" : "1px solid #E2E7EF",
+		borderRadius: "10px",
+		outline: "none",
+		transition: "border-color 0.15s, box-shadow 0.15s",
+		fontFamily: "inherit",
+	});
 
 	return (
 		<div
@@ -214,10 +239,10 @@ function LoginPage() {
 								letterSpacing: "-0.3px",
 							}}
 						>
-							Welcome to AIDAN
+							Create your account
 						</h1>
 						<p style={{ margin: 0, fontSize: "14px", color: "#6E7E94" }}>
-							Sign in with your TUM credentials
+							Register with your TUM credentials
 						</p>
 					</div>
 
@@ -266,21 +291,7 @@ function LoginPage() {
 								onChange={(e) => setTumId(e.target.value)}
 								onBlur={() => setTouched((t) => ({ ...t, tumId: true }))}
 								placeholder="ga12abc"
-								style={{
-									width: "100%",
-									boxSizing: "border-box",
-									padding: "10px 12px",
-									fontSize: "14px",
-									color: "#0B1F33",
-									background: "#FFFFFF",
-									border: errors.tumId
-										? "1px solid #C03A2E"
-										: "1px solid #E2E7EF",
-									borderRadius: "10px",
-									outline: "none",
-									transition: "border-color 0.15s, box-shadow 0.15s",
-									fontFamily: "inherit",
-								}}
+								style={inputStyle(!!errors.tumId)}
 								onFocus={(e) => {
 									e.target.style.borderColor = "#2D6FB5";
 									e.target.style.boxShadow = "0 0 0 3px rgba(46,111,181,0.12)";
@@ -306,7 +317,7 @@ function LoginPage() {
 						</div>
 
 						{/* Password field */}
-						<div style={{ marginBottom: "24px" }}>
+						<div style={{ marginBottom: "16px" }}>
 							<label
 								htmlFor="password"
 								style={{
@@ -325,21 +336,7 @@ function LoginPage() {
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								onBlur={() => setTouched((t) => ({ ...t, password: true }))}
-								style={{
-									width: "100%",
-									boxSizing: "border-box",
-									padding: "10px 12px",
-									fontSize: "14px",
-									color: "#0B1F33",
-									background: "#FFFFFF",
-									border: errors.password
-										? "1px solid #C03A2E"
-										: "1px solid #E2E7EF",
-									borderRadius: "10px",
-									outline: "none",
-									transition: "border-color 0.15s, box-shadow 0.15s",
-									fontFamily: "inherit",
-								}}
+								style={inputStyle(!!errors.password)}
 								onFocus={(e) => {
 									e.target.style.borderColor = "#2D6FB5";
 									e.target.style.boxShadow = "0 0 0 3px rgba(46,111,181,0.12)";
@@ -360,6 +357,53 @@ function LoginPage() {
 									}}
 								>
 									{errors.password}
+								</p>
+							)}
+						</div>
+
+						{/* Confirm password field */}
+						<div style={{ marginBottom: "24px" }}>
+							<label
+								htmlFor="confirmPassword"
+								style={{
+									display: "block",
+									fontSize: "13px",
+									fontWeight: 500,
+									color: "#0B1F33",
+									marginBottom: "6px",
+								}}
+							>
+								Confirm Password
+							</label>
+							<input
+								id="confirmPassword"
+								type="password"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								onBlur={() =>
+									setTouched((t) => ({ ...t, confirmPassword: true }))
+								}
+								style={inputStyle(!!errors.confirmPassword)}
+								onFocus={(e) => {
+									e.target.style.borderColor = "#2D6FB5";
+									e.target.style.boxShadow = "0 0 0 3px rgba(46,111,181,0.12)";
+								}}
+								onBlurCapture={(e) => {
+									e.target.style.borderColor = errors.confirmPassword
+										? "#C03A2E"
+										: "#E2E7EF";
+									e.target.style.boxShadow = "none";
+								}}
+							/>
+							{errors.confirmPassword && (
+								<p
+									style={{
+										margin: "4px 0 0",
+										fontSize: "12px",
+										color: "#C03A2E",
+									}}
+								>
+									{errors.confirmPassword}
 								</p>
 							)}
 						</div>
@@ -398,7 +442,7 @@ function LoginPage() {
 										"0 4px 14px rgba(138,87,224,0.35)";
 							}}
 						>
-							{mutation.isPending ? "Signing in…" : "Sign in"}
+							{mutation.isPending ? "Creating account…" : "Create account"}
 						</button>
 					</form>
 
@@ -410,16 +454,16 @@ function LoginPage() {
 							color: "#6E7E94",
 						}}
 					>
-						Don't have an account?{" "}
+						Already have an account?{" "}
 						<a
-							href="/register"
+							href="/login"
 							style={{
 								color: "#8A57E0",
 								fontWeight: 500,
 								textDecoration: "none",
 							}}
 						>
-							Sign up
+							Sign in
 						</a>
 					</p>
 				</div>

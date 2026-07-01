@@ -84,6 +84,21 @@ export async function login(tumId: string, password: string): Promise<void> {
 	}
 }
 
+export async function register(tumId: string, password: string): Promise<void> {
+	try {
+		const data = await apiFetch<AuthResponse>(`/auth/register`, {
+			method: "POST",
+			body: JSON.stringify({ tumId, password }),
+		});
+		setTokens(data);
+	} catch (err) {
+		if (err instanceof ApiError) {
+			throw new AuthError(err.status, err.message);
+		}
+		throw err;
+	}
+}
+
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
 	try {
