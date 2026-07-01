@@ -2,7 +2,7 @@ from enum import StrEnum
 from typing import Annotated
 
 from pydantic import BaseModel, Field
-
+from typing import Annotated
 
 class MessageRole(StrEnum):
     USER = "USER"
