@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { getCourses } from "#/api/courses";
 import type { CourseSummary } from "#/api/types";
 

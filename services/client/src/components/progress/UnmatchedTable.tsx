@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Dispatch } from "react";
+import { useState } from "react";
 import { addCompletedCourse } from "#/api/progress";
 import type { CourseSummary } from "#/api/types";
 import type {

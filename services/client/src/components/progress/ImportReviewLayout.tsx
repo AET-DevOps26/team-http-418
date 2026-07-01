@@ -1,5 +1,5 @@
-import type { Dispatch } from "react";
 import { AlertTriangle, CheckCircle, MinusCircle } from "lucide-react";
+import type { Dispatch } from "react";
 import type { ImportAction, ImportState } from "#/hooks/useImportReducer";
 import { ImportedTable } from "./ImportedTable";
 import { UnmatchedTable } from "./UnmatchedTable";

@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Dispatch } from "react";
+import { useState } from "react";
 import { addCompletedCourse, removeCompletedCourse } from "#/api/progress";
 import type { ImportAction, ReviewableCourse } from "#/hooks/useImportReducer";
 

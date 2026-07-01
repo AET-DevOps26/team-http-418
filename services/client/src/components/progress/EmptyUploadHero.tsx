@@ -10,7 +10,14 @@ export function EmptyUploadHero({ onFileSelected, isUploading }: Props) {
 		<div className="import-hero">
 			<div className="import-hero-card">
 				<div className="import-hero-illustration">
-					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" role="img" aria-label="Upload transcript">
+					<svg
+						width="80"
+						height="80"
+						viewBox="0 0 80 80"
+						fill="none"
+						role="img"
+						aria-label="Upload transcript"
+					>
 						<title>Upload transcript</title>
 						<rect
 							x="8"

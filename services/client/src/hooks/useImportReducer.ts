@@ -1,5 +1,5 @@
-import { useReducer } from "react";
 import type { Dispatch } from "react";
+import { useReducer } from "react";
 import type {
 	ImportedCourse,
 	TranscriptImportResult,

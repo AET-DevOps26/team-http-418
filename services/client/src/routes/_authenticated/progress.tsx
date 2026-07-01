@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EmptyUploadHero } from "#/components/progress/EmptyUploadHero";
 import { ImportOverview } from "#/components/progress/ImportOverview";
 import { ImportReviewLayout } from "#/components/progress/ImportReviewLayout";
-import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 import { useImportReducer } from "#/hooks/useImportReducer";
+import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 
 export const Route = createFileRoute("/_authenticated/progress")({
 	component: Progress,
