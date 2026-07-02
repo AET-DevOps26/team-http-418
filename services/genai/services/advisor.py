@@ -17,18 +17,18 @@ _ADVISOR_PROMPT = (Path(__file__).parent.parent / "prompts" / "advisor.txt").rea
 
 
 def _build_messages(request: AdvisorRequest) -> list:
-    completed = (
-        ", ".join(f"{course.course_name} ({course.course_code})" for course in request.completed_courses) or "none"
-    )
-
     system_prompt = _ADVISOR_PROMPT.format(
-        study_program=request.student.study_program,
-        semester=request.student.semester,
+        study_program=request.student.study_program or "not specified",
+        semester=request.student.semester or "not specified",
         career_goals=", ".join(request.student.career_goals) or "not specified",
         interests=", ".join(request.student.interests) or "not specified",
-        credits_earned=request.student.total_credits_earned,
-        credits_required=request.student.total_credits_required,
-        completed_courses=completed,
+        credits_earned=request.student.total_credits_earned
+        if request.student.total_credits_earned is not None
+        else "not specified",
+        credits_required=request.student.total_credits_required
+        if request.student.total_credits_required is not None
+        else "not specified",
+        completed_courses=request.completed_courses or "none",
     )
 
     messages: list = [SystemMessage(content=system_prompt)]

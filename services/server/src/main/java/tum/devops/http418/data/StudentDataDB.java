@@ -1,14 +1,21 @@
 package tum.devops.http418.data;
 
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tum.devops.http418.api.dto.SimpleCourseData;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,9 +23,15 @@ import java.util.UUID;
 public class StudentDataDB {
 
 	private final NamedParameterJdbcTemplate template;
+	private final CoursesDataDB coursesDataDB;
+	private final ObjectMapper objectMapper;
+	private final Logger logger = LoggerFactory.getLogger(StudentDataDB.class);
 
-	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template) {
+	public StudentDataDB(@Qualifier("securityJdbcTemplate") NamedParameterJdbcTemplate template,
+			CoursesDataDB coursesDataDB, ObjectMapper objectMapper) {
 		this.template = template;
+		this.coursesDataDB = coursesDataDB;
+		this.objectMapper = objectMapper;
 	}
 
 	// --- Completed courses ---
@@ -129,7 +142,13 @@ public class StudentDataDB {
 	public record ConversationRow(String id, String username, String title, Timestamp createdAt, Timestamp updatedAt) {
 	}
 
-	public record MessageRow(String id, String conversationId, String role, String content, String referencedCourses,
+	public record IntermediateMessageRow(String id, String conversationId, String role, String content,
+			String referencedCourses,
+			Timestamp createdAt) {
+	}
+
+	public record MessageRow(String id, String conversationId, String role, String content,
+			List<SimpleCourseData> referencedCourses,
 			Timestamp createdAt) {
 	}
 
@@ -175,29 +194,70 @@ public class StudentDataDB {
 	}
 
 	public List<MessageRow> getMessages(String conversationId) {
-		return template.query(
+		List<IntermediateMessageRow> intermediateRows = template.query(
 				"SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE conversation_id = :conversationId ORDER BY created_at",
 				new MapSqlParameterSource("conversationId", conversationId),
-				new DataClassRowMapper<>(MessageRow.class));
+				new DataClassRowMapper<>(IntermediateMessageRow.class));
+		List<MessageRow> rows = intermediateRows.stream()// TODO when moving to its own db, this part has to stay here
+				.map(row -> {
+					List<String> referencedCourseIds = parseJsonList(row.referencedCourses).stream().distinct()
+							.toList();
+					List<SimpleCourseData> referencedCourses = coursesDataDB.getByIds(referencedCourseIds);
+					return new MessageRow(row.id, row.conversationId, row.role, row.content, referencedCourses,
+							row.createdAt);
+				})
+				.toList();
+		return rows;
 	}
 
-	public MessageRow insertMessage(String conversationId, String role, String content, String referencedCourses) {
+	private List<String> parseJsonList(String jsonString) {
+		if (jsonString == null || jsonString.isBlank()) {
+			return new ArrayList<>();
+		}
+		try {
+			return objectMapper.readValue(jsonString, new TypeReference<List<String>>() {
+			});
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
+
+	private String toJsonString(List<String> list) {
+		if (list == null || list.isEmpty()) {
+			return "[]"; // Return an empty JSON array string
+		}
+		try {
+			return objectMapper.writeValueAsString(list);
+		} catch (Exception e) {
+			logger.error("Failed to serialize list to JSON string", e);
+			return "[]"; // Fallback to safe empty array on failure
+		}
+	}
+
+	public MessageRow insertMessage(String conversationId, String role, String content,
+			@NonNull List<String> referencedCourses) {
 		final String id = UUID.randomUUID().toString();
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("id", id);
 		params.addValue("conversationId", conversationId);
 		params.addValue("role", role);
 		params.addValue("content", content);
-		params.addValue("referencedCourses", referencedCourses != null ? referencedCourses : "[]");
+		params.addValue("referencedCourses", toJsonString(referencedCourses));
 		template.update(
 				"INSERT INTO advisor_messages (id, conversation_id, role, content, referenced_courses) VALUES (:id, :conversationId, :role, :content, :referencedCourses)",
 				params);
 		template.update("UPDATE advisor_conversations SET updated_at = now() WHERE id = :conversationId",
 				new MapSqlParameterSource("conversationId", conversationId));
-		return template
+		IntermediateMessageRow intermediateMessageRow = template
 				.query("SELECT id, conversation_id AS conversationId, role, content, referenced_courses AS referencedCourses, created_at AS createdAt FROM advisor_messages WHERE id = :id",
-						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(MessageRow.class))
+						new MapSqlParameterSource("id", id), new DataClassRowMapper<>(IntermediateMessageRow.class))
 				.getFirst();
+		List<String> referencedCourseIds = parseJsonList(intermediateMessageRow.referencedCourses).stream().distinct()
+				.toList();
+		List<SimpleCourseData> referencedCoursesList = coursesDataDB.getByIds(referencedCourseIds);
+		return new MessageRow(intermediateMessageRow.id, intermediateMessageRow.conversationId,
+				intermediateMessageRow.role, intermediateMessageRow.content, referencedCoursesList,
+				intermediateMessageRow.createdAt);
 	}
 
 	// --- Roadmap ---
