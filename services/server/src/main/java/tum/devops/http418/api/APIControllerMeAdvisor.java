@@ -110,6 +110,7 @@ public class APIControllerMeAdvisor {
 				studentPayload.put("interests", profile.student().interests());
 				studentPayload.put("totalCreditsEarned", profile.student().creditsEarned());
 				studentPayload.put("totalCreditsRequired", profile.student().creditsRequired());
+				studentPayload.put("preferredWorkload", profile.student().preferredWorkload());
 
 				final List<String> completedCoursesPayload = profile.completedCourses();
 

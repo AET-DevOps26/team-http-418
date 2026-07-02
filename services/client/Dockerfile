@@ -14,7 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN env && pnpm build #remove env to disable sourcemaps
+RUN pnpm build #remove env to disable sourcemaps
 
 # Stage 2: Serve
 FROM nginx:alpine
