@@ -4,11 +4,15 @@ from pydantic import BaseModel, Field
 class StudentProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program: str = Field(alias="studyProgram")
+    study_program_id: str | None = Field(default=None, alias="studyProgramId")
     semester: int
     career_goals: list[str] = Field(default=[], alias="careerGoals")
     interests: list[str] = Field(default=[], alias="interests")
     preferred_workload: int | None = Field(default=None, alias="preferredWorkload")
+    skills: list[str] = Field(default=[])
+    industry_preference: str | None = Field(default=None, alias="industryPreference")
+    role_preference: str | None = Field(default=None, alias="rolePreference")
+    cv_data: dict | None = Field(default=None, alias="cvData")
 
 
 class CourseRef(BaseModel):

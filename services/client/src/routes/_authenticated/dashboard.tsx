@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AlertsList } from "#/components/dashboard/AlertsList";
 import { CurrentCourses } from "#/components/dashboard/CurrentCourses";
 import { DegreeProgress } from "#/components/dashboard/DegreeProgress";
 import { KpiStrip } from "#/components/dashboard/KpiStrip";
 import { RecommendationPreview } from "#/components/dashboard/RecommendationPreview";
 import { useDashboard } from "#/hooks/useDashboard";
+import { useProfile } from "#/hooks/useProfile";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
 	component: Dashboard,
@@ -155,7 +157,17 @@ function DashboardSkeleton() {
 }
 
 function Dashboard() {
+	const navigate = useNavigate();
+	const { data: profile } = useProfile();
 	const { data, isLoading, isError, refetch } = useDashboard();
+
+	useEffect(() => {
+		if (!profile) return;
+		const raw = profile as { student?: { onboardingCompleted?: boolean } };
+		if (raw?.student?.onboardingCompleted === false) {
+			void navigate({ to: "/onboarding" });
+		}
+	}, [profile, navigate]);
 
 	if (isLoading) return <DashboardSkeleton />;
 

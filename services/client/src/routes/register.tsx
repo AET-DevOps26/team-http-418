@@ -112,7 +112,7 @@ function RegisterPage() {
 
 	const mutation = useMutation({
 		mutationFn: () => register(tumId, password),
-		onSuccess: () => navigate({ to: "/dashboard" }),
+		onSuccess: () => navigate({ to: "/onboarding" }),
 	});
 
 	const errors = {

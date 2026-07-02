@@ -22,7 +22,7 @@ def _build_messages(request: AdvisorRequest) -> list:
     )
 
     system_prompt = _ADVISOR_PROMPT.format(
-        study_program=request.student.study_program,
+        study_program=request.student.study_program_id or request.student.study_program or "not specified",
         semester=request.student.semester,
         career_goals=", ".join(request.student.career_goals) or "not specified",
         interests=", ".join(request.student.interests) or "not specified",

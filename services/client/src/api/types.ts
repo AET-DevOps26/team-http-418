@@ -459,6 +459,27 @@ export type StudyProgramRef = {
 	department: string;
 };
 
+export type WorkExperience = {
+	company: string;
+	role: string;
+	duration: string;
+	description: string;
+};
+
+export type Education = {
+	institution: string;
+	degree: string;
+	field: string;
+	years: string;
+};
+
+export type CvData = {
+	workExperience: WorkExperience[];
+	skills: string[];
+	languages: string[];
+	education: Education[];
+};
+
 export type StudentProfile = {
 	id: string;
 	tumId: string;
@@ -472,6 +493,23 @@ export type StudentProfile = {
 	interests: string[];
 	createdAt: IsoDateString;
 	updatedAt: IsoDateString;
+	expectedGraduation?: string;
+	industryPreference?: string;
+	rolePreference?: string;
+	cvData?: CvData;
+	onboardingCompleted?: boolean;
+	student?: {
+		studyProgramId?: string;
+		semester?: number;
+		careerGoals?: string[];
+		interests?: string[];
+		preferredWorkload?: number;
+		expectedGraduation?: string;
+		industryPreference?: string;
+		rolePreference?: string;
+		cvData?: CvData;
+		onboardingCompleted?: boolean;
+	};
 };
 
 export type StudentProfileUpdate = {
@@ -479,6 +517,11 @@ export type StudentProfileUpdate = {
 	preferredWorkload?: number;
 	careerGoals?: string[];
 	interests?: string[];
+	studyProgramId?: string;
+	expectedGraduation?: string;
+	industryPreference?: string;
+	rolePreference?: string;
+	onboardingCompleted?: boolean;
 };
 
 export type CourseSearchParams = {
