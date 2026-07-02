@@ -1,0 +1,22 @@
+Extract structured information from the following CV/resume text.
+
+Return ONLY a valid JSON object with exactly these fields:
+- workExperience: array of objects with fields: company, role, duration, description
+- skills: array of skill strings (programming languages, tools, frameworks, etc.)
+- languages: array of spoken language strings (e.g. "English", "German")
+- education: array of objects with fields: institution, degree, field, years
+
+CV text:
+{cv_text}
+
+Return ONLY valid JSON, no explanation, no markdown code blocks:
+{{
+  "workExperience": [
+    {{"company": "...", "role": "...", "duration": "...", "description": "..."}}
+  ],
+  "skills": ["..."],
+  "languages": ["..."],
+  "education": [
+    {{"institution": "...", "degree": "...", "field": "...", "years": "..."}}
+  ]
+}}
