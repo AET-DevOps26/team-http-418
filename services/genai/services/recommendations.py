@@ -17,8 +17,8 @@ _RECOMMENDATIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "recommend
 logger = logging.getLogger("genai")
 
 
-def _build_query(goals: list[str], interests: list[str]) -> str:
-    return " ".join(goals + interests)
+def _build_query(goals: list[str], interests: list[str], skills: list[str] | None = None) -> str:
+    return " ".join(goals + interests + (skills or []))
 
 
 def _build_prompt(
@@ -34,14 +34,32 @@ def _build_prompt(
         for course, score in candidates
     )
 
+    skills = request.student.skills or []
+    cv_lines = []
+    if request.student.industry_preference:
+        cv_lines.append(f"- Industry preference: {request.student.industry_preference}")
+    if request.student.role_preference:
+        cv_lines.append(f"- Role preference: {request.student.role_preference}")
+    if request.student.cv_data:
+        cv_skills = request.student.cv_data.get("skills", [])
+        if cv_skills:
+            cv_lines.append(f"- CV skills: {', '.join(cv_skills[:20])}")
+        work_exp = request.student.cv_data.get("workExperience", [])
+        if work_exp:
+            roles = [f"{w.get('role', '')} at {w.get('company', '')}" for w in work_exp[:3]]
+            cv_lines.append(f"- Work experience: {'; '.join(roles)}")
+    cv_context = ("\n" + "\n".join(cv_lines) + "\n") if cv_lines else ""
+
     return _RECOMMENDATIONS_PROMPT.format(
         limit=request.limit,
-        study_program=request.student.study_program,
+        study_program=request.student.study_program_id or "not specified",
         semester=request.student.semester,
         goals=", ".join(goals) or "not specified",
         interests=", ".join(interests) or "not specified",
+        skills=", ".join(skills) or "not specified",
         completed_names=", ".join(completed_names) or "none",
         courses_text=courses_text,
+        cv_context=cv_context,
     )
 
 
@@ -49,7 +67,8 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
     goals = request.override_goals or request.student.career_goals
     interests = request.override_interests or request.student.interests
 
-    query = _build_query(goals, interests)
+    skills = request.student.skills or []
+    query = _build_query(goals, interests, skills)
     if not query.strip():
         logger.warning("recommendations | no goals or interests — empty query")
         return {"recommendations": [], "generatedAt": _now()}

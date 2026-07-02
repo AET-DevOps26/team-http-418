@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthError, isAuthenticated, login } from "#/api";
+import { getProfile } from "#/api/profile";
 
 export const Route = createFileRoute("/login")({
 	beforeLoad: () => {
@@ -112,7 +113,19 @@ function LoginPage() {
 
 	const mutation = useMutation({
 		mutationFn: () => login(tumId, password),
-		onSuccess: () => navigate({ to: "/dashboard" }),
+		onSuccess: async () => {
+			try {
+				const profile = await getProfile();
+				const raw = profile as { student?: { onboardingCompleted?: boolean } };
+				if (raw?.student?.onboardingCompleted === false) {
+					void navigate({ to: "/onboarding" });
+				} else {
+					void navigate({ to: "/dashboard" });
+				}
+			} catch {
+				void navigate({ to: "/dashboard" });
+			}
+		},
 	});
 
 	const errors = {
