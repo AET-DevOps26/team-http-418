@@ -1,5 +1,7 @@
 package tum.devops.http418.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -34,6 +36,7 @@ public class APIControllerMe {
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
 	private final ExternalServices transcriptService;
+	private final Logger logger = LoggerFactory.getLogger(APIControllerMe.class);
 
 	@GetMapping("/progress")
 	public ResponseEntity<AcademicProgressDTO> getProgress(@AuthenticationPrincipal String tumid) {
@@ -214,16 +217,19 @@ public class APIControllerMe {
 	@GetMapping("")
 	public ResponseEntity<Profile> getProfile(@AuthenticationPrincipal String tumid) {
 		try {
-			return restClient.get()
+			Profile profile = restClient.get()
 					.uri(PROFILE_SERVICE + "/get/" + tumid)
 					.retrieve()
-					.toEntity(Profile.class);
+					.body(Profile.class);
+			return ResponseEntity.ok(profile);
+
 		} catch (RestClientResponseException e) {
+			logger.debug("Error fetching profile: {} {}", e.getStatusCode(), e.getMessage());
 			return ResponseEntity.status(e.getStatusCode()).build();
 		}
 	}
 
-	@PutMapping("")
+	@PostMapping("")
 	public ResponseEntity<String> upsertProfile(@RequestBody Profile profile, @AuthenticationPrincipal String tumid) {
 		final ResponseEntity<String> entity = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
 				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().toEntity(String.class);

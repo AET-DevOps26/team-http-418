@@ -59,7 +59,7 @@ class TranscriptUploadTest extends BaseTest {
 			""";
 
 	private static final Profile CS_PROFILE = new Profile(
-			new Profile.Student("Computer Science BSc", 3, new String[]{}, new String[]{}, 20),
+			new Profile.Student("Computer Science BSc", 3, List.of(), List.of(), 20, 0, 0),
 			List.of(), List.of(), List.of(), 10, null, null);
 
 	@Test
@@ -81,9 +81,9 @@ class TranscriptUploadTest extends BaseTest {
 
 		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(username, 0, 10);
 		assertThat(rows).hasSize(1);
-		assertThat(rows.get(0).grade()).isEqualByComparingTo("1.7");
-		assertThat(rows.get(0).credits()).isEqualTo(5);
-		assertThat(rows.get(0).category()).isEqualTo("Pflichtfach");
+		assertThat(rows.getFirst().grade()).isEqualByComparingTo("1.7");
+		assertThat(rows.getFirst().credits()).isEqualTo(5);
+		assertThat(rows.getFirst().category()).isEqualTo("Pflichtfach");
 	}
 
 	@Test

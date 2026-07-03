@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Annotated
 
 from pydantic import BaseModel, Field
 
@@ -11,19 +12,19 @@ class MessageRole(StrEnum):
 class StudentAdvisorProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program: str = Field(alias="studyProgram")
+    study_program: Annotated[str, Field(alias="studyProgram")]
     semester: int
-    career_goals: list[str] = Field(default=[], alias="careerGoals")
-    interests: list[str] = Field(default=[], alias="interests")
-    total_credits_earned: int = Field(default=0, alias="totalCreditsEarned")
-    total_credits_required: int = Field(default=0, alias="totalCreditsRequired")
+    career_goals: Annotated[list[str], Field(default=[], alias="careerGoals")]
+    interests: Annotated[list[str], Field(default=[], alias="interests")]
+    total_credits_earned: Annotated[int, Field(default=0, alias="totalCreditsEarned")]
+    total_credits_required: Annotated[int, Field(default=0, alias="totalCreditsRequired")]
 
 
 class CompletedCourseRef(BaseModel):
     model_config = {"populate_by_name": True}
 
-    course_code: str = Field(alias="courseCode")
-    course_name: str = Field(alias="courseName")
+    course_code: Annotated[str, Field(alias="courseCode")]
+    course_name: Annotated[str, Field(alias="courseName")]
     credits: int
 
 
@@ -35,32 +36,36 @@ class ConversationMessage(BaseModel):
 class ReferencedCourse(BaseModel):
     model_config = {"populate_by_name": True}
 
-    course_id: int = Field(alias="courseId")
-    course_code: str = Field(alias="courseCode")
+    course_id: Annotated[int, Field(alias="courseId")]
+    course_code: Annotated[str, Field(alias="courseCode")]
 
 
 class AdvisorResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
     content: str
-    referenced_courses: list[ReferencedCourse] = Field(default=[], alias="referencedCourses")
+    referenced_courses: Annotated[list[ReferencedCourse], Field(default=[], alias="referencedCourses")]
 
 
 class AdvisorRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentAdvisorProfile
-    completed_courses: list[CompletedCourseRef] = Field(default=[], alias="completedCourses")
-    conversation_history: list[ConversationMessage] = Field(default=[], alias="conversationHistory")
-    new_message: str = Field(alias="newMessage")
+    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
+
+    conversation_history: Annotated[list[ConversationMessage], Field(default=[], alias="conversationHistory")]
+
+    new_message: Annotated[str, Field(alias="newMessage")]
 
 
 class AdvisorPromptSuggestionsRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentAdvisorProfile
-    completed_courses: list[CompletedCourseRef] = Field(default=[], alias="completedCourses")
-    current_semester: str | None = Field(default=None, alias="currentSemester")
+
+    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
+
+    current_semester: Annotated[str | None, Field(default=None, alias="currentSemester")]
 
 
 class PromptSuggestionChip(BaseModel):

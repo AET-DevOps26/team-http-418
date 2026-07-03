@@ -459,26 +459,29 @@ export type StudyProgramRef = {
 	department: string;
 };
 
-export type StudentProfile = {
-	id: string;
-	tumId: string;
-	name: string;
-	email: string;
-	semester: number;
-	studyPrograms: StudyProgramRef[];
-	totalCredits: number;
-	preferredWorkload: number;
-	careerGoals: string[];
+export type Student = {
 	interests: string[];
-	createdAt: IsoDateString;
-	updatedAt: IsoDateString;
+	creditsRequired: number;
+	creditsEarned: number;
+	careerGoals: string[];
+	preferredWorkload: number;
+	semester: number;
+	studyProgram: StudyProgramRef;
 };
 
-export type StudentProfileUpdate = {
-	semester?: number;
-	preferredWorkload?: number;
-	careerGoals?: string[];
-	interests?: string[];
+export type StudentProfile = {
+	student: Student;
+	availableCourses: CourseSummary[];
+	category: string;
+	completedCourses: CourseSummary[];
+	enrolledCourses: CourseSummary[];
+	limit: number;
+	semesterKey: string;
+	// tumId: string;
+	// name: string;
+	// email: string;
+	// createdAt: IsoDateString;
+	// updatedAt: IsoDateString;
 };
 
 export type CourseSearchParams = {

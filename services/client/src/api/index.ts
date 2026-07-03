@@ -29,7 +29,7 @@ export {
 	getCourses,
 } from "#/api/courses";
 export { getDashboard } from "#/api/dashboard";
-export { getProfile, patchProfile, updateProfile } from "#/api/profile";
+export { getProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
 	dropCourse,
@@ -122,7 +122,6 @@ export type {
 	SemesterKey,
 	SemesterPlanDetail,
 	StudentProfile,
-	StudentProfileUpdate,
 	StudyProgram,
 	StudyProgramRef,
 	SuggestedPrompt,
