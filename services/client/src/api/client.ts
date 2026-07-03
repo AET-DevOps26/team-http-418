@@ -27,7 +27,7 @@ export type ApiFetchOptions = RequestInit & {
 	root?: boolean;
 };
 
-async function doFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
+async function doFetch<T>(path: string, options?: ApiFetchOptions, retry = false): Promise<T> {
 	const token = getAccessToken();
 	const hasBody = options?.body != null;
 
@@ -53,7 +53,7 @@ async function doFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
 		if (options?.responseType === "text") return res.text() as Promise<T>;
 		return res.json() as Promise<T>;
 	}
-	if (res.status === UNAUTHORIZED) {
+	if (res.status === UNAUTHORIZED && !retry) {
 		const newToken = await refreshAccessToken();
 		if (newToken != null) {
 			setAccessToken(newToken);
