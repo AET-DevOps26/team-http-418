@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 
 from db import init_schema
 from llm.embeddings import get_embedding_dimensions
