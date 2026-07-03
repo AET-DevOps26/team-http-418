@@ -54,7 +54,7 @@ async function doFetch<T>(path: string, options?: ApiFetchOptions, retry = false
 		return res.json() as Promise<T>;
 	}
 	if (res.status === UNAUTHORIZED && !retry) {
-		const newToken = await refreshAccessToken();
+		const newToken = await refreshAccessToken().catch(() => clearAccessToken());
 		if (newToken != null) {
 			setAccessToken(newToken);
 			return doFetch<T>(path, options, true);

@@ -1,4 +1,4 @@
-import { getAccessToken, refreshAccessToken, setAccessToken } from "#/api/auth";
+import {clearAccessToken, getAccessToken, refreshAccessToken, setAccessToken} from "#/api/auth";
 import { apiFetch } from "#/api/client";
 import type {
 	AdvisorSSEEvent,
@@ -52,7 +52,7 @@ export async function* sendMessage(
 	let res = await doRequest(getAccessToken());
 
 	if (res.status === 401) {
-		const newToken = await refreshAccessToken();
+		const newToken = await refreshAccessToken().catch(()=>clearAccessToken());
 		if (newToken) {
 			setAccessToken(newToken);
 			res = await doRequest(newToken);
