@@ -56,7 +56,11 @@ async function doFetch<T>(
 		try {
 			return JSON.parse(text) as T;
 		} catch {
-			return text as unknown as T;
+			throw new ApiError(res.status, {
+				title: "failed to parse json response. is it empty?",
+				status: res.status,
+				type: "about:blank",
+			});
 		}
 	}
 
