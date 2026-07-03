@@ -5,8 +5,6 @@ import { hydrateAuth } from "#/api/auth";
 import { queryClient } from "#/api/query-client";
 import { routeTree } from "./routeTree.gen";
 
-
-
 const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
@@ -25,7 +23,7 @@ async function enableMocking() {
 	await worker.start({ onUnhandledRequest: "bypass" });
 }
 
-async function initApp(){
+async function initApp() {
 	await hydrateAuth();
 	await enableMocking();
 

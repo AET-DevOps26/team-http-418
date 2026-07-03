@@ -27,10 +27,7 @@ export type ApiFetchOptions = RequestInit & {
 	root?: boolean;
 };
 
-async function doFetch<T>(
-	path: string,
-	options?: ApiFetchOptions,
-): Promise<T> {
+async function doFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> {
 	const token = getAccessToken();
 	const hasBody = options?.body != null;
 
