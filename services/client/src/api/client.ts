@@ -52,7 +52,11 @@ async function doFetch<T>(
 	if (res.ok) {
 		if (res.status === 204) return undefined as T;
 		if (options?.responseType === "text") return res.text() as Promise<T>;
-		return res.json() as Promise<T>;
+		try {
+			return res.json() as Promise<T>;
+		} catch (SyntaxError) {
+			return res.text() as Promise<T>;
+		}
 	}
 
 	if (res.status === 401 && !isRetry) {
