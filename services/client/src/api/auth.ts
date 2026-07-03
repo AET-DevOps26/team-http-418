@@ -101,16 +101,12 @@ export async function register(tumId: string, password: string): Promise<void> {
 
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
-	try {
-		const data = await apiFetch<AuthResponse>(`/auth/refresh`, {
-			method: "POST",
-			body: JSON.stringify({ refreshToken: storedRefreshToken }),
-		});
-		setTokens(data);
-		return data.accessToken;
-	} catch {
-		return null;
-	}
+	const data = await apiFetch<AuthResponse>(`/auth/refresh`, {
+		method: "POST",
+		body: JSON.stringify({ refreshToken: storedRefreshToken }),
+	});
+	setTokens(data);
+	return data.accessToken;
 }
 
 export async function logout(): Promise<void> {
