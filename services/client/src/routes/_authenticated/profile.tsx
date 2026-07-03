@@ -180,21 +180,27 @@ function ProfilePage() {
 		if (draft.preferredWorkload !== profile.student.preferredWorkload) {
 			isDirty = true;
 		}
-		if (JSON.stringify(draft.careerGoals) !== JSON.stringify(profile.student.careerGoals)) {
+		if (
+			JSON.stringify(draft.careerGoals) !==
+			JSON.stringify(profile.student.careerGoals)
+		) {
 			isDirty = true;
 		}
-		if (JSON.stringify(draft.interests) !== JSON.stringify(profile.student.interests)) {
+		if (
+			JSON.stringify(draft.interests) !==
+			JSON.stringify(profile.student.interests)
+		) {
 			isDirty = true;
 		}
 
 		// 2. If changes exist, return the full, merged profile
 		if (isDirty) {
 			return {
-				...profile,                     // Keep other root-level profile fields intact
+				...profile, // Keep other root-level profile fields intact
 				student: {
-					...profile.student,          // Keep unchanged student fields
-					...draft,                    // Overwrite with the newly updated draft fields
-				}
+					...profile.student, // Keep unchanged student fields
+					...draft, // Overwrite with the newly updated draft fields
+				},
 			};
 		}
 
