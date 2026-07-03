@@ -53,14 +53,14 @@ export function clearTokens(): void {
 	queryClient.clear();
 }
 
-export function hydrateAuth(): void {
+export async function hydrateAuth(): Promise<void> {
 	try {
 		const storedAccess = sessionStorage.getItem(SESSION_ACCESS_KEY);
 		const storedRefresh = sessionStorage.getItem(SESSION_REFRESH_KEY);
 		if (storedAccess && storedRefresh) {
 			accessToken = storedAccess;
 			storedRefreshToken = storedRefresh;
-			refreshTokens().catch(() => clearTokens());
+			await refreshTokens().catch(() => clearTokens());
 		}
 	} catch {}
 }
