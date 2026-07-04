@@ -77,6 +77,7 @@ type Props = {
 	children: ReactNode;
 	onBack?: () => void;
 	onSkip?: () => void;
+	onSkipAll?: () => void;
 	onNext?: () => void;
 	nextLabel?: string;
 	nextDisabled?: boolean;
@@ -90,6 +91,7 @@ export function WizardLayout({
 	children,
 	onBack,
 	onSkip,
+	onSkipAll,
 	onNext,
 	nextLabel = "Next",
 	nextDisabled = false,
@@ -153,6 +155,26 @@ export function WizardLayout({
 						<p style={{ margin: 0, fontSize: 14, color: "#6E7E94" }}>
 							Help us personalize your academic journey
 						</p>
+						{onSkipAll && (
+							<button
+								type="button"
+								onClick={onSkipAll}
+								disabled={isLoading}
+								style={{
+									marginTop: 8,
+									padding: 0,
+									fontSize: 13,
+									color: "#6E7E94",
+									background: "none",
+									border: "none",
+									textDecoration: "underline",
+									cursor: isLoading ? "not-allowed" : "pointer",
+									fontFamily: "inherit",
+								}}
+							>
+								Skip for now
+							</button>
+						)}
 					</div>
 
 					<StepIndicator currentStep={currentStep} />

@@ -62,9 +62,14 @@ function OnboardingPage() {
 		return data;
 	}
 
+	function handleSkipAll() {
+		setSubmitError(null);
+		finishMutation.mutate({});
+	}
+
 	if (state.currentStep === 1) {
 		return (
-			<WizardLayout currentStep={1}>
+			<WizardLayout currentStep={1} onSkipAll={handleSkipAll} isLoading={finishMutation.isPending}>
 				<ProgramStep
 					data={state.step1}
 					onNext={(data) => {
@@ -81,6 +86,8 @@ function OnboardingPage() {
 			<WizardLayout
 				currentStep={2}
 				onBack={() => dispatch({ type: "PREV_STEP" })}
+				onSkipAll={handleSkipAll}
+				isLoading={finishMutation.isPending}
 			>
 				<DocumentsStep
 					data={state.step2}
@@ -96,6 +103,8 @@ function OnboardingPage() {
 		<WizardLayout
 			currentStep={3}
 			onBack={() => dispatch({ type: "PREV_STEP" })}
+			onSkipAll={handleSkipAll}
+			isLoading={finishMutation.isPending}
 		>
 			{submitError && (
 				<div
