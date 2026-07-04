@@ -10,6 +10,8 @@ data:
   COURSES_DB_NAME: {{ .Values.postgres.coursesDbName | quote }}
   DB_USER: {{ .Values.postgres.username | quote }}
   DB_HOST: "postgres-service"
+  DB_PORT: {{ .Values.postgres.port | quote }}
+  DB_PASS: {{ .Values.postgres.password | quote }}
   EMBEDDING_MODEL_CLOUD: {{ .Values.genai.embeddingModelCloud | quote }}
   LLM_PROVIDER: {{ .Values.genai.llmProvider | quote }}
   LOGOS_BASE_URL: {{ .Values.genai.logosBaseUrl | quote }}
