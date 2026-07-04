@@ -43,6 +43,7 @@ postgres:
   username: postgres
   password: changeme
   storage: 1Gi
+  coursesDbName: courses-data
   resources:
     requests:
       memory: "128Mi"
