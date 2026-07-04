@@ -23,7 +23,7 @@ export function StudyProgramList({
 							{p.name}
 						</div>
 						<div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-							{p.department}
+							{p.nameGer}
 						</div>
 					</div>
 				))}

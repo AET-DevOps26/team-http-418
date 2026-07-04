@@ -450,13 +450,13 @@ export type Department = {
 export type StudyProgram = {
 	id: string;
 	name: string;
-	department: string;
+	nameGer: string;
 };
 
 export type StudyProgramRef = {
 	id: string;
 	name: string;
-	department: string;
+	nameGer: string;
 };
 
 export type WorkExperience = {
