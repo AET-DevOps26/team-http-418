@@ -28,6 +28,7 @@ START_SERVER=false
 START_CLIENT=false
 START_GENAI=false
 START_SCRAPER=false
+START_PROFILE=false
 WE_STARTED_DB=false
 
 usage() {
@@ -65,12 +66,15 @@ done
 
 # Auto-deps
 $START_SERVER  && START_DB=true
+$START_SERVER  && START_PROFILE=true
 $START_SCRAPER && START_DB=true
+$START_PROFILE && START_DB=true
 
 # ── Prerequisite checks ──────────────────────────────────────────────────────
 check_cmd() { command -v "$1" &>/dev/null || { err "'$1' not found in PATH."; exit 1; }; }
 $START_DB     && check_cmd docker
-$START_SERVER && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
+$START_SERVER  && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
+$START_PROFILE && { [ -f "$SCRIPT_DIR/services/user-profile-service/gradlew" ] || { err "services/user-profile-service/gradlew not found."; exit 1; }; }
 $START_CLIENT && check_cmd pnpm
 { $START_GENAI || $START_SCRAPER; } && check_cmd python3
 
@@ -86,6 +90,9 @@ export DB_HOST=localhost
 export DB_PORT="${DB_PORT:-5432}"
 export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${DB_PORT}"
 export GENAI_BASE_URL="http://localhost:8000"
+export GENAI_SERVICE_URL="http://localhost:8000/v1"
+export PROFILE_SERVICE_URL="http://localhost:8060/v1"
+export PDF_PARSER_SERVICE_URL="http://localhost:8070/v1"
 
 # ── Shutdown trap ────────────────────────────────────────────────────────────
 PIDS=()
@@ -116,7 +123,7 @@ ensure_venv() {
     venv_dir="$dir/.venv"
   fi
   if [ -f "$dir/requirements.txt" ]; then
-    "$venv_dir/bin/pip" install -q -r "$dir/requirements.txt"
+    "$venv_dir/bin/pip" install -q --only-binary=psycopg2-binary -r "$dir/requirements.txt"
   fi
   echo "$venv_dir"
 }
@@ -136,6 +143,28 @@ if $START_DB; then
     sleep 1
     if [ "$i" -eq 60 ]; then
       err "DB did not become healthy within 60s."; exit 1
+    fi
+  done
+fi
+
+# ── user-profile-service ─────────────────────────────────────────────────────
+PROFILE_PORT=8060
+if $START_PROFILE; then
+  log_srv "Starting user-profile-service on :$PROFILE_PORT..."
+  (cd "$SCRIPT_DIR/services/user-profile-service" && SERVER_PORT=$PROFILE_PORT ./gradlew bootRun --console=plain) &
+  PROFILE_PID=$!
+  PIDS+=("$PROFILE_PID")
+  log_srv "Waiting for user-profile-service on :$PROFILE_PORT (up to ${READY_TIMEOUT}s)..."
+  for i in $(seq 1 "$READY_TIMEOUT"); do
+    if ! kill -0 "$PROFILE_PID" 2>/dev/null; then
+      err "user-profile-service exited before becoming ready."; exit 1
+    fi
+    if nc -z localhost "$PROFILE_PORT" 2>/dev/null; then
+      log_srv "user-profile-service ready after ${i}s."; break
+    fi
+    sleep 1
+    if [ "$i" -eq "$READY_TIMEOUT" ]; then
+      err "user-profile-service not ready within ${READY_TIMEOUT}s."; exit 1
     fi
   done
 fi

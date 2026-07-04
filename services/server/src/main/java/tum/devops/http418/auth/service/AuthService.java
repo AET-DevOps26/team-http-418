@@ -98,22 +98,26 @@ public class AuthService {
 	public CommandLineRunner createTestUser() {
 		final String admin = "admin";
 		return args -> {
-			if (!userDetailsService.userExists(admin)) {
-				register(admin, "test");
-			}
-			if (!environment.acceptsProfiles(Profiles.of("test"))) { // do not attempt to create an empty profile when running tests
-				var profileExists = restClient.get().uri(PROFILE_SERVICE + "/get/" + admin).retrieve()
-						.onStatus(HttpStatusCode::isError, (request, response) -> {
-						}).toBodilessEntity().getStatusCode();
-				if (profileExists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-					var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile())
-							.retrieve()
-							.toBodilessEntity().getStatusCode();
-					if (!code.is2xxSuccessful()) {
-						throw new RuntimeException("Failed to create empty profile");
-					}
-					logger.info("Created empty profile for {}", admin);
+			try {
+				if (!userDetailsService.userExists(admin)) {
+					register(admin, "test");
 				}
+				if (!environment.acceptsProfiles(Profiles.of("test"))) {
+					var profileExists = restClient.get().uri(PROFILE_SERVICE + "/get/" + admin).retrieve()
+							.onStatus(HttpStatusCode::isError, (request, response) -> {
+							}).toBodilessEntity().getStatusCode();
+					if (profileExists.isSameCodeAs(HttpStatus.NOT_FOUND)) {
+						var code = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + admin).body(new Profile())
+								.retrieve()
+								.toBodilessEntity().getStatusCode();
+						if (!code.is2xxSuccessful()) {
+							throw new RuntimeException("Failed to create empty profile");
+						}
+						logger.info("Created empty profile for {}", admin);
+					}
+				}
+			} catch (Exception e) {
+				logger.warn("Could not create test user or profile (profile-service may be unavailable): {}", e.getMessage());
 			}
 		};
 	}
