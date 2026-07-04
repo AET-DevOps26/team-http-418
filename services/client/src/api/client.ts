@@ -52,7 +52,16 @@ async function doFetch<T>(
 	if (res.ok) {
 		if (res.status === 204) return undefined as T;
 		if (options?.responseType === "text") return res.text() as Promise<T>;
-		return res.json() as Promise<T>;
+		const text = await res.text();
+		try {
+			return JSON.parse(text) as T;
+		} catch {
+			throw new ApiError(res.status, {
+				title: "failed to parse json response. is it empty?",
+				status: res.status,
+				type: "about:blank",
+			});
+		}
 	}
 
 	if (res.status === 401 && !isRetry) {

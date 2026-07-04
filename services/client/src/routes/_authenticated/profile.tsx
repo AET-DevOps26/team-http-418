@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
-// import { toast } from "sonner";
-// import type { StudentProfile } from "#/api/types";
+import { toast } from "sonner";
+import type { StudentProfile } from "#/api/types";
 import { GoalsInterestsEditor } from "#/components/profile/GoalsInterestsEditor";
 import { ProfileHeader } from "#/components/profile/ProfileHeader";
 import { StudyProgramList } from "#/components/profile/StudyProgramList";
@@ -171,40 +171,60 @@ function ProfilePage() {
 		setEditing(false);
 	}
 
-	// function computeDirtyFields(): StudentProfileUpdate | null { TODO fix for complete profile send
-	// 	if (!draft || !profile) return null;
-	// 	const dirty: Partial<StudentProfileUpdate> = {};
-	// 	if (draft.preferredWorkload !== profile.preferredWorkload) {
-	// 		dirty.preferredWorkload = draft.preferredWorkload;
-	// 	}
-	// 	if (
-	// 		JSON.stringify(draft.careerGoals) !== JSON.stringify(profile.careerGoals)
-	// 	) {
-	// 		dirty.careerGoals = draft.careerGoals;
-	// 	}
-	// 	if (JSON.stringify(draft.interests) !== JSON.stringify(profile.interests)) {
-	// 		dirty.interests = draft.interests;
-	// 	}
-	// 	return Object.keys(dirty).length > 0 ? dirty : null;
-	// }
+	function computeDirtyFields(): StudentProfile | null {
+		if (!draft || !profile) return null;
+
+		let isDirty = false;
+
+		// 1. Check if individual fields have changed
+		if (draft.preferredWorkload !== profile.student.preferredWorkload) {
+			isDirty = true;
+		}
+		if (
+			JSON.stringify(draft.careerGoals) !==
+			JSON.stringify(profile.student.careerGoals)
+		) {
+			isDirty = true;
+		}
+		if (
+			JSON.stringify(draft.interests) !==
+			JSON.stringify(profile.student.interests)
+		) {
+			isDirty = true;
+		}
+
+		// 2. If changes exist, return the full, merged profile
+		if (isDirty) {
+			return {
+				...profile, // Keep other root-level profile fields intact
+				student: {
+					...profile.student, // Keep unchanged student fields
+					...draft, // Overwrite with the newly updated draft fields
+				},
+			};
+		}
+
+		return null;
+	}
 
 	function handleSave() {
-		// const dirtyFields = computeDirtyFields(); TODO
-		// if (!dirtyFields) {
-		// 	setEditing(false);
-		// 	setDraft(null);
-		// 	return;
-		// }
-		// mutation.mutate(dirtyFields, {
-		// 	onSuccess: () => {
-		// 		toast.success("Profile updated");
-		// 		setEditing(false);
-		// 		setDraft(null);
-		// 	},
-		// 	onError: () => {
-		// 		toast.error("Failed to update profile");
-		// 	},
-		// });
+		const dirtyFields = computeDirtyFields();
+		if (!dirtyFields) {
+			setEditing(false);
+			setDraft(null);
+			return;
+		}
+		mutation.mutate(dirtyFields, {
+			onSuccess: () => {
+				toast.success("Profile updated");
+				setEditing(false);
+				setDraft(null);
+			},
+			onError: (e) => {
+				console.error("Failed to update profile", e);
+				toast.error("Failed to update profile");
+			},
+		});
 	}
 
 	const workload =

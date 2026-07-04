@@ -9,5 +9,6 @@ export function updateProfile(body: StudentProfile): Promise<StudentProfile> {
 	return apiFetch<StudentProfile>("/me", {
 		method: "POST",
 		body: JSON.stringify(body),
+		responseType: "text",
 	});
 }
