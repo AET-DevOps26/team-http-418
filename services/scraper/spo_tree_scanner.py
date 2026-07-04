@@ -25,8 +25,8 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 BASE_URL = "https://campus.tum.de/tumonline/wbstpcs.showSpoTree"
 COURSES_API = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courses"
@@ -185,8 +185,8 @@ def parse_title(title: str) -> dict:
     version_match = re.search(r"\((\d{5})", title)
     version = version_match.group(1) if version_match else ""
 
-    status = "active" if "laufend" in title or "current" in title else (
-        "ending" if "auslaufend" in title else "unknown"
+    status = (
+        "active" if "laufend" in title or "current" in title else ("ending" if "auslaufend" in title else "unknown")
     )
 
     name = re.sub(r"\s*\(.*", "", title).strip()
@@ -228,12 +228,14 @@ def scrape_program(stp_id: int, fetch_courses: bool = True) -> dict | None:
     for row in collapsed.rows[1:]:
         if row["depth"] == 1:
             node_id_str = row["id"].replace("kn", "") if row["id"] else ""
-            categories_raw.append({
-                "node_id": int(node_id_str) if node_id_str.isdigit() else None,
-                "kn_id": row["id"],
-                "name": row["name"],
-                "ects": row.get("ects", ""),
-            })
+            categories_raw.append(
+                {
+                    "node_id": int(node_id_str) if node_id_str.isdigit() else None,
+                    "kn_id": row["id"],
+                    "name": row["name"],
+                    "ects": row.get("ects", ""),
+                }
+            )
 
     # Pass 2: expanded tree — fill in category ECTS + build course ECTS map
     time.sleep(0.3)
@@ -276,8 +278,10 @@ def scrape_program(stp_id: int, fetch_courses: bool = True) -> dict | None:
     categories = []
     for cat in categories_raw:
         ects_raw = cat.get("ects", "")
-        ects = int(ects_raw) if isinstance(ects_raw, str) and ects_raw.isdigit() else (
-            ects_raw if isinstance(ects_raw, int) else None
+        ects = (
+            int(ects_raw)
+            if isinstance(ects_raw, str) and ects_raw.isdigit()
+            else (ects_raw if isinstance(ects_raw, int) else None)
         )
 
         courses = []
@@ -298,14 +302,19 @@ def scrape_program(stp_id: int, fetch_courses: bool = True) -> dict | None:
 
             courses = [{"course_id": cid, "ects": default_ects} for cid in course_ids]
             ects_info = f" @{default_ects}ec" if default_ects else ""
-            print(f"    {cat['name'][:45]:<45} {str(ects) + ' ECTS':>8}  {len(course_ids)} courses{ects_info}", file=sys.stderr)
+            print(
+                f"    {cat['name'][:45]:<45} {str(ects) + ' ECTS':>8}  {len(course_ids)} courses{ects_info}",
+                file=sys.stderr,
+            )
 
-        categories.append({
-            "name": cat["name"],
-            "ects": ects,
-            "node_id": cat["node_id"],
-            "courses": courses,
-        })
+        categories.append(
+            {
+                "name": cat["name"],
+                "ects": ects,
+                "node_id": cat["node_id"],
+                "courses": courses,
+            }
+        )
 
     total_ects = root.get("ects", "")
     if not total_ects and expanded_html:
@@ -328,7 +337,7 @@ def scan_programs(ids: list[int], delay: float = 0.5, fetch_courses: bool = True
     for i, stp_id in enumerate(ids):
         if i > 0:
             time.sleep(delay)
-        print(f"[{i+1}/{len(ids)}] Scraping pStpStpNr={stp_id}...", file=sys.stderr)
+        print(f"[{i + 1}/{len(ids)}] Scraping pStpStpNr={stp_id}...", file=sys.stderr)
         program = scrape_program(stp_id, fetch_courses=fetch_courses)
         if program is None:
             print(f"  {stp_id}: failed", file=sys.stderr)
@@ -365,8 +374,8 @@ def print_summary(results: list[dict]):
         print(f"  {'-' * 86}")
         for cat in p["categories"]:
             ects_str = f"({cat['ects']} ECTS)" if cat["ects"] else ""
-            n = len(cat['courses'])
-            ects_vals = set(c['ects'] for c in cat['courses'] if c.get('ects'))
+            n = len(cat["courses"])
+            ects_vals = set(c["ects"] for c in cat["courses"] if c.get("ects"))
             per = f" @{ects_vals.pop()}ec" if len(ects_vals) == 1 else ""
             print(f"    {cat['name'][:55]:<55} {ects_str:>12}  [{n} courses{per}]")
 
@@ -379,10 +388,7 @@ def main():
     parser.add_argument("--no-courses", action="store_true", help="Skip fetching course IDs per category")
     args = parser.parse_args()
 
-    if args.ids:
-        ids = [int(x.strip()) for x in args.ids.split(",")]
-    else:
-        ids = [5371, 5217, 5028, 5000, 4999, 4997]
+    ids = [int(x.strip()) for x in args.ids.split(",")] if args.ids else [5371, 5217, 5028, 5000, 4999, 4997]
 
     results = scan_programs(ids, delay=args.delay, fetch_courses=not args.no_courses)
 

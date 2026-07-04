@@ -166,23 +166,27 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
 
         logging.info(f"fetching detailed data for {len(unique)} courses")
         tasks = [fetch_details(session, Course(course.xml, None, None, None)) for course in unique]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        courses = [r for r in results if isinstance(r, Course)]
-        if len(courses) < len(unique):
-            logging.warning(f"{len(unique) - len(courses)} detail fetches failed")
+        results = await asyncio.gather(*tasks)
+        courses = list(results)
+        failed_details = sum(1 for c in courses if c.detailed_xml is None)
+        if failed_details:
+            logging.warning(f"{failed_details}/{len(courses)} detail fetches returned no data")
 
         logging.info("fetching dates for courses")
         tasks = [fetch_dates(session, course) for course in courses]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        courses = [r for r in results if isinstance(r, Course)]
+        results = await asyncio.gather(*tasks)
+        courses = list(results)
+        failed_dates = sum(1 for c in courses if c.dates_xml is None)
+        if failed_dates:
+            logging.warning(f"{failed_dates}/{len(courses)} date fetches returned no data")
 
         logging.info("fetching curriculum positions for courses")
         tasks = [fetch_curriculum_position(session, course) for course in courses]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        failed = sum(1 for r in results if isinstance(r, Exception))
-        if failed:
-            logging.warning(f"{failed}/{len(results)} curriculum position fetches failed")
-        courses = [r for r in results if isinstance(r, Course)]
+        results = await asyncio.gather(*tasks)
+        courses = list(results)
+        failed_cp = sum(1 for c in courses if not c.curriculum_positions_xml)
+        if failed_cp:
+            logging.warning(f"{failed_cp}/{len(courses)} curriculum position fetches failed")
 
         logging.info("done fetching information")
     return courses

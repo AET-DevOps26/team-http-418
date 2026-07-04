@@ -5,8 +5,8 @@ import os
 import sys
 
 from db_handler import DB, build_import_batch, bulk_update_database, bulk_update_study_programs
-from tumonline_scraper import fetch_courses
 from spo_tree_scanner import scan_programs
+from tumonline_scraper import fetch_courses
 
 DEBUG = False
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

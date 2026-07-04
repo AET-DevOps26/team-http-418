@@ -763,10 +763,7 @@ async def bulk_update_study_programs(conn: asyncpg.Connection, programs: list[di
                         ects = COALESCE(EXCLUDED.ects, program_area_courses.ects),
                         updated_at = now()
                     """,
-                    [
-                        (p["stp_id"], cat["name"], c["course_id"], c.get("ects"))
-                        for c in courses
-                    ],
+                    [(p["stp_id"], cat["name"], c["course_id"], c.get("ects")) for c in courses],
                 )
 
         # Backfill NULL ECTS from courses.sws

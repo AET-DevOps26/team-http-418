@@ -14,11 +14,12 @@ Usage:
 """
 
 import argparse
+import html
 import re
 import sys
 import time
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 BASE_URL = "https://campus.tum.de/tumonline/wbstpcs.showSpoTree"
 PORTFOLIO_URL = "https://campus.tum.de/tumonline/wbStpPortfolio.wbStpList"
@@ -32,7 +33,8 @@ def fetch_title(stp_id: int) -> str | None:
             chunk = resp.read(20000).decode("utf-8", errors="replace")
             match = re.search(r'<span class="s">([^<]+)</span>', chunk)
             if match:
-                return match.group(1).strip()
+                title = html.unescape(match.group(1)).strip()
+                return title if title else None
             return None
     except (HTTPError, URLError):
         return None
@@ -84,10 +86,10 @@ def main():
 
     # Write results sorted alphabetically by title
     with open(args.output, "w") as f:
-        f.write(f"TUM Study Programs\n")
+        f.write("TUM Study Programs\n")
         f.write(f"Source: {'range ' + str(args.start) + '-' + str(args.end) if args.range else 'portfolio page'}\n")
         f.write(f"Found: {len(found)} programs\n")
-        f.write(f"Date: scan output — use Ctrl+F to find programs of interest\n")
+        f.write("Date: scan output — use Ctrl+F to find programs of interest\n")
         f.write("=" * 120 + "\n\n")
         f.write(f"{'ID':>6}  Title\n")
         f.write("-" * 120 + "\n")
