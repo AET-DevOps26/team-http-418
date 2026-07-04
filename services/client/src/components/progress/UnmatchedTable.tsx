@@ -31,7 +31,6 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 			const completed = await addCompletedCourse({
 				courseId: course.id,
 				grade: parseFloat(unmatchedCourse.module.grade ?? "1.0"),
-				semester: "",
 			});
 			const reviewable: ReviewableCourse = {
 				courseId: completed.courseId,

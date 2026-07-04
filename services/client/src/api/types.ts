@@ -308,7 +308,7 @@ export type DegreeRequirements = {
 export type AddCompletedCourseRequest = {
 	courseId: string;
 	grade: number;
-	semester: string;
+	semester?: string;
 };
 
 export type EnrollCourseRequest = {

@@ -267,43 +267,28 @@ public class CoursesDataDB {
 			sqlQuery.append(" AND sem.id = :semester");
 			params.addValue("semester", semester);
 		}
-		// 1. Text Search (Matches title or description in EN/GER)
 		if (query != null && !query.trim().isEmpty()) {
-			sqlQuery.append("""
-					AND (title_ger ILIKE :query
-					OR title_en ILIKE :query
-					OR description_ger ILIKE :query
-					OR description_en ILIKE :query)
-					""");
+			sqlQuery.append(" AND (title_ger ILIKE :query OR title_en ILIKE :query OR description_ger ILIKE :query OR description_en ILIKE :query)");
 			params.addValue("query", "%" + query.trim() + "%");
 		}
 
 		if (department != null && !department.isBlank()) {
-			sqlQuery.append("""
-					AND (organizations.name_ger ILIKE :department
-					OR organizations.name_en ILIKE :department)
-					""");
+			sqlQuery.append(" AND (organizations.name_ger ILIKE :department OR organizations.name_en ILIKE :department)");
 			params.addValue("department", "%" + department + "%");
 		}
 
 		if (departmentID != null) {
-			sqlQuery.append("""
-					AND organizations.id = :departmentid
-					""");
+			sqlQuery.append(" AND organizations.id = :departmentid");
 			params.addValue("departmentid", departmentID);
 		}
 
 		if (studyProgramId != null && !studyProgramId.isBlank()) {
-			sqlQuery.append("""
-					AND pac.stp_id = CAST(:studyProgramId AS INT)
-					""");
+			sqlQuery.append(" AND pac.stp_id = CAST(:studyProgramId AS INT)");
 			params.addValue("studyProgramId", studyProgramId);
 		}
 
 		if (level != null && !level.isBlank()) {
-			sqlQuery.append("""
-					AND curriculum_connections.path @@ ('$[*].name like_regex ' || :levelRegex || ' flag "i"')::jsonpath
-					""");
+			sqlQuery.append(" AND curriculum_connections.path @@ ('$[*].name like_regex ' || :levelRegex || ' flag \"i\"')::jsonpath");
 			params.addValue("levelRegex", ".*" + level.trim() + ".*");
 		}
 

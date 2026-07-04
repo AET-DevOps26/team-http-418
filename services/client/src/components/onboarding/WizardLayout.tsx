@@ -129,7 +129,7 @@ export function WizardLayout({
 					border: "1px solid #E2E7EF",
 					boxShadow:
 						"0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
-					overflow: "hidden",
+					overflow: "visible",
 				}}
 			>
 				<div

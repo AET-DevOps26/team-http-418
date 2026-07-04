@@ -1,8 +1,11 @@
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, MinusCircle } from "lucide-react";
 import type { CvData } from "#/api/types";
-import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
+import { ImportedTable } from "#/components/progress/ImportedTable";
+import { UnmatchedTable } from "#/components/progress/UnmatchedTable";
 import type { OnboardingStep2 } from "#/hooks/useOnboarding";
+import { useImportReducer } from "#/hooks/useImportReducer";
 import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
+import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
 import { CvUploader } from "./CvUploader";
 
 type Props = {
@@ -14,10 +17,14 @@ type Props = {
 
 export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 	const transcriptMutation = useTranscriptUpload();
+	const [importState, importDispatch] = useImportReducer();
 
 	function handleTranscriptFile(file: File) {
 		transcriptMutation.mutate(file, {
-			onSuccess: () => onUpdate({ transcriptUploaded: true }),
+			onSuccess: (result) => {
+				importDispatch({ type: "UPLOAD_SUCCESS", result });
+				onUpdate({ transcriptUploaded: true });
+			},
 		});
 	}
 
@@ -25,8 +32,28 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 		onUpdate({ cvUploaded: true, cvData });
 	}
 
-	const transcriptDone = data?.transcriptUploaded ?? false;
+	function handleNext() {
+		if (importState.phase === "review") {
+			importDispatch({ type: "FINISH_IMPORT" });
+		}
+		onNext();
+	}
+
+	function handleSkip() {
+		if (importState.phase === "review") {
+			importDispatch({ type: "FINISH_IMPORT" });
+		}
+		onSkip();
+	}
+
+	function handleReupload() {
+		importDispatch({ type: "RESET" });
+		onUpdate({ transcriptUploaded: false });
+	}
+
 	const cvDone = data?.cvUploaded ?? false;
+	const inReview = importState.phase === "review";
+	const importDone = importState.phase === "done";
 
 	return (
 		<div>
@@ -60,40 +87,40 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 						<span style={{ fontSize: 13, fontWeight: 600, color: "#0B1F33" }}>
 							Grade Report / Transcript
 						</span>
-						{transcriptDone && (
+						{(inReview || importDone) && (
 							<CheckCircle size={15} style={{ color: "#2D6FB5" }} />
 						)}
 					</div>
-					{transcriptDone ? (
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 10,
-								padding: "14px 16px",
-								background: "rgba(45,111,181,0.06)",
-								border: "1px solid rgba(45,111,181,0.2)",
-								borderRadius: 10,
-							}}
-						>
-							<CheckCircle
-								size={20}
-								style={{ color: "#2D6FB5", flexShrink: 0 }}
-							/>
-							<span style={{ fontSize: 14, color: "#0B1F33", fontWeight: 500 }}>
-								Transcript uploaded successfully
-							</span>
-						</div>
-					) : (
-						<TranscriptUploader
-							onFileSelected={handleTranscriptFile}
-							isUploading={transcriptMutation.isPending}
+
+					{inReview ? (
+						<TranscriptReview
+							state={importState}
+							dispatch={importDispatch}
+							onReupload={handleReupload}
 						/>
-					)}
-					{transcriptMutation.isError && (
-						<p style={{ color: "var(--danger)", fontSize: 12.5, marginTop: 6 }}>
-							Upload failed. Please try again.
-						</p>
+					) : importDone ? (
+						<TranscriptDone
+							count={importState.imported.length}
+							onReupload={handleReupload}
+						/>
+					) : (
+						<>
+							<TranscriptUploader
+								onFileSelected={handleTranscriptFile}
+								isUploading={transcriptMutation.isPending}
+							/>
+							{transcriptMutation.isError && (
+								<p
+									style={{
+										color: "var(--danger)",
+										fontSize: 12.5,
+										marginTop: 6,
+									}}
+								>
+									Upload failed. Please try again.
+								</p>
+							)}
+						</>
 					)}
 				</div>
 
@@ -125,7 +152,7 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 			>
 				<button
 					type="button"
-					onClick={onSkip}
+					onClick={handleSkip}
 					style={{
 						padding: "9px 18px",
 						fontSize: 14,
@@ -142,7 +169,7 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 				</button>
 				<button
 					type="button"
-					onClick={onNext}
+					onClick={handleNext}
 					style={{
 						padding: "9px 22px",
 						fontSize: 14,
@@ -159,6 +186,165 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 					Next →
 				</button>
 			</div>
+		</div>
+	);
+}
+
+function TranscriptReview({
+	state,
+	dispatch,
+	onReupload,
+}: {
+	state: ReturnType<typeof useImportReducer>[0];
+	dispatch: ReturnType<typeof useImportReducer>[1];
+	onReupload: () => void;
+}) {
+	const activeUnmatched = state.unmatched.filter((u) => !u.skipped);
+
+	return (
+		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+			<div className="import-summary">
+				<span className="import-stat import-stat--success">
+					<CheckCircle size={15} strokeWidth={1.75} />
+					{state.imported.length} imported
+				</span>
+				<span className="import-stat import-stat--muted">
+					<MinusCircle size={15} strokeWidth={1.75} />
+					{state.unmatched.length} unmatched
+				</span>
+			</div>
+
+			{state.generalErrors.length > 0 && (
+				<div className="alert-item alert-error">
+					<ul
+						style={{
+							margin: 0,
+							paddingLeft: 18,
+							fontSize: 12.5,
+							color: "var(--ink-soft)",
+						}}
+					>
+						{state.generalErrors.map((e) => (
+							<li key={e}>{e}</li>
+						))}
+					</ul>
+				</div>
+			)}
+
+			{state.imported.length > 0 && (
+				<div style={{ overflowX: "auto" }}>
+					<div
+						style={{
+							fontSize: 11,
+							fontWeight: 600,
+							color: "var(--muted)",
+							textTransform: "uppercase",
+							letterSpacing: "0.06em",
+							marginBottom: 6,
+						}}
+					>
+						Imported Courses
+					</div>
+					<ImportedTable imported={state.imported} dispatch={dispatch} />
+				</div>
+			)}
+
+			{state.unmatched.length > 0 && (
+				<div style={{ overflowX: "auto" }}>
+					<div
+						style={{
+							fontSize: 11,
+							fontWeight: 600,
+							color: "var(--muted)",
+							textTransform: "uppercase",
+							letterSpacing: "0.06em",
+							marginBottom: 6,
+						}}
+					>
+						Unmatched Courses
+					</div>
+					<UnmatchedTable unmatched={state.unmatched} dispatch={dispatch} />
+				</div>
+			)}
+
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}
+			>
+				<button
+					type="button"
+					onClick={onReupload}
+					style={{
+						padding: 0,
+						fontSize: 12.5,
+						color: "#6E7E94",
+						background: "none",
+						border: "none",
+						textDecoration: "underline",
+						cursor: "pointer",
+						fontFamily: "inherit",
+					}}
+				>
+					Upload different file
+				</button>
+				{activeUnmatched.length > 0 && (
+					<span style={{ fontSize: 12, color: "var(--muted)" }}>
+						{activeUnmatched.length} still unresolved
+					</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function TranscriptDone({
+	count,
+	onReupload,
+}: {
+	count: number;
+	onReupload: () => void;
+}) {
+	return (
+		<div>
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					gap: 10,
+					padding: "14px 16px",
+					background: "rgba(45,111,181,0.06)",
+					border: "1px solid rgba(45,111,181,0.2)",
+					borderRadius: 10,
+				}}
+			>
+				<CheckCircle
+					size={20}
+					style={{ color: "#2D6FB5", flexShrink: 0 }}
+				/>
+				<span style={{ fontSize: 14, color: "#0B1F33", fontWeight: 500 }}>
+					{count} course{count !== 1 ? "s" : ""} imported successfully
+				</span>
+			</div>
+			<button
+				type="button"
+				onClick={onReupload}
+				style={{
+					marginTop: 8,
+					padding: 0,
+					fontSize: 12.5,
+					color: "#6E7E94",
+					background: "none",
+					border: "none",
+					textDecoration: "underline",
+					cursor: "pointer",
+					fontFamily: "inherit",
+				}}
+			>
+				Upload different transcript
+			</button>
 		</div>
 	);
 }
