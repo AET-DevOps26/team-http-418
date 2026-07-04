@@ -94,7 +94,7 @@ fi
 # Override docker-network hostnames with localhost for native services
 export DB_HOST=localhost
 export DB_PORT="${DB_PORT:-5432}"
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${DB_PORT}"
+export SPRING_DATASOURCE_URL="jdbc:postgresql://127.0.0.1:${DB_PORT}"
 export GENAI_BASE_URL="http://localhost:8000"
 export GENAI_SERVICE_URL="http://localhost:8000/v1"
 export PROFILE_SERVICE_URL="http://localhost:8060/v1"
@@ -149,19 +149,6 @@ if $START_DB; then
     sleep 1
     if [ "$i" -eq 60 ]; then
       err "DB did not become healthy within 60s."; exit 1
-    fi
-  done
-  # Docker entrypoint restarts postgres after init scripts finish.
-  # Healthcheck (pg_isready) and docker exec (Unix socket) pass before TCP is ready.
-  # Wait until we can actually connect from the host via TCP.
-  log_db "Waiting for db to accept connections on localhost:${DB_PORT:-5432}..."
-  for i in $(seq 1 120); do
-    if docker exec "$container_id" psql -h 127.0.0.1 -U "${DB_USER:-postgres}" -c "SELECT 1" &>/dev/null; then
-      log_db "DB accepting TCP connections after ${i}s."; break
-    fi
-    sleep 2
-    if [ "$i" -eq 120 ]; then
-      err "DB not accepting TCP connections within 240s."; exit 1
     fi
   done
 fi
