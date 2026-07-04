@@ -125,7 +125,8 @@ export function WizardLayout({
 					WebkitBackdropFilter: "blur(12px)",
 					borderRadius: "14px",
 					border: "1px solid #E2E7EF",
-					boxShadow: "0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+					boxShadow:
+						"0 8px 32px rgba(138,87,224,0.12), 0 1px 4px rgba(0,0,0,0.08)",
 					overflow: "hidden",
 				}}
 			>
@@ -228,7 +229,9 @@ export function WizardLayout({
 										border: "none",
 										borderRadius: 10,
 										cursor: btnDisabled ? "not-allowed" : "pointer",
-										boxShadow: btnDisabled ? "none" : "0 4px 14px rgba(138,87,224,0.3)",
+										boxShadow: btnDisabled
+											? "none"
+											: "0 4px 14px rgba(138,87,224,0.3)",
 										fontFamily: "inherit",
 										letterSpacing: "0.01em",
 									}}

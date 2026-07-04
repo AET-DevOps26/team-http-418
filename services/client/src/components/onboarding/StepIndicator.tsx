@@ -17,7 +17,13 @@ export function StepIndicator({ currentStep }: { currentStep: 1 | 2 | 3 }) {
 				const active = stepNum === currentStep;
 				return (
 					<div key={label} style={{ display: "flex", alignItems: "center" }}>
-						<div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+							}}
+						>
 							<div
 								style={{
 									width: 32,
@@ -34,7 +40,9 @@ export function StepIndicator({ currentStep }: { currentStep: 1 | 2 | 3 }) {
 											? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
 											: "#E2E7EF",
 									color: done || active ? "#fff" : "#6E7E94",
-									boxShadow: active ? "0 2px 8px rgba(138,87,224,0.35)" : "none",
+									boxShadow: active
+										? "0 2px 8px rgba(138,87,224,0.35)"
+										: "none",
 									transition: "all 0.2s",
 								}}
 							>

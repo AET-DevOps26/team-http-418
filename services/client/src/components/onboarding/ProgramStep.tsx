@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { useStudyPrograms } from "#/hooks/useStudyPrograms";
 import type { OnboardingStep1 } from "#/hooks/useOnboarding";
+import { useStudyPrograms } from "#/hooks/useStudyPrograms";
 
 const GRADUATION_OPTIONS = [
-	"SS2026", "WS2026/27", "SS2027", "WS2027/28",
-	"SS2028", "WS2028/29", "SS2029", "WS2029/30",
+	"SS2026",
+	"WS2026/27",
+	"SS2027",
+	"WS2027/28",
+	"SS2028",
+	"WS2028/29",
+	"SS2029",
+	"WS2029/30",
 ];
 
 const inputStyle = {
@@ -35,7 +41,9 @@ type Props = {
 
 export function ProgramStep({ data, onNext }: Props) {
 	const { data: programs, isLoading } = useStudyPrograms();
-	const [studyProgramId, setStudyProgramId] = useState(data?.studyProgramId ?? "");
+	const [studyProgramId, setStudyProgramId] = useState(
+		data?.studyProgramId ?? "",
+	);
 	const [semester, setSemester] = useState(data?.semester ?? 1);
 	const [expectedGraduation, setExpectedGraduation] = useState(
 		data?.expectedGraduation ?? "WS2027/28",
@@ -51,7 +59,14 @@ export function ProgramStep({ data, onNext }: Props) {
 	return (
 		<div>
 			<div style={{ marginBottom: 20 }}>
-				<h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#0B1F33" }}>
+				<h2
+					style={{
+						margin: "0 0 4px",
+						fontSize: 18,
+						fontWeight: 700,
+						color: "#0B1F33",
+					}}
+				>
 					Study Program
 				</h2>
 				<p style={{ margin: 0, fontSize: 14, color: "#6E7E94" }}>
@@ -115,7 +130,9 @@ export function ProgramStep({ data, onNext }: Props) {
 				</div>
 			</div>
 
-			<div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>
+			<div
+				style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}
+			>
 				<button
 					type="button"
 					onClick={handleNext}

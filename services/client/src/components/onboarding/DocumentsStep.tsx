@@ -1,8 +1,8 @@
 import { CheckCircle } from "lucide-react";
 import type { CvData } from "#/api/types";
 import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
-import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 import type { OnboardingStep2 } from "#/hooks/useOnboarding";
+import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 import { CvUploader } from "./CvUploader";
 
 type Props = {
@@ -31,17 +31,32 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 	return (
 		<div>
 			<div style={{ marginBottom: 20 }}>
-				<h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#0B1F33" }}>
+				<h2
+					style={{
+						margin: "0 0 4px",
+						fontSize: 18,
+						fontWeight: 700,
+						color: "#0B1F33",
+					}}
+				>
 					Upload Documents
 				</h2>
 				<p style={{ margin: 0, fontSize: 14, color: "#6E7E94" }}>
-					Import your academic history and experience. Both are optional — you can skip.
+					Import your academic history and experience. Both are optional — you
+					can skip.
 				</p>
 			</div>
 
 			<div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 				<div>
-					<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+					<div
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: 8,
+							marginBottom: 10,
+						}}
+					>
 						<span style={{ fontSize: 13, fontWeight: 600, color: "#0B1F33" }}>
 							Grade Report / Transcript
 						</span>
@@ -61,7 +76,10 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 								borderRadius: 10,
 							}}
 						>
-							<CheckCircle size={20} style={{ color: "#2D6FB5", flexShrink: 0 }} />
+							<CheckCircle
+								size={20}
+								style={{ color: "#2D6FB5", flexShrink: 0 }}
+							/>
 							<span style={{ fontSize: 14, color: "#0B1F33", fontWeight: 500 }}>
 								Transcript uploaded successfully
 							</span>
@@ -80,7 +98,14 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 				</div>
 
 				<div>
-					<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+					<div
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: 8,
+							marginBottom: 10,
+						}}
+					>
 						<span style={{ fontSize: 13, fontWeight: 600, color: "#0B1F33" }}>
 							CV / Résumé
 						</span>

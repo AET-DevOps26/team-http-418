@@ -1,5 +1,5 @@
 import { apiFetch } from "#/api/client";
-import type { CvData, StudentProfile, StudentProfileUpdate } from "#/api/types";
+import type { CvData, StudentProfile } from "#/api/types";
 
 export function getProfile(): Promise<StudentProfile> {
 	return apiFetch<StudentProfile>("/me");
@@ -22,6 +22,17 @@ export function uploadCv(file: File): Promise<CvData> {
 	});
 }
 
-export function completeOnboarding(data: Partial<StudentProfileUpdate>): Promise<StudentProfile> {
-	return patchProfile({ ...data, onboardingCompleted: true });
+export async function completeOnboarding(
+	data: Partial<NonNullable<StudentProfile["student"]>>,
+): Promise<StudentProfile> {
+	const current = await getProfile();
+	const merged: StudentProfile = {
+		...current,
+		student: {
+			...current.student,
+			...data,
+			onboardingCompleted: true,
+		},
+	};
+	return updateProfile(merged);
 }

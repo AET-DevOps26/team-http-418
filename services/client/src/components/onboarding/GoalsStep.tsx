@@ -56,8 +56,12 @@ export function GoalsStep({ data, onComplete, onSkip, isLoading }: Props) {
 	const [industryPreference, setIndustryPreference] = useState(
 		data?.industryPreference ?? "",
 	);
-	const [rolePreference, setRolePreference] = useState(data?.rolePreference ?? "");
-	const [careerGoals, setCareerGoals] = useState<string[]>(data?.careerGoals ?? []);
+	const [rolePreference, setRolePreference] = useState(
+		data?.rolePreference ?? "",
+	);
+	const [careerGoals, setCareerGoals] = useState<string[]>(
+		data?.careerGoals ?? [],
+	);
 	const [interests, setInterests] = useState<string[]>(data?.interests ?? []);
 	const [preferredWorkload, setPreferredWorkload] = useState(
 		data?.preferredWorkload ?? 20,
@@ -76,16 +80,26 @@ export function GoalsStep({ data, onComplete, onSkip, isLoading }: Props) {
 	return (
 		<div>
 			<div style={{ marginBottom: 20 }}>
-				<h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#0B1F33" }}>
+				<h2
+					style={{
+						margin: "0 0 4px",
+						fontSize: 18,
+						fontWeight: 700,
+						color: "#0B1F33",
+					}}
+				>
 					Goals & Preferences
 				</h2>
 				<p style={{ margin: 0, fontSize: 14, color: "#6E7E94" }}>
-					Help the AI advisor understand your career direction. All fields are optional.
+					Help the AI advisor understand your career direction. All fields are
+					optional.
 				</p>
 			</div>
 
 			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+				<div
+					style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+				>
 					<div>
 						<label style={labelStyle} htmlFor="industry">
 							Industry Preference
@@ -146,7 +160,14 @@ export function GoalsStep({ data, onComplete, onSkip, isLoading }: Props) {
 				/>
 			</div>
 
-			<div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 24 }}>
+			<div
+				style={{
+					display: "flex",
+					gap: 10,
+					justifyContent: "flex-end",
+					marginTop: 24,
+				}}
+			>
 				<button
 					type="button"
 					onClick={onSkip}

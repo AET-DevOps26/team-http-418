@@ -88,7 +88,13 @@ export function CvUploader({ onUploaded, uploaded }: Props) {
 		<div>
 			<button
 				type="button"
-				className={["drop-zone", dragActive ? "drop-zone--active" : "", isUploading ? "drop-zone--disabled" : ""].filter(Boolean).join(" ")}
+				className={[
+					"drop-zone",
+					dragActive ? "drop-zone--active" : "",
+					isUploading ? "drop-zone--disabled" : "",
+				]
+					.filter(Boolean)
+					.join(" ")}
 				onDragEnter={onDragEnter}
 				onDragOver={onDragOver}
 				onDragLeave={onDragLeave}
@@ -101,22 +107,56 @@ export function CvUploader({ onUploaded, uploaded }: Props) {
 					<Loader2
 						size={28}
 						strokeWidth={1.5}
-						style={{ color: "var(--blue-500)", margin: "0 auto 10px", animation: "spin 1s linear infinite" }}
+						style={{
+							color: "var(--blue-500)",
+							margin: "0 auto 10px",
+							animation: "spin 1s linear infinite",
+						}}
 					/>
 				) : (
-					<Upload size={28} strokeWidth={1.5} style={{ color: "var(--muted)", margin: "0 auto 10px" }} />
+					<Upload
+						size={28}
+						strokeWidth={1.5}
+						style={{ color: "var(--muted)", margin: "0 auto 10px" }}
+					/>
 				)}
-				<span style={{ display: "block", fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>
+				<span
+					style={{
+						display: "block",
+						fontSize: 14,
+						fontWeight: 500,
+						color: "var(--ink)",
+					}}
+				>
 					{isUploading ? "Parsing CV…" : "Upload your CV / Résumé"}
 				</span>
-				<span style={{ display: "block", margin: "4px 0 10px", fontSize: 12.5, color: "var(--muted)" }}>
+				<span
+					style={{
+						display: "block",
+						margin: "4px 0 10px",
+						fontSize: 12.5,
+						color: "var(--muted)",
+					}}
+				>
 					PDF, up to 10 MB
 				</span>
-				{!isUploading && <span className="btn btn-ghost" aria-hidden="true">Browse</span>}
+				{!isUploading && (
+					<span className="btn btn-ghost" aria-hidden="true">
+						Browse
+					</span>
+				)}
 			</button>
-			<input ref={inputRef} type="file" accept=".pdf" onChange={onChange} style={{ display: "none" }} />
+			<input
+				ref={inputRef}
+				type="file"
+				accept=".pdf"
+				onChange={onChange}
+				style={{ display: "none" }}
+			/>
 			{error && (
-				<p style={{ color: "var(--danger)", fontSize: 12.5, marginTop: 8 }}>{error}</p>
+				<p style={{ color: "var(--danger)", fontSize: 12.5, marginTop: 8 }}>
+					{error}
+				</p>
 			)}
 		</div>
 	);

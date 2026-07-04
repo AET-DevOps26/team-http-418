@@ -511,18 +511,6 @@ export type StudentProfile = {
 	// updatedAt: IsoDateString;
 };
 
-export type StudentProfileUpdate = {
-	semester?: number;
-	preferredWorkload?: number;
-	careerGoals?: string[];
-	interests?: string[];
-	studyProgramId?: string;
-	expectedGraduation?: string;
-	industryPreference?: string;
-	rolePreference?: string;
-	onboardingCompleted?: boolean;
-};
-
 export type CourseSearchParams = {
 	search?: string;
 	ai?: boolean;

@@ -236,41 +236,15 @@ public class APIControllerMe {
 		return ResponseEntity.status(entity.getStatusCode()).body(entity.getBody());
 	}
 
-	@PatchMapping("")
-	public ResponseEntity<Profile> patchProfile(@RequestBody PatchProfileRequest patch,
-			@AuthenticationPrincipal String tumid) {
-		final Profile current = transcriptService.fetchProfile(tumid);
-		final Profile.Student s = (current != null && current.student() != null)
-				? current.student()
-				: new Profile.Student(null, 0, new String[0], new String[0], 0, null, null, null, null, false);
-		final Profile.Student updated = new Profile.Student(
-				patch.studyProgramId() != null ? patch.studyProgramId() : s.studyProgramId(),
-				patch.semester() != null ? patch.semester() : s.semester(),
-				patch.careerGoals() != null ? patch.careerGoals().toArray(new String[0])
-						: (s.careerGoals() != null ? s.careerGoals() : new String[0]),
-				patch.interests() != null ? patch.interests().toArray(new String[0])
-						: (s.interests() != null ? s.interests() : new String[0]),
-				patch.preferredWorkload() != null ? patch.preferredWorkload() : s.preferredWorkload(),
-				patch.expectedGraduation() != null ? patch.expectedGraduation() : s.expectedGraduation(),
-				patch.industryPreference() != null ? patch.industryPreference() : s.industryPreference(),
-				patch.rolePreference() != null ? patch.rolePreference() : s.rolePreference(),
-				s.cvData(),
-				patch.onboardingCompleted() != null ? patch.onboardingCompleted() : s.onboardingCompleted());
-		final Profile newProfile = new Profile(updated,
-				current != null ? current.completedCourses() : List.of(),
-				current != null ? current.enrolledCourses() : List.of(),
-				current != null ? current.availableCourses() : List.of(),
-				current != null ? current.limit() : 0,
-				current != null ? current.category() : null,
-				current != null ? current.semesterKey() : null);
-		restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
-				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().toEntity(String.class);
-		return ResponseEntity.ok(newProfile);
-	}
-
 	@PostMapping("/cv/upload")
 	public ResponseEntity<Profile.CvData> uploadCv(@AuthenticationPrincipal String tumid,
 			@RequestParam("file") MultipartFile file) {
+		if (!"application/pdf".equals(file.getContentType())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		if (file.getSize() > 10L * 1024 * 1024) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
 		final Profile.CvData cvData;
 		try {
 			cvData = transcriptService.callCvParse(file.getBytes());
@@ -295,8 +269,12 @@ public class APIControllerMe {
 				current != null ? current.limit() : 0,
 				current != null ? current.category() : null,
 				current != null ? current.semesterKey() : null);
-		restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
-				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().toEntity(String.class);
+		try {
+			restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
+					.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().toEntity(String.class);
+		} catch (RestClientResponseException e) {
+			return ResponseEntity.status(e.getStatusCode()).build();
+		}
 		return ResponseEntity.ok(cvData);
 	}
 

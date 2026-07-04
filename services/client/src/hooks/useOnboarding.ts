@@ -44,7 +44,10 @@ const initialState: OnboardingState = {
 	step3: null,
 };
 
-function reducer(state: OnboardingState, action: OnboardingAction): OnboardingState {
+function reducer(
+	state: OnboardingState,
+	action: OnboardingAction,
+): OnboardingState {
 	switch (action.type) {
 		case "SET_STEP1":
 			return { ...state, step1: action.data };
@@ -62,9 +65,15 @@ function reducer(state: OnboardingState, action: OnboardingAction): OnboardingSt
 		case "SET_STEP3":
 			return { ...state, step3: action.data };
 		case "NEXT_STEP":
-			return { ...state, currentStep: Math.min(3, state.currentStep + 1) as 1 | 2 | 3 };
+			return {
+				...state,
+				currentStep: Math.min(3, state.currentStep + 1) as 1 | 2 | 3,
+			};
 		case "PREV_STEP":
-			return { ...state, currentStep: Math.max(1, state.currentStep - 1) as 1 | 2 | 3 };
+			return {
+				...state,
+				currentStep: Math.max(1, state.currentStep - 1) as 1 | 2 | 3,
+			};
 		case "RESET":
 			return initialState;
 		default:
@@ -89,14 +98,20 @@ function saveState(state: OnboardingState) {
 		if (state.currentStep === 1 && !state.step1) {
 			sessionStorage.removeItem(STORAGE_KEY);
 		} else {
-			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+			const toSave: OnboardingState = state.step2
+				? { ...state, step2: { ...state.step2, cvData: null } }
+				: state;
+			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
 		}
 	} catch {
 		/* ignore */
 	}
 }
 
-function persistingReducer(state: OnboardingState, action: OnboardingAction): OnboardingState {
+function persistingReducer(
+	state: OnboardingState,
+	action: OnboardingAction,
+): OnboardingState {
 	const next = reducer(state, action);
 	saveState(next);
 	return next;
