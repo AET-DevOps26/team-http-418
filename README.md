@@ -85,6 +85,12 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 ### Build Instructions
 
+**Prerequisites:** Git LFS required to fetch the DB dump (`infra/db/init/courses-data.sql.gz`).
+```bash
+git lfs install
+git lfs pull
+```
+
 **1. Set up environment variables:**
 ```bash
 cp .env.example .env

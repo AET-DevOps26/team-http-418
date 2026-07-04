@@ -6,6 +6,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
+      COURSES_DB_NAME: ${COURSES_DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -207,6 +207,49 @@ class DB:
                                     )
                                     """)
 
+            # study programs table
+            await self.conn.execute("""
+                                    CREATE TABLE IF NOT EXISTS study_programs
+                                    (
+                                        stp_id          INT PRIMARY KEY,  -- pStpStpNr from TUMonline
+                                        name            TEXT NOT NULL,
+                                        degree          TEXT NOT NULL,    -- Bachelor, Master, etc.
+                                        version         TEXT,             -- e.g. 20241
+                                        status          TEXT,             -- active, ending
+                                        total_ects      INT,
+                                        title           TEXT,             -- full title from TUMonline
+                                        updated_at      TIMESTAMP DEFAULT now()
+                                    )
+                                    """)
+
+            # program requirement areas table
+            await self.conn.execute("""
+                                    CREATE TABLE IF NOT EXISTS program_requirement_areas
+                                    (
+                                        id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                        stp_id          INT NOT NULL REFERENCES study_programs (stp_id) ON DELETE CASCADE,
+                                        area_name       TEXT NOT NULL,
+                                        ects            INT,
+                                        sort_order      INT NOT NULL DEFAULT 0,
+                                        updated_at      TIMESTAMP DEFAULT now(),
+                                        UNIQUE (stp_id, area_name)
+                                    )
+                                    """)
+
+            # program area courses junction table
+            await self.conn.execute("""
+                                    CREATE TABLE IF NOT EXISTS program_area_courses
+                                    (
+                                        id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                        stp_id          INT NOT NULL REFERENCES study_programs (stp_id) ON DELETE CASCADE,
+                                        area_name       TEXT NOT NULL,
+                                        course_id       BIGINT NOT NULL,
+                                        ects            INT,
+                                        updated_at      TIMESTAMP DEFAULT now(),
+                                        UNIQUE (stp_id, area_name, course_id)
+                                    )
+                                    """)
+
             # curriculum connections table
             await self.conn.execute("""
                                     CREATE TABLE IF NOT EXISTS curriculum_connections
@@ -245,6 +288,9 @@ def build_import_batch(courses_input: list[Course]) -> dict:
             course.dates_xml,
             course.curriculum_positions_xml,
         )
+
+        if detailed_course_info_resource is None:
+            continue
 
         detail_root = detailed_course_info_resource.find(".//cpCourseDetailDto")
         detailed_course = find_or(detail_root, "cpCourseDto", simple_course_info)
@@ -651,3 +697,92 @@ async def bulk_update_database(conn: asyncpg.Connection, batch: dict) -> None:
         """,
         batch["curriculum_connections"],
     )
+
+
+async def bulk_update_study_programs(conn: asyncpg.Connection, programs: list[dict]) -> None:
+    for p in programs:
+        await conn.execute(
+            """
+            INSERT INTO study_programs (stp_id, name, degree, version, status, total_ects, title, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, now())
+            ON CONFLICT (stp_id) DO UPDATE SET
+                name       = EXCLUDED.name,
+                degree     = EXCLUDED.degree,
+                version    = EXCLUDED.version,
+                status     = EXCLUDED.status,
+                total_ects = EXCLUDED.total_ects,
+                title      = EXCLUDED.title,
+                updated_at = now()
+            """,
+            p["stp_id"],
+            p["name"],
+            p["degree"],
+            p.get("version"),
+            p.get("status"),
+            p["total_ects"] if isinstance(p["total_ects"], int) else None,
+            p.get("title"),
+        )
+
+        # Delete old areas for this program, then insert fresh
+        await conn.execute(
+            "DELETE FROM program_requirement_areas WHERE stp_id = $1",
+            p["stp_id"],
+        )
+
+        # Delete old area courses for this program
+        await conn.execute(
+            "DELETE FROM program_area_courses WHERE stp_id = $1",
+            p["stp_id"],
+        )
+
+        for i, cat in enumerate(p.get("categories", [])):
+            ects = cat.get("ects")
+            if isinstance(ects, str) and ects.isdigit():
+                ects = int(ects)
+            elif not isinstance(ects, int):
+                ects = None
+            await conn.execute(
+                """
+                INSERT INTO program_requirement_areas (stp_id, area_name, ects, sort_order, updated_at)
+                VALUES ($1, $2, $3, $4, now())
+                ON CONFLICT (stp_id, area_name) DO UPDATE SET
+                    ects = COALESCE(EXCLUDED.ects, program_requirement_areas.ects),
+                    sort_order = EXCLUDED.sort_order,
+                    updated_at = now()
+                """,
+                p["stp_id"],
+                cat["name"],
+                ects,
+                i,
+            )
+
+            # Insert course mappings for this area (with per-course ECTS if available)
+            courses = cat.get("courses", [])
+            if courses:
+                await conn.executemany(
+                    """
+                    INSERT INTO program_area_courses (stp_id, area_name, course_id, ects, updated_at)
+                    VALUES ($1, $2, $3, $4, now())
+                    ON CONFLICT (stp_id, area_name, course_id) DO UPDATE SET
+                        ects = COALESCE(EXCLUDED.ects, program_area_courses.ects),
+                        updated_at = now()
+                    """,
+                    [(p["stp_id"], cat["name"], c["course_id"], c.get("ects")) for c in courses],
+                )
+
+        # Backfill NULL ECTS from courses.sws
+        # TUM has no fixed formula; typical ratios from module descriptions:
+        # 2 SWS → 3 ECTS, 4 SWS → 6 ECTS, 6 SWS → 8 ECTS
+        # Approximation: ECTS ≈ ROUND(SWS * 1.25 + 0.5)
+        await conn.execute(
+            """
+            UPDATE program_area_courses pac
+            SET ects = ROUND(c.sws * 1.25 + 0.5)
+            FROM courses c
+            WHERE pac.stp_id = $1
+              AND pac.course_id = c.id
+              AND pac.ects IS NULL
+              AND c.sws IS NOT NULL
+            """,
+            p["stp_id"],
+        )
