@@ -1,8 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { isAuthenticated } from "#/api";
-import { completeOnboarding } from "#/api/profile";
+import { completeOnboarding, getProfile } from "#/api/profile";
 import type { StudentProfile } from "#/api/types";
 import { DocumentsStep } from "#/components/onboarding/DocumentsStep";
 import { GoalsStep } from "#/components/onboarding/GoalsStep";
@@ -12,14 +12,19 @@ import type { OnboardingStep3 } from "#/hooks/useOnboarding";
 import { useOnboarding } from "#/hooks/useOnboarding";
 
 export const Route = createFileRoute("/onboarding")({
-	beforeLoad: () => {
+	beforeLoad: async () => {
 		if (!isAuthenticated()) throw redirect({ to: "/login" });
+		const profile = await getProfile().catch(() => null);
+		if (profile?.student?.onboardingCompleted) {
+			throw redirect({ to: "/dashboard" });
+		}
 	},
 	component: OnboardingPage,
 });
 
 function OnboardingPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [state, dispatch] = useOnboarding();
 	const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -28,6 +33,7 @@ function OnboardingPage() {
 			completeOnboarding(data),
 		onSuccess: () => {
 			sessionStorage.removeItem("onboarding-state");
+			void queryClient.invalidateQueries({ queryKey: ["profile"] });
 			void navigate({ to: "/dashboard" });
 		},
 		onError: () => {

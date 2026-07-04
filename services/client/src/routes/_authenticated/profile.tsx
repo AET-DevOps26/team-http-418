@@ -176,10 +176,16 @@ function ProfilePage() {
 		if (draft.preferredWorkload !== profile.student.preferredWorkload) {
 			dirty.preferredWorkload = draft.preferredWorkload;
 		}
-		if (JSON.stringify(draft.careerGoals) !== JSON.stringify(profile.student.careerGoals)) {
+		if (
+			JSON.stringify(draft.careerGoals) !==
+			JSON.stringify(profile.student.careerGoals)
+		) {
 			dirty.careerGoals = draft.careerGoals;
 		}
-		if (JSON.stringify(draft.interests) !== JSON.stringify(profile.student.interests)) {
+		if (
+			JSON.stringify(draft.interests) !==
+			JSON.stringify(profile.student.interests)
+		) {
 			dirty.interests = draft.interests;
 		}
 		return Object.keys(dirty).length > 0 ? dirty : null;

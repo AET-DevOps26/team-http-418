@@ -13,7 +13,10 @@ export function useUpdateProfile() {
 	return useMutation({
 		mutationFn: async (fields: ProfilePatch) => {
 			const current = await getProfile();
-			return updateProfile({ ...current, student: { ...current.student, ...fields } });
+			return updateProfile({
+				...current,
+				student: { ...current.student, ...fields },
+			});
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["profile"] });
