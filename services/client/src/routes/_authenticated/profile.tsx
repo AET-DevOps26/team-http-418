@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { StudentProfileUpdate } from "#/api/types";
+import type { StudentProfile } from "#/api/types";
 import { GoalsInterestsEditor } from "#/components/profile/GoalsInterestsEditor";
 import { ProfileHeader } from "#/components/profile/ProfileHeader";
 import { StudyProgramList } from "#/components/profile/StudyProgramList";
@@ -159,9 +159,9 @@ function ProfilePage() {
 	function enterEdit() {
 		if (!profile) return;
 		setDraft({
-			preferredWorkload: profile.preferredWorkload,
-			careerGoals: [...profile.careerGoals],
-			interests: [...profile.interests],
+			preferredWorkload: profile.student.preferredWorkload,
+			careerGoals: [...profile.student.careerGoals],
+			interests: [...profile.student.interests],
 		});
 		setEditing(true);
 	}
@@ -171,21 +171,40 @@ function ProfilePage() {
 		setEditing(false);
 	}
 
-	function computeDirtyFields(): Partial<StudentProfileUpdate> | null {
+	function computeDirtyFields(): StudentProfile | null {
 		if (!draft || !profile) return null;
-		const dirty: Partial<StudentProfileUpdate> = {};
-		if (draft.preferredWorkload !== profile.preferredWorkload) {
-			dirty.preferredWorkload = draft.preferredWorkload;
+
+		let isDirty = false;
+
+		// 1. Check if individual fields have changed
+		if (draft.preferredWorkload !== profile.student.preferredWorkload) {
+			isDirty = true;
 		}
 		if (
-			JSON.stringify(draft.careerGoals) !== JSON.stringify(profile.careerGoals)
+			JSON.stringify(draft.careerGoals) !==
+			JSON.stringify(profile.student.careerGoals)
 		) {
-			dirty.careerGoals = draft.careerGoals;
+			isDirty = true;
 		}
-		if (JSON.stringify(draft.interests) !== JSON.stringify(profile.interests)) {
-			dirty.interests = draft.interests;
+		if (
+			JSON.stringify(draft.interests) !==
+			JSON.stringify(profile.student.interests)
+		) {
+			isDirty = true;
 		}
-		return Object.keys(dirty).length > 0 ? dirty : null;
+
+		// 2. If changes exist, return the full, merged profile
+		if (isDirty) {
+			return {
+				...profile, // Keep other root-level profile fields intact
+				student: {
+					...profile.student, // Keep unchanged student fields
+					...draft, // Overwrite with the newly updated draft fields
+				},
+			};
+		}
+
+		return null;
 	}
 
 	function handleSave() {
@@ -201,16 +220,21 @@ function ProfilePage() {
 				setEditing(false);
 				setDraft(null);
 			},
-			onError: () => {
+			onError: (e) => {
+				console.error("Failed to update profile", e);
 				toast.error("Failed to update profile");
 			},
 		});
 	}
 
 	const workload =
-		editing && draft ? draft.preferredWorkload : profile.preferredWorkload;
-	const goals = editing && draft ? draft.careerGoals : profile.careerGoals;
-	const interests = editing && draft ? draft.interests : profile.interests;
+		editing && draft
+			? draft.preferredWorkload
+			: profile.student.preferredWorkload;
+	const goals =
+		editing && draft ? draft.careerGoals : profile.student.careerGoals;
+	const interests =
+		editing && draft ? draft.interests : profile.student.interests;
 
 	return (
 		<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
@@ -270,7 +294,7 @@ function ProfilePage() {
 			>
 				<div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 					<ProfileHeader profile={profile} />
-					<StudyProgramList programs={profile.studyPrograms} />
+					<StudyProgramList programs={[profile.student.studyProgram]} />
 				</div>
 
 				<div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

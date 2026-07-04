@@ -1,4 +1,4 @@
-import { BookOpen, Mail, User } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import type { StudentProfile } from "#/api/types";
 
 export function ProfileHeader({ profile }: { profile: StudentProfile }) {
@@ -20,23 +20,18 @@ export function ProfileHeader({ profile }: { profile: StudentProfile }) {
 						fontWeight: 700,
 						flexShrink: 0,
 					}}
-				>
-					{profile.name
-						.split(" ")
-						.map((n) => n[0])
-						.join("")}
-				</div>
+				></div>
 				<div style={{ flex: 1, minWidth: 0 }}>
-					<h2
-						style={{
-							margin: 0,
-							fontSize: 20,
-							fontWeight: 700,
-							color: "var(--ink)",
-						}}
-					>
-						{profile.name}
-					</h2>
+					{/*<h2*/}
+					{/*	style={{*/}
+					{/*		margin: 0,*/}
+					{/*		fontSize: 20,*/}
+					{/*		fontWeight: 700,*/}
+					{/*		color: "var(--ink)",*/}
+					{/*	}}*/}
+					{/*>*/}
+					{/*	{profile.name}*/}
+					{/*</h2>*/}
 					<div
 						style={{
 							display: "flex",
@@ -47,23 +42,23 @@ export function ProfileHeader({ profile }: { profile: StudentProfile }) {
 							color: "var(--muted)",
 						}}
 					>
-						<span
-							style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-						>
-							<User size={14} />
-							{profile.tumId}
-						</span>
-						<span
-							style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-						>
-							<Mail size={14} />
-							{profile.email}
-						</span>
+						{/*<span*/}
+						{/*	style={{ display: "inline-flex", alignItems: "center", gap: 4 }}*/}
+						{/*>*/}
+						{/*	<User size={14} />*/}
+						{/*	{profile.tumId}*/}
+						{/*</span>*/}
+						{/*<span*/}
+						{/*	style={{ display: "inline-flex", alignItems: "center", gap: 4 }}*/}
+						{/*>*/}
+						{/*	<Mail size={14} />*/}
+						{/*	{profile.email}*/}
+						{/*</span>*/}
 						<span
 							style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
 						>
 							<BookOpen size={14} />
-							Semester {profile.semester}
+							Semester {profile.student.semester}
 						</span>
 					</div>
 				</div>

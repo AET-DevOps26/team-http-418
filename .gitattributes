@@ -1,1 +1,20 @@
+# Normalize all text files to LF on checkout — consistent across Linux/macOS/Windows
+* text=auto eol=lf
+
+# Windows batch files need CRLF
+*.bat text eol=crlf
+
+# Binaries
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Git LFS
 infra/db/init/*.sql.gz filter=lfs diff=lfs merge=lfs -text

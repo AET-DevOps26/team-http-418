@@ -1,14 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { patchProfile } from "#/api/profile";
-import type { StudentProfileUpdate } from "#/api/types";
+import { updateProfile } from "#/api/profile";
+import type { StudentProfile } from "#/api/types";
 
 export function useUpdateProfile() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (fields: Partial<StudentProfileUpdate>) => patchProfile(fields),
-		onSuccess: (profile) => {
-			queryClient.setQueryData(["profile"], profile);
+		mutationFn: (fullProfile: StudentProfile) => updateProfile(fullProfile),
+
+		onSuccess: (updatedProfile) => {
+			// 2. Update the local cache with the new full profile data
+			queryClient.setQueryData(["profile"], updatedProfile);
+
+			// 3. Invalidate to ensure sync with the server
 			queryClient.invalidateQueries({ queryKey: ["profile"] });
 		},
 	});

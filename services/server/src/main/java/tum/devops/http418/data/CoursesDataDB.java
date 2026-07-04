@@ -26,6 +26,8 @@ public class CoursesDataDB {
 	private final NamedParameterJdbcTemplate template;
 
 	public List<SimpleCourseData> getByIds(List<String> ids) {
+		if (ids.isEmpty())
+			return List.of();
 		final String query = """
 				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
 				    JOIN semesters sem on c.semester_id = sem.id

@@ -53,14 +53,14 @@ export function clearTokens(): void {
 	queryClient.clear();
 }
 
-export function hydrateAuth(): void {
+export async function hydrateAuth(): Promise<void> {
 	try {
 		const storedAccess = sessionStorage.getItem(SESSION_ACCESS_KEY);
 		const storedRefresh = sessionStorage.getItem(SESSION_REFRESH_KEY);
 		if (storedAccess && storedRefresh) {
 			accessToken = storedAccess;
 			storedRefreshToken = storedRefresh;
-			refreshTokens().catch(() => clearTokens());
+			await refreshTokens().catch(() => clearTokens());
 		}
 	} catch {}
 }
@@ -101,16 +101,12 @@ export async function register(tumId: string, password: string): Promise<void> {
 
 export async function refreshTokens(): Promise<string | null> {
 	if (!storedRefreshToken) return null;
-	try {
-		const data = await apiFetch<AuthResponse>(`/auth/refresh`, {
-			method: "POST",
-			body: JSON.stringify({ refreshToken: storedRefreshToken }),
-		});
-		setTokens(data);
-		return data.accessToken;
-	} catch {
-		return null;
-	}
+	const data = await apiFetch<AuthResponse>(`/auth/refresh`, {
+		method: "POST",
+		body: JSON.stringify({ refreshToken: storedRefreshToken }),
+	});
+	setTokens(data);
+	return data.accessToken;
 }
 
 export async function logout(): Promise<void> {
