@@ -23,6 +23,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 	implementation("org.postgresql:postgresql")

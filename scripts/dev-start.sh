@@ -167,6 +167,9 @@ if $START_PROFILE; then
       err "user-profile-service not ready within ${READY_TIMEOUT}s."; exit 1
     fi
   done
+  log_srv "Watching user-profile-service sources for changes..."
+  (cd "$SCRIPT_DIR/services/user-profile-service" && ./gradlew classes --continuous --no-daemon -q --console=plain >/dev/null 2>&1) &
+  PIDS+=($!)
 fi
 
 # ── server ───────────────────────────────────────────────────────────────────
@@ -188,6 +191,9 @@ if $START_SERVER; then
       err "Backend not ready within ${READY_TIMEOUT}s."; exit 1
     fi
   done
+  log_srv "Watching server sources for changes..."
+  (cd "$SCRIPT_DIR/services/server" && ./gradlew classes --continuous --no-daemon -q --console=plain >/dev/null 2>&1) &
+  PIDS+=($!)
 fi
 
 # ── genai ────────────────────────────────────────────────────────────────────
