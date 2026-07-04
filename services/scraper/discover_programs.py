@@ -18,8 +18,8 @@ import html
 import re
 import sys
 import time
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+import requests
 
 BASE_URL = "https://campus.tum.de/tumonline/wbstpcs.showSpoTree"
 PORTFOLIO_URL = "https://campus.tum.de/tumonline/wbStpPortfolio.wbStpList"
@@ -27,28 +27,26 @@ PORTFOLIO_URL = "https://campus.tum.de/tumonline/wbStpPortfolio.wbStpList"
 
 def fetch_title(stp_id: int) -> str | None:
     url = f"{BASE_URL}?pStpStpNr={stp_id}"
-    req = Request(url, headers={"Accept-Language": "de"})
     try:
-        with urlopen(req, timeout=15) as resp:
-            chunk = resp.read(20000).decode("utf-8", errors="replace")
-            match = re.search(r'<span class="s">([^<]+)</span>', chunk)
-            if match:
-                title = html.unescape(match.group(1)).strip()
-                return title if title else None
-            return None
-    except (HTTPError, URLError):
+        resp = requests.get(url, headers={"Accept-Language": "de", "Accept": "application/xml"}, timeout=15)
+        chunk = resp.content[:20000].decode("utf-8", errors="replace")
+        match = re.search(r'<span class="s">([^<]+)</span>', chunk)
+        if match:
+            title = html.unescape(match.group(1)).strip()
+            return title if title else None
+        return None
+    except requests.RequestException:
         return None
 
 
 def get_portfolio_ids() -> list[int]:
     """Get all program IDs from the TUMonline portfolio listing page."""
-    req = Request(PORTFOLIO_URL, headers={"Accept-Language": "de"})
     try:
-        with urlopen(req, timeout=30) as resp:
-            html = resp.read().decode("utf-8", errors="replace")
-        ids = sorted(set(int(m) for m in re.findall(r"pStpStpNr=(\d+)", html)))
+        resp = requests.get(PORTFOLIO_URL, headers={"Accept-Language": "de", "Accept": "application/xml"}, timeout=30)
+        content = resp.content.decode("utf-8", errors="replace")
+        ids = sorted(set(int(m) for m in re.findall(r"pStpStpNr=(\d+)", content)))
         return ids
-    except (HTTPError, URLError) as e:
+    except requests.RequestException as e:
         print(f"Failed to fetch portfolio: {e}", file=sys.stderr)
         return []
 

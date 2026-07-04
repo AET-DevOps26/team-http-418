@@ -745,6 +745,10 @@ async def bulk_update_study_programs(conn: asyncpg.Connection, programs: list[di
                 """
                 INSERT INTO program_requirement_areas (stp_id, area_name, ects, sort_order, updated_at)
                 VALUES ($1, $2, $3, $4, now())
+                ON CONFLICT (stp_id, area_name) DO UPDATE SET
+                    ects = COALESCE(EXCLUDED.ects, program_requirement_areas.ects),
+                    sort_order = EXCLUDED.sort_order,
+                    updated_at = now()
                 """,
                 p["stp_id"],
                 cat["name"],
