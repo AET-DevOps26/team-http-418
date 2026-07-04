@@ -35,6 +35,15 @@ public class ExternalServices {
 				.body(String.class);
 	}
 
+	public Profile.CvData callCvParse(byte[] fileBytes) {
+		return restClient.post()
+				.uri(GENAI_PATH + "/cv/parse")
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(fileBytes)
+				.retrieve()
+				.body(Profile.CvData.class);
+	}
+
 	public Profile fetchProfile(String tumid) {
 		try {
 			return restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve().body(Profile.class);

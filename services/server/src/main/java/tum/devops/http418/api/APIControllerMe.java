@@ -80,8 +80,8 @@ public class APIControllerMe {
 					});
 
 			final Profile profile = transcriptService.fetchProfile(tumid);
-			final String studyProgram = (profile != null && profile.student() != null)
-					? profile.student().studyProgram()
+			final String studyProgramId = (profile != null && profile.student() != null)
+					? profile.student().studyProgramId()
 					: null;
 
 			final List<TranscriptImportResultDTO.ImportedCourse> importedCourses = new ArrayList<>();
@@ -92,7 +92,7 @@ public class APIControllerMe {
 
 			for (final ParsedModule module : modules) {
 				final CoursesDataDB.CourseMatchResult course = coursesDataDB.findCourseMatchByTitle(
-						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgram,
+						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgramId,
 						module.moduleId());
 				if (course == null) {
 					unmatchedModules.add(module);
@@ -234,6 +234,49 @@ public class APIControllerMe {
 		final ResponseEntity<String> entity = restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
 				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().toEntity(String.class);
 		return ResponseEntity.status(entity.getStatusCode()).body(entity.getBody());
+	}
+
+	@PostMapping("/cv/upload")
+	public ResponseEntity<Profile.CvData> uploadCv(@AuthenticationPrincipal String tumid,
+			@RequestParam("file") MultipartFile file) {
+		if (!"application/pdf".equals(file.getContentType())) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		if (file.getSize() > 10L * 1024 * 1024) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		final Profile.CvData cvData;
+		try {
+			cvData = transcriptService.callCvParse(file.getBytes());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+		}
+		if (cvData == null) {
+			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+		}
+		final Profile current = transcriptService.fetchProfile(tumid);
+		final Profile.Student s = (current != null && current.student() != null)
+				? current.student()
+				: new Profile.Student(null, 0, List.of(), List.of(), 0, 0, 0, null, null, null, null, false);
+		final Profile.Student updated = new Profile.Student(
+				s.studyProgramId(), s.semester(), s.careerGoals(), s.interests(),
+				s.preferredWorkload(), s.creditsEarned(), s.creditsRequired(),
+				s.expectedGraduation(), s.industryPreference(),
+				s.rolePreference(), cvData, s.onboardingCompleted());
+		final Profile newProfile = new Profile(updated,
+				current != null ? current.completedCourses() : List.of(),
+				current != null ? current.enrolledCourses() : List.of(),
+				current != null ? current.availableCourses() : List.of(),
+				current != null ? current.limit() : 0,
+				current != null ? current.category() : null,
+				current != null ? current.semesterKey() : null);
+		try {
+			restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
+					.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().toEntity(String.class);
+		} catch (RestClientResponseException e) {
+			return ResponseEntity.status(e.getStatusCode()).build();
+		}
+		return ResponseEntity.ok(cvData);
 	}
 
 	@GetMapping("/recommendations")

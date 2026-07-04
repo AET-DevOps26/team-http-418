@@ -6,8 +6,9 @@ Student profile:
 - Semester: {semester}
 - Career goals: {goals}
 - Interests: {interests}
+- Skills: {skills}
 - Completed courses: {completed_names}
-
+{cv_context}
 Candidate courses (sorted by relevance score):
 {courses_text}
 

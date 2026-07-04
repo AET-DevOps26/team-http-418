@@ -104,7 +104,7 @@ public class APIControllerMeAdvisor {
 			try {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/conversations/%s/messages".formatted(id);
 				final Map<String, Object> studentPayload = new LinkedHashMap<>();
-				studentPayload.put("studyProgram", profile.student().studyProgram());
+				studentPayload.put("studyProgram", profile.student().studyProgramId());
 				studentPayload.put("semester", profile.student().semester());
 				studentPayload.put("careerGoals", profile.student().careerGoals());
 				studentPayload.put("interests", profile.student().interests());

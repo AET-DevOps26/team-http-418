@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { StudentProfile } from "#/api/types";
 import { GoalsInterestsEditor } from "#/components/profile/GoalsInterestsEditor";
 import { ProfileHeader } from "#/components/profile/ProfileHeader";
 import { StudyProgramList } from "#/components/profile/StudyProgramList";
@@ -171,40 +170,25 @@ function ProfilePage() {
 		setEditing(false);
 	}
 
-	function computeDirtyFields(): StudentProfile | null {
+	function computeDirtyFields(): Partial<Draft> | null {
 		if (!draft || !profile) return null;
-
-		let isDirty = false;
-
-		// 1. Check if individual fields have changed
+		const dirty: Partial<Draft> = {};
 		if (draft.preferredWorkload !== profile.student.preferredWorkload) {
-			isDirty = true;
+			dirty.preferredWorkload = draft.preferredWorkload;
 		}
 		if (
 			JSON.stringify(draft.careerGoals) !==
 			JSON.stringify(profile.student.careerGoals)
 		) {
-			isDirty = true;
+			dirty.careerGoals = draft.careerGoals;
 		}
 		if (
 			JSON.stringify(draft.interests) !==
 			JSON.stringify(profile.student.interests)
 		) {
-			isDirty = true;
+			dirty.interests = draft.interests;
 		}
-
-		// 2. If changes exist, return the full, merged profile
-		if (isDirty) {
-			return {
-				...profile, // Keep other root-level profile fields intact
-				student: {
-					...profile.student, // Keep unchanged student fields
-					...draft, // Overwrite with the newly updated draft fields
-				},
-			};
-		}
-
-		return null;
+		return Object.keys(dirty).length > 0 ? dirty : null;
 	}
 
 	function handleSave() {
