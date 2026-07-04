@@ -7,6 +7,9 @@ import {
 } from "#/api/auth";
 import type { ProblemDetail } from "#/api/types";
 
+const UNAUTHORIZED = 401;
+const NO_CONTENT = 204;
+
 export class ApiError extends Error {
 	status: number;
 	problem: ProblemDetail;
@@ -27,7 +30,7 @@ export type ApiFetchOptions = RequestInit & {
 async function doFetch<T>(
 	path: string,
 	options?: ApiFetchOptions,
-	isRetry = false,
+	retry = false,
 ): Promise<T> {
 	const token = getAccessToken();
 	const hasBody = options?.body != null;
@@ -50,7 +53,7 @@ async function doFetch<T>(
 	});
 
 	if (res.ok) {
-		if (res.status === 204) return undefined as T;
+		if (res.status === NO_CONTENT) return undefined as T;
 		if (options?.responseType === "text") return res.text() as Promise<T>;
 		const text = await res.text();
 		try {
@@ -63,9 +66,8 @@ async function doFetch<T>(
 			});
 		}
 	}
-
-	if (res.status === 401 && !isRetry) {
-		const newToken = await refreshAccessToken();
+	if (res.status === UNAUTHORIZED && !retry) {
+		const newToken = await refreshAccessToken().catch(() => clearAccessToken());
 		if (newToken != null) {
 			setAccessToken(newToken);
 			return doFetch<T>(path, options, true);

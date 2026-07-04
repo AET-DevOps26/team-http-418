@@ -5,8 +5,6 @@ import { hydrateAuth } from "#/api/auth";
 import { queryClient } from "#/api/query-client";
 import { routeTree } from "./routeTree.gen";
 
-hydrateAuth();
-
 const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
@@ -25,9 +23,11 @@ async function enableMocking() {
 	await worker.start({ onUnhandledRequest: "bypass" });
 }
 
-enableMocking().then(() => {
-	const rootElement = document.getElementById("app");
+async function initApp() {
+	await hydrateAuth();
+	await enableMocking();
 
+	const rootElement = document.getElementById("app");
 	if (rootElement && !rootElement.innerHTML) {
 		const root = ReactDOM.createRoot(rootElement);
 		root.render(
@@ -36,4 +36,6 @@ enableMocking().then(() => {
 			</QueryClientProvider>,
 		);
 	}
-});
+}
+
+initApp();
