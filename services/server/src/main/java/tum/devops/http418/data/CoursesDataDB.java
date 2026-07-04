@@ -127,24 +127,24 @@ public class CoursesDataDB {
 
 	public List<StudyProgramRow> getStudyPrograms() {
 		return template.query(
-				"SELECT DISTINCT study_id AS studyId, study_name_en AS studyNameEn, study_name_ger AS studyNameGer FROM curriculum_connections WHERE study_name_en IS NOT NULL ORDER BY study_name_en",
+				"SELECT CAST(stp_id AS VARCHAR) AS studyId, name || ' (' || degree || ')' AS studyNameEn, name || ' (' || degree || ')' AS studyNameGer FROM study_programs WHERE status = 'active' ORDER BY name, degree",
 				new DataClassRowMapper<>(StudyProgramRow.class));
 	}
 
 	public StudyProgramRow getStudyProgramById(String id) {
 		final List<StudyProgramRow> rows = template.query(
-				"SELECT DISTINCT study_id AS studyId, study_name_en AS studyNameEn, study_name_ger AS studyNameGer FROM curriculum_connections WHERE study_id = :id LIMIT 1",
+				"SELECT CAST(stp_id AS VARCHAR) AS studyId, name || ' (' || degree || ')' AS studyNameEn, name || ' (' || degree || ')' AS studyNameGer FROM study_programs WHERE CAST(stp_id AS VARCHAR) = :id LIMIT 1",
 				new MapSqlParameterSource("id", id), new DataClassRowMapper<>(StudyProgramRow.class));
 		return rows.isEmpty() ? null : rows.getFirst();
 	}
 
 	public List<SimpleCourseData> getCoursesByStudyProgram(String studyId) {
 		return template.query("""
-				SELECT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
+				SELECT DISTINCT c.id, c.title_ger, c.title_en, ct."key", sem.semester_key FROM courses c
 				JOIN course_types ct ON c.course_type_id = ct.id
 				JOIN semesters sem ON c.semester_id = sem.id
-				JOIN curriculum_connections cc ON cc.course_id = c.id
-				WHERE cc.study_id = :studyId ORDER BY c.title_en
+				JOIN program_area_courses pac ON pac.course_id = c.id
+				WHERE pac.stp_id = CAST(:studyId AS INT) ORDER BY c.title_en
 				""",
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(SimpleCourseData.class));
 	}
@@ -158,26 +158,29 @@ public class CoursesDataDB {
 		if (moduleId != null && !moduleId.isBlank()) {
 			modulePattern = "%" + moduleId.replace("%", "\\%").replace("_", "\\_") + "%";
 		}
+		int studyProgramInt = 0;
+		try {
+			studyProgramInt = Integer.parseInt(studyProgram);
+		} catch (NumberFormatException ignored) {
+		}
 		final String query = """
 				SELECT c.id, c.title_ger, c.title_en, ct."key", cc.subject_type AS subjectType
 				FROM courses c
 				JOIN course_types ct ON c.course_type_id = ct.id
 				LEFT JOIN curriculum_connections cc ON cc.course_id = c.id
+				LEFT JOIN program_area_courses pac ON pac.course_id = c.id AND pac.stp_id = :studyProgramInt
 				WHERE LOWER(TRIM(c.title_en)) = :titleEn
 				   OR LOWER(TRIM(c.title_ger)) = :titleDe
 				   OR (:modulePattern IS NOT NULL AND ct."key" ILIKE :modulePattern)
 				ORDER BY
-				    CASE WHEN cc.study_id = :studyProgram
-				              OR cc.study_name_en = :studyProgram
-				              OR cc.study_name_ger = :studyProgram
-				         THEN 0 ELSE 1 END,
+				    CASE WHEN pac.stp_id IS NOT NULL THEN 0 ELSE 1 END,
 				    c.id ASC
 				LIMIT 1
 				""";
 		final MapSqlParameterSource params = new MapSqlParameterSource()
 				.addValue("titleEn", normalizedTitleEn)
 				.addValue("titleDe", normalizedTitleDe)
-				.addValue("studyProgram", studyProgram)
+				.addValue("studyProgramInt", studyProgramInt)
 				.addValue("modulePattern", modulePattern);
 		final List<CourseMatchResult> results = template.query(query, params,
 				new DataClassRowMapper<>(CourseMatchResult.class));
@@ -208,10 +211,10 @@ public class CoursesDataDB {
 		if (studyId == null || studyId.isBlank())
 			return List.of();
 		return template.query("""
-				SELECT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws FROM courses c \
+				SELECT DISTINCT c.id, c.title_en, ct."key", COALESCE(c.sws, 0) AS sws FROM courses c \
 				JOIN course_types ct ON c.course_type_id = ct.id \
-				JOIN curriculum_connections cc ON cc.course_id = c.id \
-				WHERE cc.study_id = :studyId ORDER BY c.title_en""",
+				JOIN program_area_courses pac ON pac.course_id = c.id \
+				WHERE pac.stp_id = CAST(:studyId AS INT) ORDER BY c.title_en""",
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(CourseDataRow.class));
 	}
 
@@ -251,7 +254,10 @@ public class CoursesDataDB {
 		if ((department != null && !department.isBlank()) || departmentID != null) { //TODO remove condition if its information is used in result anyways
 			sqlQuery.append(" JOIN organizations ON c.organization_id = organizations.id");
 		}
-		if ((studyProgramId != null && !studyProgramId.isBlank()) || (level != null && !level.isBlank())) { // this is expensive, so we only do it if we need it
+		if (studyProgramId != null && !studyProgramId.isBlank()) {
+			sqlQuery.append(" JOIN program_area_courses pac ON pac.course_id = c.id");
+		}
+		if (level != null && !level.isBlank()) {
 			sqlQuery.append(" JOIN curriculum_connections ON curriculum_connections.course_id = c.id");
 		}
 		sqlQuery.append(" WHERE 1=1");
@@ -289,9 +295,9 @@ public class CoursesDataDB {
 
 		if (studyProgramId != null && !studyProgramId.isBlank()) {
 			sqlQuery.append("""
-					AND curriculum_connections.study_program_id ILIKE :studyProgramId
+					AND pac.stp_id = CAST(:studyProgramId AS INT)
 					""");
-			params.addValue("studyProgramId", "%" + studyProgramId + "%");
+			params.addValue("studyProgramId", studyProgramId);
 		}
 
 		if (level != null && !level.isBlank()) {
