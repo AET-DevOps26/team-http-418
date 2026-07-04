@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WorkExperience(BaseModel):
@@ -16,7 +16,9 @@ class Education(BaseModel):
 
 
 class CvParseResponse(BaseModel):
-    workExperience: list[WorkExperience] = []
+    model_config = ConfigDict(populate_by_name=True)
+
+    work_experience: list[WorkExperience] = Field(default=[], alias="workExperience")
     skills: list[str] = []
     languages: list[str] = []
     education: list[Education] = []

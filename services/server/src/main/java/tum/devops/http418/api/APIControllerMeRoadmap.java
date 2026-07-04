@@ -90,7 +90,7 @@ public class APIControllerMeRoadmap {
 				return m;
 			}).toList();
 
-			final String studyProgram = profileStudent != null ? profileStudent.studyProgram() : "";
+			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 			final Set<Long> usedIds = new HashSet<>(completedIds);
 			usedIds.addAll(enrolledIds);
 			final List<Map<String, Object>> availableCourses = coursesDataDB
@@ -124,7 +124,7 @@ public class APIControllerMeRoadmap {
 			final Map<String, Object> preferences = new HashMap<>();
 			preferences.put("maxCreditsPerSemester", profileStudent != null ? profileStudent.preferredWorkload() : 30);
 			final Map<String, Object> student = new HashMap<>();
-			student.put("studyProgram", profileStudent != null ? profileStudent.studyProgram() : "");
+			student.put("studyProgram", profileStudent != null ? profileStudent.studyProgramId() : "");
 			student.put("semester", profileStudent != null ? profileStudent.semester() : 1);
 			student.put("careerGoals",
 					profileStudent != null && profileStudent.careerGoals() != null

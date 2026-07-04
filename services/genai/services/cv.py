@@ -24,9 +24,9 @@ async def parse_cv(pdf_bytes: bytes) -> dict:
 
         text = await asyncio.to_thread(_extract_text)
     except ImportError:
-        raise HTTPException(status_code=500, detail="pypdf not installed — cannot extract PDF text")
+        raise HTTPException(status_code=500, detail="pypdf not installed — cannot extract PDF text") from None
     except Exception as e:
-        raise HTTPException(status_code=422, detail=f"Could not read PDF: {e}")
+        raise HTTPException(status_code=422, detail=f"Could not read PDF: {e}") from e
 
     if not text.strip():
         raise HTTPException(status_code=422, detail="PDF contains no extractable text")
@@ -39,9 +39,9 @@ async def parse_cv(pdf_bytes: bytes) -> dict:
         validated = CvParseResponse(**parsed)
     except (json.JSONDecodeError, ValueError) as e:
         logger.error("cv_parse | LLM response invalid: %s", e)
-        raise HTTPException(status_code=502, detail="LLM returned malformed CV parse response")
+        raise HTTPException(status_code=502, detail="LLM returned malformed CV parse response") from e
     except Exception as e:
         logger.error("cv_parse | LLM call failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"LLM service unavailable: {e}")
+        raise HTTPException(status_code=502, detail=f"LLM service unavailable: {e}") from e
 
-    return validated.model_dump()
+    return validated.model_dump(by_alias=True)
