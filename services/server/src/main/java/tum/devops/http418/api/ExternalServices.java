@@ -19,7 +19,7 @@ public class ExternalServices {
 
 	public String callPdfParser(byte[] fileBytes) {
 		return restClient.post()
-				.uri(PDF_PARSER_SERVICE + "/v1/parse-pdf")
+				.uri(PDF_PARSER_SERVICE + "/parse-pdf")
 				.contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.body(fileBytes)
 				.retrieve()
@@ -46,7 +46,7 @@ public class ExternalServices {
 
 	public Profile fetchProfile(String tumid) {
 		try {
-			return restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve().body(Profile.class);
+			return restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
 		} catch (Exception e) {
 			return null;
 		}
