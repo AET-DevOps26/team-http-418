@@ -4,15 +4,18 @@ metadata:
   name: aidan-config
   namespace: {{ .Values.namespace }}
 data:
-  DB_USER: {{ .Values.postgres.username | quote }}
-  DB_HOST: "postgres-service"
-  SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d" (.Values.postgres.port | int) }}
-  SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
   API_VERSION: "v1"
   APP_JWT_ACCESS_TOKEN_TTL_SECONDS: "3600"
   APP_REFRESH_TOKEN_TTL_SECONDS: "604800"
+  COURSES_DB_NAME: {{ .Values.postgres.coursesDbName | quote }}
+  DB_USER: {{ .Values.postgres.username | quote }}
+  DB_HOST: "postgres-service"
+  DB_PORT: {{ .Values.postgres.port | quote }}
+  DB_PASS: {{ .Values.postgres.password | quote }}
   EMBEDDING_MODEL_CLOUD: {{ .Values.genai.embeddingModelCloud | quote }}
   LLM_PROVIDER: {{ .Values.genai.llmProvider | quote }}
   LOGOS_BASE_URL: {{ .Values.genai.logosBaseUrl | quote }}
   LOGOS_API_VERSION: {{ .Values.genai.logosApiVersion | quote }}
   LOGOS_MODEL: {{ .Values.genai.logosModel | quote }}
+  SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d" (.Values.postgres.port | int) }}
+  SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
