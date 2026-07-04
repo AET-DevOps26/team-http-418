@@ -18,3 +18,10 @@ if [ -f /docker-entrypoint-initdb.d/courses-data.sql.gz ]; then
 else
     echo "No courses-data.sql.gz found — starting with empty courses database."
 fi
+
+if [ -f /docker-entrypoint-initdb.d/02-study-programs.sql ]; then
+    echo "Loading study programs seed data..."
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "courses-data" \
+        -f /docker-entrypoint-initdb.d/02-study-programs.sql
+    echo "Study programs seed data loaded."
+fi

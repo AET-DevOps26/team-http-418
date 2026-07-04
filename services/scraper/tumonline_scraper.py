@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ET
 
 import aiohttp
 
-semaphore = asyncio.Semaphore(20)
+semaphore = asyncio.Semaphore(10)
 base_url = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courses"
 base_url_dates = "https://campus.tum.de/tumonline/ee/rest/slc.tm.cp/student/courseGroups/firstGroups"
 base_url_curriculum_positions = (
@@ -68,19 +68,20 @@ async def fetch_details(session: aiohttp.ClientSession, course: Course) -> Cours
     """
     async with semaphore:
         url = f"{base_url}/{course.id}"
-        async with session.get(url) as response:
-            assert response.status == 200, (
-                f"could not fetch course details for {course.id}, got {response.status}\n{url}"
-            )
-            text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
-            try:
+        try:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    logging.warning(f"details for {course.id} returned {response.status}, skipping")
+                    return course
+                text = await response.text()
+                text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)
                 resources = ET.fromstring(text).findall("resource")
-                assert len(resources) == 1, f"expected exactly one resource for {course.id}, got {len(resources)}"
-                course.detailed_xml = resources[0]
+                if len(resources) == 1:
+                    course.detailed_xml = resources[0]
                 return course
-            except Exception as e:
-                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
+        except Exception as e:
+            logging.warning(f"details for {course.id} failed: {e}")
+            return course
 
 
 async def fetch_dates(session: aiohttp.ClientSession, course: Course) -> Course:
@@ -89,15 +90,18 @@ async def fetch_dates(session: aiohttp.ClientSession, course: Course) -> Course:
     """
     async with semaphore:
         url = f"{base_url_dates}/{course.id}"
-        async with session.get(url) as response:
-            assert response.status == 200, f"could not fetch course dates for {course.id}, got {response.status}\n{url}"
-            text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)  # sanitize invalid xml characters
-            try:
+        try:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    logging.warning(f"dates for {course.id} returned {response.status}, skipping")
+                    return course
+                text = await response.text()
+                text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text)
                 course.dates_xml = ET.fromstring(text)
                 return course
-            except Exception as e:
-                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
+        except Exception as e:
+            logging.warning(f"dates for {course.id} failed: {e}")
+            return course
 
 
 async def fetch_curriculum_position(session: aiohttp.ClientSession, course: Course) -> Course:
@@ -106,19 +110,27 @@ async def fetch_curriculum_position(session: aiohttp.ClientSession, course: Cour
     """
     async with semaphore:
         url = base_url_curriculum_positions.format(course.id)
-        async with session.get(url) as response:
-            assert response.status == 200, (
-                f"could not fetch curriculum_positions for {course.id}, got {response.status}\n{url}"
-            )
-            text = await response.text()
-            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text).replace(
-                "&", "&amp;"
-            )  # sanitize invalid xml characters
-            try:
-                course.curriculum_positions_xml = ET.fromstring(text).findall("resource")
-                return course
-            except Exception as e:
-                raise Exception(f"could not parse {course.id} with content:\n{text}") from e
+        try:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    logging.warning(f"curriculum_positions for {course.id} returned {response.status}, skipping")
+                    course.curriculum_positions_xml = []
+                    return course
+                text = await response.text()
+                text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", text).replace(
+                    "&", "&amp;"
+                )  # sanitize invalid xml characters
+                try:
+                    course.curriculum_positions_xml = ET.fromstring(text).findall("resource")
+                    return course
+                except Exception as e:
+                    logging.warning(f"could not parse curriculum_positions for {course.id}: {e}")
+                    course.curriculum_positions_xml = []
+                    return course
+        except Exception as e:
+            logging.warning(f"curriculum_positions for {course.id} failed: {e}")
+            course.curriculum_positions_xml = []
+            return course
 
 
 async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
@@ -127,7 +139,8 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
     :return: a list of triples (course_info, detailed_course_info, dates)
     """
     stepsize = 20
-    async with aiohttp.ClientSession(headers={"accept": "application/xml"}) as session:
+    timeout = aiohttp.ClientTimeout(total=30, connect=10)
+    async with aiohttp.ClientSession(headers={"accept": "application/xml"}, timeout=timeout) as session:
         # get first page to get total number of courses
         url = f"{base_url}?$filter=termId-eq={semester_id}&$orderBy=title=ascnf&$skip=0"
         page = await session.get(url)
@@ -153,15 +166,23 @@ async def fetch_courses(semester_id: int, debug: bool) -> list[Course]:
 
         logging.info(f"fetching detailed data for {len(unique)} courses")
         tasks = [fetch_details(session, Course(course.xml, None, None, None)) for course in unique]
-        courses: list[Course] = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        courses = [r for r in results if isinstance(r, Course)]
+        if len(courses) < len(unique):
+            logging.warning(f"{len(unique) - len(courses)} detail fetches failed")
 
         logging.info("fetching dates for courses")
         tasks = [fetch_dates(session, course) for course in courses]
-        courses: list[Course] = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        courses = [r for r in results if isinstance(r, Course)]
 
         logging.info("fetching curriculum positions for courses")
         tasks = [fetch_curriculum_position(session, course) for course in courses]
-        courses: list[Course] = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        failed = sum(1 for r in results if isinstance(r, Exception))
+        if failed:
+            logging.warning(f"{failed}/{len(results)} curriculum position fetches failed")
+        courses = [r for r in results if isinstance(r, Course)]
 
         logging.info("done fetching information")
     return courses
