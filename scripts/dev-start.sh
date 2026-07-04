@@ -151,6 +151,19 @@ if $START_DB; then
       err "DB did not become healthy within 60s."; exit 1
     fi
   done
+  # On first run, ~100MB seed import can take a while.
+  # study_programs table is created by the last init script — use it as readiness signal.
+  log_db "Waiting for db init to complete (may take a few minutes on first run)..."
+  for i in $(seq 1 300); do
+    if docker exec "$container_id" psql -U "${DB_USER:-postgres}" -d "${COURSES_DB_NAME:-courses-data}" \
+         -c "SELECT 1 FROM study_programs LIMIT 1" &>/dev/null; then
+      log_db "DB init complete after ${i}s."; break
+    fi
+    sleep 2
+    if [ "$i" -eq 300 ]; then
+      err "DB init did not complete within 600s."; exit 1
+    fi
+  done
 fi
 
 # ── user-profile-service ─────────────────────────────────────────────────────
