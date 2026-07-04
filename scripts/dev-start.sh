@@ -151,17 +151,17 @@ if $START_DB; then
       err "DB did not become healthy within 60s."; exit 1
     fi
   done
-  # On first run, ~100MB seed import can take a while.
-  # study_programs table is created by the last init script — use it as readiness signal.
-  log_db "Waiting for db init to complete (may take a few minutes on first run)..."
-  for i in $(seq 1 300); do
-    if docker exec "$container_id" psql -U "${DB_USER:-postgres}" -d "${COURSES_DB_NAME:-courses-data}" \
-         -c "SELECT 1 FROM study_programs LIMIT 1" &>/dev/null; then
-      log_db "DB init complete after ${i}s."; break
+  # Docker entrypoint restarts postgres after init scripts finish.
+  # Healthcheck (pg_isready) and docker exec (Unix socket) pass before TCP is ready.
+  # Wait until we can actually connect from the host via TCP.
+  log_db "Waiting for db to accept connections on localhost:${DB_PORT:-5432}..."
+  for i in $(seq 1 120); do
+    if docker exec "$container_id" psql -h 127.0.0.1 -U "${DB_USER:-postgres}" -c "SELECT 1" &>/dev/null; then
+      log_db "DB accepting TCP connections after ${i}s."; break
     fi
     sleep 2
-    if [ "$i" -eq 300 ]; then
-      err "DB init did not complete within 600s."; exit 1
+    if [ "$i" -eq 120 ]; then
+      err "DB not accepting TCP connections within 240s."; exit 1
     fi
   done
 fi
