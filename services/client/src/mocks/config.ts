@@ -3,8 +3,8 @@ export const mockConfig: Record<string, boolean> = {
 	"POST /auth/login": true,
 	"POST /auth/refresh": true,
 	"POST /auth/logout": true,
-	"GET /me/dashboard": true,
-	"GET /me/schedule": true,
+	"GET /me/dashboard": false,
+	"GET /me/schedule": false,
 	"GET /me/advisor/conversations": true,
 	"POST /me/advisor/conversations": true,
 	"GET /me/advisor/conversations/:id": true,
@@ -24,14 +24,14 @@ export const mockConfig: Record<string, boolean> = {
 	"PUT /me": false,
 	"PATCH /me": false,
 	"POST /me/transcript/upload": false,
-	"GET /me/progress": true,
+	"GET /me/progress": false,
 	"GET /me/courses/completed": false,
 	"POST /me/courses/completed": false,
 	"DELETE /me/courses/completed": false,
 	"GET /me/courses/enrolled": false,
 	"POST /me/courses/enrolled": false,
 	"DELETE /me/courses/enrolled": false,
-	"GET /me/requirements": true,
+	"GET /me/requirements": false,
 	// Add endpoints here — set false to "unlock" (use real backend)
 };
 

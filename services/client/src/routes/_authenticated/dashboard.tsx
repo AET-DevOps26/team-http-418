@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { AlertsList } from "#/components/dashboard/AlertsList";
 import { CurrentCourses } from "#/components/dashboard/CurrentCourses";
 import { DegreeProgress } from "#/components/dashboard/DegreeProgress";
 import { KpiStrip } from "#/components/dashboard/KpiStrip";
+import { ProfileCompletion } from "#/components/dashboard/ProfileCompletion";
 import { RecommendationPreview } from "#/components/dashboard/RecommendationPreview";
-import { useDashboard } from "#/hooks/useDashboard";
-import { useProfile } from "#/hooks/useProfile";
+import { useDashboardData } from "#/hooks/useDashboardData";
+import { useGenerateRecommendations } from "#/hooks/useRecommendations";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
 	component: Dashboard,
@@ -158,44 +158,43 @@ function DashboardSkeleton() {
 
 function Dashboard() {
 	const navigate = useNavigate();
-	const { data: profile } = useProfile();
-	const { data, isLoading, isError, refetch } = useDashboard();
+	const {
+		profile,
+		progress,
+		schedule,
+		recommendations,
+		requirements,
+		isLoading,
+		hasStudyProgram,
+		hasTranscript,
+		hasGoalsOrInterests,
+		hasScheduleData,
+		hasCv,
+		hasEnrolledCourses,
+		creditsRequired,
+		currentSemester,
+		progressPercentage,
+		recommendationsQuery,
+	} = useDashboardData();
+
+	const { mutate: generateRecs } = useGenerateRecommendations();
 
 	useEffect(() => {
 		if (!profile) return;
-		const raw = profile as { student?: { onboardingCompleted?: boolean } };
-		if (raw?.student?.onboardingCompleted === false) {
+		if (profile?.student?.onboardingCompleted === false) {
 			void navigate({ to: "/onboarding" });
 		}
 	}, [profile, navigate]);
 
 	if (isLoading) return <DashboardSkeleton />;
 
-	if (isError || !data) {
-		return (
-			<div
-				style={{
-					flex: 1,
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "center",
-				}}
-			>
-				<div style={{ textAlign: "center" }}>
-					<p style={{ color: "var(--muted)", marginBottom: 12, fontSize: 14 }}>
-						Failed to load dashboard data.
-					</p>
-					<button
-						type="button"
-						className="btn btn-primary"
-						onClick={() => refetch()}
-					>
-						Try again
-					</button>
-				</div>
-			</div>
-		);
-	}
+	const showProfileCompletion =
+		!hasStudyProgram ||
+		!hasTranscript ||
+		!hasGoalsOrInterests ||
+		!hasCv ||
+		!hasEnrolledCourses;
+	const firstName = profile?.student?.firstName;
 
 	return (
 		<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
@@ -232,7 +231,8 @@ function Dashboard() {
 						lineHeight: 1.2,
 					}}
 				>
-					Good morning — here's your overview
+					{firstName ? `Good morning, ${firstName}` : "Good morning"} — here's
+					your overview
 				</h1>
 				<p
 					style={{
@@ -241,42 +241,58 @@ function Dashboard() {
 						color: "var(--muted)",
 					}}
 				>
-					{data.progress.currentSemester} ·{" "}
-					{data.progress.progressPercentage != null
-						? data.progress.progressPercentage.toFixed(1)
-						: "N/A"}
-					% toward your degree
+					{currentSemester || "Current semester"} ·{" "}
+					{progressPercentage.toFixed(1)}% toward your degree
 				</p>
 			</div>
 
-			<KpiStrip
-				progress={data.progress}
-				semesterCredits={data.semesterCredits}
-				alerts={data.alerts}
-			/>
+			{progress && (
+				<KpiStrip
+					progress={progress}
+					creditsRequired={creditsRequired}
+					semesterCredits={schedule?.totalCredits}
+				/>
+			)}
 
 			<div className="dash-grid">
 				<div className="col-span-4 row-span-2">
 					<DegreeProgress
-						progress={data.progress}
-						requirements={data.requirements}
+						progress={progress}
+						requirements={requirements}
+						hasTranscript={hasTranscript}
+						hasStudyProgram={hasStudyProgram}
 					/>
 				</div>
 
 				<div className="col-span-8">
-					<RecommendationPreview recommendations={data.recommendations} />
-				</div>
-
-				<div className="col-span-5">
-					<CurrentCourses
-						courses={data.upcomingCourses}
-						semester={data.progress.currentSemester}
+					<RecommendationPreview
+						recommendations={recommendations?.recommendations}
+						isLoading={recommendationsQuery.isLoading}
+						hasGoalsOrInterests={hasGoalsOrInterests}
+						onGenerate={() => generateRecs({})}
 					/>
 				</div>
 
-				<div className="col-span-3">
-					<AlertsList alerts={data.alerts} />
+				<div className={showProfileCompletion ? "col-span-5" : "col-span-8"}>
+					<CurrentCourses
+						events={schedule?.events}
+						enrolledCourses={profile?.enrolledCourses}
+						semester={currentSemester}
+						hasScheduleData={hasScheduleData}
+					/>
 				</div>
+
+				{showProfileCompletion && (
+					<div className="col-span-3">
+						<ProfileCompletion
+							hasStudyProgram={hasStudyProgram}
+							hasTranscript={hasTranscript}
+							hasGoalsOrInterests={hasGoalsOrInterests}
+							hasCv={hasCv}
+							hasEnrolledCourses={hasEnrolledCourses}
+						/>
+					</div>
+				)}
 			</div>
 		</div>
 	);

@@ -40,9 +40,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 	}
 
 	function handleSkip() {
-		if (importState.phase === "review") {
-			importDispatch({ type: "FINISH_IMPORT" });
-		}
 		onSkip();
 	}
 
@@ -93,11 +90,7 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 					</div>
 
 					{inReview ? (
-						<TranscriptReview
-							state={importState}
-							dispatch={importDispatch}
-							onReupload={handleReupload}
-						/>
+						<TranscriptReview state={importState} onReupload={handleReupload} />
 					) : importDone ? (
 						<TranscriptDone
 							count={importState.imported.length}
@@ -192,11 +185,9 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 
 function TranscriptReview({
 	state,
-	dispatch,
 	onReupload,
 }: {
 	state: ReturnType<typeof useImportReducer>[0];
-	dispatch: ReturnType<typeof useImportReducer>[1];
 	onReupload: () => void;
 }) {
 	const activeUnmatched = state.unmatched.filter((u) => !u.skipped);
@@ -245,7 +236,7 @@ function TranscriptReview({
 					>
 						Imported Courses
 					</div>
-					<ImportedTable imported={state.imported} dispatch={dispatch} />
+					<ImportedTable imported={state.imported} />
 				</div>
 			)}
 
@@ -263,7 +254,7 @@ function TranscriptReview({
 					>
 						Unmatched Courses
 					</div>
-					<UnmatchedTable unmatched={state.unmatched} dispatch={dispatch} />
+					<UnmatchedTable unmatched={state.unmatched} />
 				</div>
 			)}
 

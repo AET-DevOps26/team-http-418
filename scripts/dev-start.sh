@@ -137,24 +137,13 @@ ensure_venv() {
 # ── db ───────────────────────────────────────────────────────────────────────
 if $START_DB; then
   log_db "Starting db container..."
-  (cd "$SCRIPT_DIR" && docker compose up -d db)
+  DB_READY_TIMEOUT="${DB_READY_TIMEOUT:-300}"
+  if (cd "$SCRIPT_DIR" && docker compose up -d --wait --wait-timeout "$DB_READY_TIMEOUT" db); then
+    log_db "DB ready."
+  else
+    err "DB did not become ready within ${DB_READY_TIMEOUT}s."; exit 1
+  fi
   WE_STARTED_DB=true
-  log_db "Waiting for db to be ready..."
-  container_id=$(cd "$SCRIPT_DIR" && docker compose ps -q db 2>/dev/null)
-  # Wait until postgres logs "ready to accept connections" as one of its last lines.
-  # On first run, init scripts import ~100MB of seed data — the temp server's "ready"
-  # message gets pushed far up in the logs. The normal server's "ready" only appears
-  # in the tail once init is done and postgres has restarted.
-  for i in $(seq 1 300); do
-    if docker logs "$container_id" 2>&1 | tail -5 | grep -q "ready to accept connections"; then
-      log_db "DB ready after ${i}s."; break
-    fi
-    [ $((i % 30)) -eq 0 ] && log_db "Still waiting for db init... (${i}s, first run imports seed data)"
-    sleep 1
-    if [ "$i" -eq 300 ]; then
-      err "DB did not become ready within 300s."; exit 1
-    fi
-  done
 fi
 
 # ── user-profile-service ─────────────────────────────────────────────────────
@@ -245,6 +234,26 @@ if $START_CLIENT; then
   log_cli "Starting client dev server..."
   (cd "$SCRIPT_DIR/services/client" && pnpm install && pnpm dev) &
   PIDS+=($!)
+fi
+
+# ── embeddings (background, one-time) ───────────────────────────────────────
+if $START_GENAI && $START_DB; then
+  EMBED_COUNT=$(docker compose exec -T db psql -U postgres -d courses-data -t -A -c "SELECT count(*) FROM course_embeddings" 2>/dev/null || echo "0")
+  EMBED_COUNT=$(echo "$EMBED_COUNT" | tr -d '[:space:]')
+  if [ "$EMBED_COUNT" = "0" ]; then
+    log_gen "No course embeddings found — generating in background (requires eduVPN)..."
+    (
+      # Wait for genai to be ready
+      for i in $(seq 1 60); do
+        nc -z localhost 8000 2>/dev/null && break
+        sleep 1
+      done
+      "$SCRIPT_DIR/scripts/generate-embeddings.sh" 2>&1 | while read -r line; do log_gen "$line"; done
+    ) &
+    PIDS+=($!)
+  else
+    log_gen "Course embeddings present ($EMBED_COUNT). Skipping generation."
+  fi
 fi
 
 # ── scraper (one-shot) ───────────────────────────────────────────────────────
