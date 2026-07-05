@@ -97,35 +97,61 @@ cp .env.example .env
 # edit .env — set LOGOS_API_KEY (get from tutor), adjust LLM_PROVIDER if needed
 ```
 
-**2. Start all core services** (db, server, client, genai):
+**2. Start the database** (in its own terminal, stays in foreground):
 ```bash
-docker compose up --build
+./scripts/db-start.sh
+# First run imports ~100MB of course seed data — wait for "ready to accept connections"
+# Press Ctrl+C to stop the database
 ```
 
-Services started automatically:
+**3. Start application services** (in a second terminal):
+```bash
+./scripts/dev-start.sh --all      # start server + client + genai + pdf-parser
+# or pick individual services:
+./scripts/dev-start.sh --server   # Spring Boot + user-profile-service
+./scripts/dev-start.sh --client   # React frontend only
+./scripts/dev-start.sh --genai    # GenAI FastAPI only
+```
+
+Services started with `--all`:
 | Service | Port | Description |
 |---|---|---|
 | `client` | `localhost:3000` | React frontend |
 | `server` | `localhost:8080` | Spring Boot REST API |
-| `db` | `localhost:5432` | PostgreSQL |
-| `genai` | internal only | Python FastAPI AI service |
+| `user-profile-service` | `localhost:8060` | User profiles |
+| `pdf-parser` | `localhost:8070` | PDF parser |
+| `genai` | `localhost:8000` | Python FastAPI AI service |
+| `db` | `localhost:5432` | PostgreSQL (started via db-start) |
 
-**3. Run scraper** (on-demand, after core services are up):
+**4. Reset user data** (keep course catalog, clear accounts/profiles):
 ```bash
-docker compose --profile scraper up scraper --build
+./scripts/dev-reset.sh
+# Drops 'security' and 'profiles' databases, preserves 'courses-data'
+# Restart services to recreate empty databases
 ```
 
-**4. Run with local LLM** (Ollama instead of Logos cloud):
+**5. Full database reset** (re-seed everything from scratch):
+```bash
+./scripts/db-reset.sh
+# Stops all containers and removes all volumes — next db-start re-imports seed data
+```
+
+**6. Run scraper** (on-demand, after database is running):
+```bash
+./scripts/dev-start.sh --scraper
+```
+
+**7. Run with Docker Compose** (alternative, all-in-one):
+```bash
+docker compose up --build
+```
+
+**8. Run with local LLM** (Ollama instead of Logos cloud):
 ```bash
 # set LLM_PROVIDER=local in .env first
 docker compose --profile local up --build
 # then pull the model (first run only):
 docker compose exec ollama ollama pull llama3.2
-```
-
-**5. Clean scraper run** (deletes existing data first):
-```bash
-docker compose up scraper-clean
 ```
 ### Code Quality
 

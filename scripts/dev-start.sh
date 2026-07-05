@@ -6,7 +6,6 @@ SERVER_PORT="${SERVER_PORT:-8080}"
 READY_TIMEOUT="${READY_TIMEOUT:-180}"
 
 # ── Colors ───────────────────────────────────────────────────────────────────
-MAGENTA='\033[0;35m'
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -15,7 +14,6 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 log()     { echo -e "${NC}[dev]${NC} $*"; }
-log_db()  { echo -e "${MAGENTA}[db]${NC} $*"; }
 log_srv() { echo -e "${BLUE}[server]${NC} $*"; }
 log_cli() { echo -e "${GREEN}[client]${NC} $*"; }
 log_gen() { echo -e "${YELLOW}[genai]${NC} $*"; }
@@ -23,27 +21,26 @@ log_scr() { echo -e "${CYAN}[scraper]${NC} $*"; }
 err()     { echo -e "${RED}Error:${NC} $*" >&2; }
 
 # ── Flags ────────────────────────────────────────────────────────────────────
-START_DB=false
 START_SERVER=false
 START_CLIENT=false
 START_GENAI=false
 START_SCRAPER=false
 START_PROFILE=false
 START_PDF_PARSER=false
-WE_STARTED_DB=false
 
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo ""
+  echo "Requires: database running (start with ./scripts/db-start.sh)"
+  echo ""
   echo "Options:"
-  echo "  --db       Start database container"
-  echo "  --server   Start Spring Boot server (auto-starts db)"
-  echo "  --client   Start frontend dev server"
-  echo "  --genai    Start GenAI FastAPI service"
+  echo "  --server     Start Spring Boot server + user-profile-service"
+  echo "  --client     Start frontend dev server"
+  echo "  --genai      Start GenAI FastAPI service"
   echo "  --pdf-parser Start PDF parser service"
-  echo "  --scraper  Run scraper one-shot (auto-starts db)"
-  echo "  --all      Start db + server + client + genai + pdf-parser"
-  echo "  --help     Show this message"
+  echo "  --scraper    Run scraper one-shot"
+  echo "  --all        Start server + client + genai + pdf-parser"
+  echo "  --help       Show this message"
   exit 0
 }
 
@@ -53,31 +50,24 @@ fi
 
 for arg in "$@"; do
     case $arg in
-      --db)      START_DB=true ;;
       --server)  START_SERVER=true ;;
       --client)  START_CLIENT=true ;;
       --genai)   START_GENAI=true ;;
       --scraper) START_SCRAPER=true ;;
       --pdf-parser) START_PDF_PARSER=true ;;
       --all)
-        START_DB=true; START_SERVER=true
-        START_CLIENT=true; START_GENAI=true
-        START_PDF_PARSER=true ;;
+        START_SERVER=true; START_CLIENT=true
+        START_GENAI=true; START_PDF_PARSER=true ;;
       --help|-h) usage ;;
       *) err "Unknown flag: $arg"; usage ;;
     esac
 done
 
 # Auto-deps
-$START_SERVER  && START_DB=true
-$START_SERVER      && START_PROFILE=true
-$START_SCRAPER     && START_DB=true
-$START_PROFILE     && START_DB=true
-$START_PDF_PARSER  && START_DB=true
+$START_SERVER && START_PROFILE=true
 
 # ── Prerequisite checks ──────────────────────────────────────────────────────
 check_cmd() { command -v "$1" &>/dev/null || { err "'$1' not found in PATH."; exit 1; }; }
-$START_DB     && check_cmd docker
 $START_SERVER  && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
 $START_PROFILE    && { [ -f "$SCRIPT_DIR/services/user-profile-service/gradlew" ] || { err "services/user-profile-service/gradlew not found."; exit 1; }; }
 $START_PDF_PARSER && { [ -f "$SCRIPT_DIR/services/pdf-parser/gradlew" ] || { err "services/pdf-parser/gradlew not found."; exit 1; }; }
@@ -100,6 +90,22 @@ export GENAI_SERVICE_URL="http://localhost:8000/v1"
 export PROFILE_SERVICE_URL="http://localhost:8060/v1"
 export PDF_PARSER_SERVICE_URL="http://localhost:8070/v1"
 
+# ── Verify DB is running ─────────────────────────────────────────────────────
+check_cmd docker
+if ! (cd "$SCRIPT_DIR" && docker compose exec -T db \
+    psql -U "${DB_USER:-postgres}" -d "${COURSES_DB_NAME:-courses-data}" \
+    -c "SELECT 1" >/dev/null 2>&1); then
+  err "Database is not running or not fully initialized."
+  echo ""
+  echo "  Start the database first in a separate terminal:"
+  echo ""
+  echo "    ./scripts/db-start.sh"
+  echo ""
+  echo "  Wait until you see 'ready to accept connections', then re-run this script."
+  exit 1
+fi
+log "Database is running."
+
 # ── Shutdown trap ────────────────────────────────────────────────────────────
 PIDS=()
 cleanup() {
@@ -110,10 +116,6 @@ cleanup() {
     kill "$pid" 2>/dev/null || true
   done
   wait 2>/dev/null || true
-  if $WE_STARTED_DB; then
-    log_db "Stopping db container..."
-    (cd "$SCRIPT_DIR" && docker compose stop db 2>/dev/null) || true
-  fi
 }
 trap cleanup EXIT INT TERM
 
@@ -133,29 +135,6 @@ ensure_venv() {
   fi
   echo "$venv_dir"
 }
-
-# ── db ───────────────────────────────────────────────────────────────────────
-if $START_DB; then
-  log_db "Starting db container..."
-  (cd "$SCRIPT_DIR" && docker compose up -d db)
-  WE_STARTED_DB=true
-  log_db "Waiting for db to be ready..."
-  container_id=$(cd "$SCRIPT_DIR" && docker compose ps -q db 2>/dev/null)
-  # Wait until postgres logs "ready to accept connections" as one of its last lines.
-  # On first run, init scripts import ~100MB of seed data — the temp server's "ready"
-  # message gets pushed far up in the logs. The normal server's "ready" only appears
-  # in the tail once init is done and postgres has restarted.
-  for i in $(seq 1 300); do
-    if docker logs "$container_id" 2>&1 | tail -5 | grep -q "ready to accept connections"; then
-      log_db "DB ready after ${i}s."; break
-    fi
-    [ $((i % 30)) -eq 0 ] && log_db "Still waiting for db init... (${i}s, first run imports seed data)"
-    sleep 1
-    if [ "$i" -eq 300 ]; then
-      err "DB did not become ready within 300s."; exit 1
-    fi
-  done
-fi
 
 # ── user-profile-service ─────────────────────────────────────────────────────
 PROFILE_PORT=8060
