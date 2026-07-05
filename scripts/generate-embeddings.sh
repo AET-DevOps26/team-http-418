@@ -8,7 +8,8 @@ GENAI_URL="${GENAI_URL:-http://localhost:8000/v1}"
 BATCH_SIZE=50
 
 echo "[embed] Fetching courses without embeddings..."
-COURSES_JSON=$(docker exec dashboard-data-widgets-db-1 psql -U postgres -d courses-data -t -A \
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+COURSES_JSON=$(cd "$SCRIPT_DIR" && docker compose exec -T db psql -U postgres -d courses-data -t -A \
   -c "SELECT json_agg(json_build_object('courseId', c.id, 'courseName', c.title_en, 'description', c.description_en, 'department', o.name_en)) FROM courses c LEFT JOIN organizations o ON c.organization_id = o.id WHERE c.title_en IS NOT NULL AND c.id NOT IN (SELECT course_id FROM course_embeddings)" \
   2>/dev/null | head -1)
 
