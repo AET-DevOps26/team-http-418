@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ConflictBanner } from "#/components/schedule/ConflictBanner";
 import { SemesterSelector } from "#/components/schedule/SemesterSelector";
@@ -132,9 +132,9 @@ function Schedule() {
 					>
 						No courses enrolled for this semester.
 					</p>
-					<a href="/courses" className="btn btn-primary">
+					<Link to="/courses" className="btn btn-primary">
 						Browse courses
-					</a>
+					</Link>
 				</div>
 			) : (
 				<WeekGrid events={data.events} />

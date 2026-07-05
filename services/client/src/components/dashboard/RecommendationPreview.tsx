@@ -1,11 +1,8 @@
+import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import type { DashboardRecommendation } from "#/api/types";
 
 type Props = { recommendations: DashboardRecommendation[] };
-
-function courseDetailHref(courseId: string) {
-	return `/courses?course=${encodeURIComponent(courseId)}`;
-}
 
 export function RecommendationPreview({ recommendations }: Props) {
 	const top3 = recommendations.slice(0, 3);
@@ -36,9 +33,10 @@ export function RecommendationPreview({ recommendations }: Props) {
 			) : (
 				<div className="rec-row">
 					{top3.map((rec) => (
-						<a
+						<Link
 							key={rec.courseId}
-							href={courseDetailHref(rec.courseId)}
+							to="/courses"
+							search={{ course: rec.courseId }}
 							style={{ textDecoration: "none", display: "flex" }}
 						>
 							<div className="rec-card">
@@ -108,7 +106,7 @@ export function RecommendationPreview({ recommendations }: Props) {
 									</span>
 								</div>
 							</div>
-						</a>
+						</Link>
 					))}
 				</div>
 			)}

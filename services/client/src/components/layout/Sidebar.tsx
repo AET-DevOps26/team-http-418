@@ -1,35 +1,22 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BookOpen,
-	Clock,
-	Compass,
 	Home,
 	LogOut,
 	Map as MapIcon,
 	MessageCircle,
-	Settings,
-	Sparkles,
 	TrendingUp,
-	User,
 } from "lucide-react";
 import { logout } from "#/api";
 
 const mainNav = [
-	{ label: "Overview", icon: Home, href: "/dashboard" },
+	{ label: "Home", icon: Home, href: "/dashboard" },
 	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 	{ label: "Courses", icon: BookOpen, href: "/courses" },
-	{ label: "Schedule", icon: Clock, href: "/schedule" },
-	{ label: "Planner", icon: MapIcon, href: "/planner" },
-	{ label: "Explore", icon: Compass, href: "/explore" },
-	{ label: "AI Advisor", icon: MessageCircle, href: "/advisor" },
-	{ label: "Recommendations", icon: Sparkles, href: "/recommendations" },
-	{ label: "Insights", icon: Sparkles, href: "/insights" },
+	{ label: "My Plan", icon: MapIcon, href: "/planner" },
 ];
 
-const accountNav = [
-	{ label: "Profile & goals", icon: User, href: "/profile" },
-	{ label: "Preferences", icon: Settings, href: "/preferences" },
-];
+const aiNav = [{ label: "Advisor", icon: MessageCircle, href: "/advisor" }];
 
 export function Sidebar() {
 	const navigate = useNavigate();
@@ -53,32 +40,34 @@ export function Sidebar() {
 
 			<nav className="sidebar-nav">
 				{mainNav.map(({ label, icon: Icon, href }) => (
-					<a
+					<Link
 						key={href}
-						href={href}
+						to={href}
 						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
 					>
 						<Icon size={16} strokeWidth={1.75} />
 						{label}
-					</a>
+					</Link>
 				))}
 
-				<span className="sidebar-section-label">Account</span>
+				<span className="sidebar-section-label">AI</span>
 
-				{accountNav.map(({ label, icon: Icon, href }) => (
-					<a
+				{aiNav.map(({ label, icon: Icon, href }) => (
+					<Link
 						key={href}
-						href={href}
+						to={href}
 						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
 					>
 						<Icon size={16} strokeWidth={1.75} />
 						{label}
-					</a>
+					</Link>
 				))}
 			</nav>
 
 			<div className="sidebar-footer">
-				<div className="sidebar-avatar">TU</div>
+				<Link to="/profile" className="sidebar-avatar" title="Profile">
+					TU
+				</Link>
 				<span className="sidebar-user-name">TUM Student</span>
 				<button
 					type="button"

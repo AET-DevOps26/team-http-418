@@ -2,16 +2,13 @@ import { useRouterState } from "@tanstack/react-router";
 import { Bell, Globe, Search } from "lucide-react";
 
 const PAGE_LABELS: Record<string, string> = {
-	"/dashboard": "Overview",
+	"/dashboard": "Home",
 	"/progress": "Academic Progress",
 	"/courses": "Courses",
-	"/schedule": "Schedule",
-	"/planner": "Planner",
-	"/explore": "Explore",
+	"/planner": "My Plan",
 	"/advisor": "AI Advisor",
-	"/insights": "Insights",
-	"/profile": "Profile",
-	"/preferences": "Preferences",
+	"/profile": "Profile & Goals",
+	"/schedule": "Schedule",
 };
 
 export function Topbar() {
