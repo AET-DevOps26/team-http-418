@@ -140,19 +140,15 @@ if $START_DB; then
   (cd "$SCRIPT_DIR" && docker compose up -d db)
   WE_STARTED_DB=true
   log_db "Waiting for db to be ready..."
-  container_id=$(cd "$SCRIPT_DIR" && docker compose ps -q db 2>/dev/null)
-  # Wait until postgres logs "ready to accept connections" as one of its last lines.
-  # On first run, init scripts import ~100MB of seed data — the temp server's "ready"
-  # message gets pushed far up in the logs. The normal server's "ready" only appears
-  # in the tail once init is done and postgres has restarted.
-  for i in $(seq 1 300); do
-    if docker logs "$container_id" 2>&1 | tail -5 | grep -q "ready to accept connections"; then
+  DB_READY_TIMEOUT="${DB_READY_TIMEOUT:-300}"
+  for i in $(seq 1 "$DB_READY_TIMEOUT"); do
+    if nc -z localhost "${DB_PORT}" 2>/dev/null; then
       log_db "DB ready after ${i}s."; break
     fi
     [ $((i % 30)) -eq 0 ] && log_db "Still waiting for db init... (${i}s, first run imports seed data)"
     sleep 1
-    if [ "$i" -eq 300 ]; then
-      err "DB did not become ready within 300s."; exit 1
+    if [ "$i" -eq "$DB_READY_TIMEOUT" ]; then
+      err "DB did not become ready within ${DB_READY_TIMEOUT}s."; exit 1
     fi
   done
 fi
