@@ -18,3 +18,4 @@
 
 # Git LFS
 infra/db/init/*.sql.gz filter=lfs diff=lfs merge=lfs -text
+infra/db/init/*.sql.gz.data filter=lfs diff=lfs merge=lfs -text
