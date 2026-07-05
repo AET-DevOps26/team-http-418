@@ -101,12 +101,6 @@ tasks.withType<Test> {
 
 spotless {
 	java {
-		eclipse().configProperties("""
-			org.eclipse.jdt.core.formatter.join_wrapped_lines=false
-			org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_block_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_line_comments=false
-		""".trimIndent())
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()
