@@ -9,7 +9,7 @@ export function StudyProgramList({
 		<div className="card" style={{ padding: 24 }}>
 			<p className="eyebrow">Study Programs</p>
 			<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-				{programs.map((p) => (
+				{programs.filter(Boolean).map((p) => (
 					<div
 						key={p.id}
 						style={{
@@ -23,7 +23,7 @@ export function StudyProgramList({
 							{p.name}
 						</div>
 						<div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-							{p.department}
+							{p.nameGer}
 						</div>
 					</div>
 				))}

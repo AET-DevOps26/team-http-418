@@ -41,7 +41,6 @@ export function ImportedTable({ imported, dispatch }: Props) {
 				const completed = await addCompletedCourse({
 					courseId: course.courseId,
 					grade: newGrade,
-					semester: "",
 				});
 				dispatch({
 					type: "EDIT_COURSE",
@@ -53,7 +52,6 @@ export function ImportedTable({ imported, dispatch }: Props) {
 				await addCompletedCourse({
 					courseId: course.courseId,
 					grade: parseFloat(course.grade ?? "0"),
-					semester: "",
 				}).catch(() => {});
 				setError("Save failed. Original grade restored.");
 			}

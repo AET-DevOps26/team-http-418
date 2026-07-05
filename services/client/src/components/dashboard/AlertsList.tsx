@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import type { AlertSeverity, DashboardAlert } from "#/api/types";
 
@@ -24,10 +25,6 @@ function formatType(type: string): string {
 }
 
 type Props = { alerts: DashboardAlert[] };
-
-function courseDetailHref(courseId: string) {
-	return `/courses?course=${encodeURIComponent(courseId)}`;
-}
 
 export function AlertsList({ alerts }: Props) {
 	return (
@@ -81,8 +78,9 @@ export function AlertsList({ alerts }: Props) {
 										{alert.message}
 									</div>
 									{alert.relatedEntityId && (
-										<a
-											href={courseDetailHref(alert.relatedEntityId)}
+										<Link
+											to="/courses"
+											search={{ course: alert.relatedEntityId }}
 											style={{
 												display: "inline-block",
 												marginTop: 4,
@@ -93,7 +91,7 @@ export function AlertsList({ alerts }: Props) {
 											}}
 										>
 											Resolve →
-										</a>
+										</Link>
 									)}
 								</div>
 							</div>

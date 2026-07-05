@@ -28,6 +28,8 @@ START_SERVER=false
 START_CLIENT=false
 START_GENAI=false
 START_SCRAPER=false
+START_PROFILE=false
+START_PDF_PARSER=false
 WE_STARTED_DB=false
 
 usage() {
@@ -38,8 +40,9 @@ usage() {
   echo "  --server   Start Spring Boot server (auto-starts db)"
   echo "  --client   Start frontend dev server"
   echo "  --genai    Start GenAI FastAPI service"
+  echo "  --pdf-parser Start PDF parser service"
   echo "  --scraper  Run scraper one-shot (auto-starts db)"
-  echo "  --all      Start db + server + client + genai"
+  echo "  --all      Start db + server + client + genai + pdf-parser"
   echo "  --help     Show this message"
   exit 0
 }
@@ -55,9 +58,11 @@ for arg in "$@"; do
       --client)  START_CLIENT=true ;;
       --genai)   START_GENAI=true ;;
       --scraper) START_SCRAPER=true ;;
+      --pdf-parser) START_PDF_PARSER=true ;;
       --all)
         START_DB=true; START_SERVER=true
-        START_CLIENT=true; START_GENAI=true ;;
+        START_CLIENT=true; START_GENAI=true
+        START_PDF_PARSER=true ;;
       --help|-h) usage ;;
       *) err "Unknown flag: $arg"; usage ;;
     esac
@@ -65,12 +70,17 @@ done
 
 # Auto-deps
 $START_SERVER  && START_DB=true
-$START_SCRAPER && START_DB=true
+$START_SERVER      && START_PROFILE=true
+$START_SCRAPER     && START_DB=true
+$START_PROFILE     && START_DB=true
+$START_PDF_PARSER  && START_DB=true
 
 # ── Prerequisite checks ──────────────────────────────────────────────────────
 check_cmd() { command -v "$1" &>/dev/null || { err "'$1' not found in PATH."; exit 1; }; }
 $START_DB     && check_cmd docker
-$START_SERVER && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
+$START_SERVER  && { [ -f "$SCRIPT_DIR/services/server/gradlew" ] || { err "services/server/gradlew not found. Run 'gradle wrapper' in services/server/."; exit 1; }; }
+$START_PROFILE    && { [ -f "$SCRIPT_DIR/services/user-profile-service/gradlew" ] || { err "services/user-profile-service/gradlew not found."; exit 1; }; }
+$START_PDF_PARSER && { [ -f "$SCRIPT_DIR/services/pdf-parser/gradlew" ] || { err "services/pdf-parser/gradlew not found."; exit 1; }; }
 $START_CLIENT && check_cmd pnpm
 { $START_GENAI || $START_SCRAPER; } && check_cmd python3
 
@@ -84,8 +94,11 @@ fi
 # Override docker-network hostnames with localhost for native services
 export DB_HOST=localhost
 export DB_PORT="${DB_PORT:-5432}"
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${DB_PORT}"
+export SPRING_DATASOURCE_URL="jdbc:postgresql://127.0.0.1:${DB_PORT}"
 export GENAI_BASE_URL="http://localhost:8000"
+export GENAI_SERVICE_URL="http://localhost:8000/v1"
+export PROFILE_SERVICE_URL="http://localhost:8060/v1"
+export PDF_PARSER_SERVICE_URL="http://localhost:8070/v1"
 
 # ── Shutdown trap ────────────────────────────────────────────────────────────
 PIDS=()
@@ -116,7 +129,7 @@ ensure_venv() {
     venv_dir="$dir/.venv"
   fi
   if [ -f "$dir/requirements.txt" ]; then
-    "$venv_dir/bin/pip" install -q -r "$dir/requirements.txt"
+    "$venv_dir/bin/pip" install -q --only-binary=psycopg2-binary -r "$dir/requirements.txt"
   fi
   echo "$venv_dir"
 }
@@ -126,18 +139,72 @@ if $START_DB; then
   log_db "Starting db container..."
   (cd "$SCRIPT_DIR" && docker compose up -d db)
   WE_STARTED_DB=true
-  log_db "Waiting for db healthcheck..."
+  log_db "Waiting for db to be ready..."
   container_id=$(cd "$SCRIPT_DIR" && docker compose ps -q db 2>/dev/null)
-  for i in $(seq 1 60); do
-    status=$(docker inspect --format='{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "")
-    if [ "$status" = "healthy" ]; then
-      log_db "DB healthy after ${i}s."; break
+  # Wait until postgres logs "ready to accept connections" as one of its last lines.
+  # On first run, init scripts import ~100MB of seed data — the temp server's "ready"
+  # message gets pushed far up in the logs. The normal server's "ready" only appears
+  # in the tail once init is done and postgres has restarted.
+  for i in $(seq 1 300); do
+    if docker logs "$container_id" 2>&1 | tail -5 | grep -q "ready to accept connections"; then
+      log_db "DB ready after ${i}s."; break
     fi
+    [ $((i % 30)) -eq 0 ] && log_db "Still waiting for db init... (${i}s, first run imports seed data)"
     sleep 1
-    if [ "$i" -eq 60 ]; then
-      err "DB did not become healthy within 60s."; exit 1
+    if [ "$i" -eq 300 ]; then
+      err "DB did not become ready within 300s."; exit 1
     fi
   done
+fi
+
+# ── user-profile-service ─────────────────────────────────────────────────────
+PROFILE_PORT=8060
+if $START_PROFILE; then
+  log_srv "Starting user-profile-service on :$PROFILE_PORT..."
+  (cd "$SCRIPT_DIR/services/user-profile-service" && SERVER_PORT=$PROFILE_PORT ./gradlew bootRun --console=plain) &
+  PROFILE_PID=$!
+  PIDS+=("$PROFILE_PID")
+  log_srv "Waiting for user-profile-service on :$PROFILE_PORT (up to ${READY_TIMEOUT}s)..."
+  for i in $(seq 1 "$READY_TIMEOUT"); do
+    if ! kill -0 "$PROFILE_PID" 2>/dev/null; then
+      err "user-profile-service exited before becoming ready."; exit 1
+    fi
+    if nc -z localhost "$PROFILE_PORT" 2>/dev/null; then
+      log_srv "user-profile-service ready after ${i}s."; break
+    fi
+    sleep 1
+    if [ "$i" -eq "$READY_TIMEOUT" ]; then
+      err "user-profile-service not ready within ${READY_TIMEOUT}s."; exit 1
+    fi
+  done
+  log_srv "Watching user-profile-service sources for changes..."
+  (cd "$SCRIPT_DIR/services/user-profile-service" && ./gradlew classes --continuous --no-daemon -q --console=plain >/dev/null 2>&1) &
+  PIDS+=($!)
+fi
+
+# ── pdf-parser ──────────────────────────────────────────────────────────────
+PDF_PARSER_PORT=8070
+if $START_PDF_PARSER; then
+  log_srv "Starting pdf-parser on :$PDF_PARSER_PORT..."
+  (cd "$SCRIPT_DIR/services/pdf-parser" && SERVER_PORT=$PDF_PARSER_PORT ./gradlew bootRun --console=plain) &
+  PDF_PARSER_PID=$!
+  PIDS+=("$PDF_PARSER_PID")
+  log_srv "Waiting for pdf-parser on :$PDF_PARSER_PORT (up to ${READY_TIMEOUT}s)..."
+  for i in $(seq 1 "$READY_TIMEOUT"); do
+    if ! kill -0 "$PDF_PARSER_PID" 2>/dev/null; then
+      err "pdf-parser exited before becoming ready."; exit 1
+    fi
+    if nc -z localhost "$PDF_PARSER_PORT" 2>/dev/null; then
+      log_srv "pdf-parser ready after ${i}s."; break
+    fi
+    sleep 1
+    if [ "$i" -eq "$READY_TIMEOUT" ]; then
+      err "pdf-parser not ready within ${READY_TIMEOUT}s."; exit 1
+    fi
+  done
+  log_srv "Watching pdf-parser sources for changes..."
+  (cd "$SCRIPT_DIR/services/pdf-parser" && ./gradlew classes --continuous --no-daemon -q --console=plain >/dev/null 2>&1) &
+  PIDS+=($!)
 fi
 
 # ── server ───────────────────────────────────────────────────────────────────
@@ -159,6 +226,9 @@ if $START_SERVER; then
       err "Backend not ready within ${READY_TIMEOUT}s."; exit 1
     fi
   done
+  log_srv "Watching server sources for changes..."
+  (cd "$SCRIPT_DIR/services/server" && ./gradlew classes --continuous --no-daemon -q --console=plain >/dev/null 2>&1) &
+  PIDS+=($!)
 fi
 
 # ── genai ────────────────────────────────────────────────────────────────────

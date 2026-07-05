@@ -22,6 +22,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	implementation("technology.tabula:tabula:1.0.5"){
 		exclude(group = "org.slf4j", module = "slf4j-simple")
@@ -41,12 +42,6 @@ tasks.withType<Test> {
 
 spotless {
 	java {
-		eclipse().configProperties("""
-			org.eclipse.jdt.core.formatter.join_wrapped_lines=false
-			org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_block_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_line_comments=false
-		""".trimIndent())
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()

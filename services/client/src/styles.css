@@ -70,6 +70,11 @@ body {
   display: grid;
   grid-template-columns: 232px 1fr;
   min-height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.app--sidebar-collapsed {
+  grid-template-columns: 60px 1fr;
 }
 
 .main {
@@ -90,6 +95,7 @@ body {
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  transition: width 0.2s ease;
 }
 
 .sidebar-brand {
@@ -212,6 +218,28 @@ body {
 .sidebar-logout-btn:hover {
   color: rgba(255, 255, 255, 0.7);
 }
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s;
+}
+.sidebar-toggle-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar--collapsed .sidebar-brand { justify-content: center; }
+.sidebar--collapsed .sidebar-nav { padding: 12px 6px; }
+.sidebar--collapsed .nav-item { justify-content: center; padding: 9px; gap: 0; }
+.sidebar--collapsed .sidebar-footer { justify-content: center; padding: 12px 6px; flex-wrap: wrap; gap: 8px; }
+.sidebar--collapsed .sidebar-footer .sidebar-logout-btn { display: none; }
 
 /* ── Topbar ── */
 

@@ -23,6 +23,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 	implementation("org.postgresql:postgresql")
@@ -41,12 +42,6 @@ tasks.withType<Test> {
 
 spotless {
 	java {
-		eclipse().configProperties("""
-			org.eclipse.jdt.core.formatter.join_wrapped_lines=false
-			org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_block_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_line_comments=false
-		""".trimIndent())
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()

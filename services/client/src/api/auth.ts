@@ -8,7 +8,7 @@ const SESSION_REFRESH_KEY = "auth_refresh_token";
 let accessToken: string | null = null;
 let storedRefreshToken: string | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-export const API_VERSION = import.meta.env.VITE_API_VERSION ?? "";
+export const API_VERSION = import.meta.env.VITE_API_VERSION ?? "v1";
 
 export class AuthError extends Error {
 	status: number;

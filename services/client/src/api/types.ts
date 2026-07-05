@@ -308,7 +308,7 @@ export type DegreeRequirements = {
 export type AddCompletedCourseRequest = {
 	courseId: string;
 	grade: number;
-	semester: string;
+	semester?: string;
 };
 
 export type EnrollCourseRequest = {
@@ -450,13 +450,13 @@ export type Department = {
 export type StudyProgram = {
 	id: string;
 	name: string;
-	department: string;
+	nameGer: string;
 };
 
 export type StudyProgramRef = {
 	id: string;
 	name: string;
-	department: string;
+	nameGer: string;
 };
 
 export type WorkExperience = {
@@ -481,13 +481,15 @@ export type CvData = {
 };
 
 export type Student = {
+	firstName?: string;
+	lastName?: string;
 	interests: string[];
 	creditsRequired: number;
 	creditsEarned: number;
 	careerGoals: string[];
 	preferredWorkload: number;
 	semester: number;
-	studyProgram: StudyProgramRef;
+	studyProgram?: StudyProgramRef;
 	studyProgramId?: string;
 	expectedGraduation?: string;
 	industryPreference?: string;

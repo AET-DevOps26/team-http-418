@@ -2,6 +2,14 @@ import { BookOpen } from "lucide-react";
 import type { StudentProfile } from "#/api/types";
 
 export function ProfileHeader({ profile }: { profile: StudentProfile }) {
+	const fullName = [profile.student.firstName, profile.student.lastName]
+		.filter(Boolean)
+		.join(" ");
+	const initials = [profile.student.firstName, profile.student.lastName]
+		.filter(Boolean)
+		.map((n) => n?.[0]?.toUpperCase())
+		.join("");
+
 	return (
 		<div className="card" style={{ padding: 24 }}>
 			<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -20,18 +28,20 @@ export function ProfileHeader({ profile }: { profile: StudentProfile }) {
 						fontWeight: 700,
 						flexShrink: 0,
 					}}
-				></div>
+				>
+					{initials || "?"}
+				</div>
 				<div style={{ flex: 1, minWidth: 0 }}>
-					{/*<h2*/}
-					{/*	style={{*/}
-					{/*		margin: 0,*/}
-					{/*		fontSize: 20,*/}
-					{/*		fontWeight: 700,*/}
-					{/*		color: "var(--ink)",*/}
-					{/*	}}*/}
-					{/*>*/}
-					{/*	{profile.name}*/}
-					{/*</h2>*/}
+					<h2
+						style={{
+							margin: 0,
+							fontSize: 20,
+							fontWeight: 700,
+							color: "var(--ink)",
+						}}
+					>
+						{fullName || "Student"}
+					</h2>
 					<div
 						style={{
 							display: "flex",
@@ -42,18 +52,6 @@ export function ProfileHeader({ profile }: { profile: StudentProfile }) {
 							color: "var(--muted)",
 						}}
 					>
-						{/*<span*/}
-						{/*	style={{ display: "inline-flex", alignItems: "center", gap: 4 }}*/}
-						{/*>*/}
-						{/*	<User size={14} />*/}
-						{/*	{profile.tumId}*/}
-						{/*</span>*/}
-						{/*<span*/}
-						{/*	style={{ display: "inline-flex", alignItems: "center", gap: 4 }}*/}
-						{/*>*/}
-						{/*	<Mail size={14} />*/}
-						{/*	{profile.email}*/}
-						{/*</span>*/}
 						<span
 							style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
 						>

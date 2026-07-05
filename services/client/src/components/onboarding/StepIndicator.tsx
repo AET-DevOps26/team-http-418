@@ -1,6 +1,11 @@
 const STEPS = ["Program", "Documents", "Goals"];
 
-export function StepIndicator({ currentStep }: { currentStep: 1 | 2 | 3 }) {
+type Props = {
+	currentStep: 1 | 2 | 3;
+	onStepClick?: (step: 1 | 2 | 3) => void;
+};
+
+export function StepIndicator({ currentStep, onStepClick }: Props) {
 	return (
 		<div
 			style={{
@@ -15,6 +20,33 @@ export function StepIndicator({ currentStep }: { currentStep: 1 | 2 | 3 }) {
 				const stepNum = (i + 1) as 1 | 2 | 3;
 				const done = stepNum < currentStep;
 				const active = stepNum === currentStep;
+				const clickable = (done || active) && onStepClick;
+
+				const circle = (
+					<div
+						style={{
+							width: 32,
+							height: 32,
+							borderRadius: "50%",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							fontSize: 13,
+							fontWeight: 700,
+							background: done
+								? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
+								: active
+									? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
+									: "#E2E7EF",
+							color: done || active ? "#fff" : "#6E7E94",
+							boxShadow: active ? "0 2px 8px rgba(138,87,224,0.35)" : "none",
+							transition: "all 0.2s",
+						}}
+					>
+						{done ? "✓" : stepNum}
+					</div>
+				);
+
 				return (
 					<div key={label} style={{ display: "flex", alignItems: "center" }}>
 						<div
@@ -24,30 +56,22 @@ export function StepIndicator({ currentStep }: { currentStep: 1 | 2 | 3 }) {
 								alignItems: "center",
 							}}
 						>
-							<div
-								style={{
-									width: 32,
-									height: 32,
-									borderRadius: "50%",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									fontSize: 13,
-									fontWeight: 700,
-									background: done
-										? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
-										: active
-											? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
-											: "#E2E7EF",
-									color: done || active ? "#fff" : "#6E7E94",
-									boxShadow: active
-										? "0 2px 8px rgba(138,87,224,0.35)"
-										: "none",
-									transition: "all 0.2s",
-								}}
-							>
-								{done ? "✓" : stepNum}
-							</div>
+							{clickable ? (
+								<button
+									type="button"
+									onClick={() => onStepClick(stepNum)}
+									style={{
+										padding: 0,
+										border: "none",
+										background: "none",
+										cursor: "pointer",
+									}}
+								>
+									{circle}
+								</button>
+							) : (
+								circle
+							)}
 							<span
 								style={{
 									marginTop: 6,

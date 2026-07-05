@@ -46,6 +46,8 @@ function OnboardingPage() {
 	): Partial<NonNullable<StudentProfile["student"]>> {
 		const data: Partial<NonNullable<StudentProfile["student"]>> = {};
 		if (state.step1) {
+			data.firstName = state.step1.firstName;
+			data.lastName = state.step1.lastName;
 			data.studyProgramId = state.step1.studyProgramId;
 			data.semester = state.step1.semester;
 			data.expectedGraduation = state.step1.expectedGraduation;
@@ -62,9 +64,25 @@ function OnboardingPage() {
 		return data;
 	}
 
+	function handleStepClick(step: 1 | 2 | 3) {
+		if (step <= state.currentStep) {
+			dispatch({ type: "GOTO_STEP", step });
+		}
+	}
+
+	function handleSkipAll() {
+		setSubmitError(null);
+		finishMutation.mutate({});
+	}
+
 	if (state.currentStep === 1) {
 		return (
-			<WizardLayout currentStep={1}>
+			<WizardLayout
+				currentStep={1}
+				onSkipAll={handleSkipAll}
+				onStepClick={handleStepClick}
+				isLoading={finishMutation.isPending}
+			>
 				<ProgramStep
 					data={state.step1}
 					onNext={(data) => {
@@ -81,6 +99,9 @@ function OnboardingPage() {
 			<WizardLayout
 				currentStep={2}
 				onBack={() => dispatch({ type: "PREV_STEP" })}
+				onSkipAll={handleSkipAll}
+				onStepClick={handleStepClick}
+				isLoading={finishMutation.isPending}
 			>
 				<DocumentsStep
 					data={state.step2}
@@ -96,6 +117,9 @@ function OnboardingPage() {
 		<WizardLayout
 			currentStep={3}
 			onBack={() => dispatch({ type: "PREV_STEP" })}
+			onSkipAll={handleSkipAll}
+			onStepClick={handleStepClick}
+			isLoading={finishMutation.isPending}
 		>
 			{submitError && (
 				<div

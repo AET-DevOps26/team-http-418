@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { MessageRole, ReferencedCourse } from "#/api/types";
 
 type Props = {
@@ -29,13 +30,14 @@ export function MessageBubble({ sender, content, referencedCourses }: Props) {
 					}}
 				>
 					{referencedCourses.map((c) => (
-						<a
+						<Link
 							key={c.courseId}
-							href={`/courses/${c.courseId}`}
+							to="/courses"
+							search={{ course: c.courseId }}
 							className="course-chip"
 						>
 							{c?.courseCode ?? "N/A"}
-						</a>
+						</Link>
 					))}
 				</div>
 			)}

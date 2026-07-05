@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	compileOnly("org.projectlombok:lombok:1.18.46")
 	annotationProcessor("org.projectlombok:lombok:1.18.46")
@@ -100,12 +101,6 @@ tasks.withType<Test> {
 
 spotless {
 	java {
-		eclipse().configProperties("""
-			org.eclipse.jdt.core.formatter.join_wrapped_lines=false
-			org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_block_comments=false
-			org.eclipse.jdt.core.formatter.comment.format_line_comments=false
-		""".trimIndent())
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()

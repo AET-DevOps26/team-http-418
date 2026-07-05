@@ -41,6 +41,8 @@ type Props = {
 
 export function ProgramStep({ data, onNext }: Props) {
 	const { data: programs, isLoading } = useStudyPrograms();
+	const [firstName, setFirstName] = useState(data?.firstName ?? "");
+	const [lastName, setLastName] = useState(data?.lastName ?? "");
 	const [studyProgramId, setStudyProgramId] = useState(
 		data?.studyProgramId ?? "",
 	);
@@ -49,11 +51,21 @@ export function ProgramStep({ data, onNext }: Props) {
 		data?.expectedGraduation ?? "WS2027/28",
 	);
 
-	const canNext = studyProgramId !== "" && semester >= 1;
+	const canNext =
+		firstName.trim() !== "" &&
+		lastName.trim() !== "" &&
+		studyProgramId !== "" &&
+		semester >= 1;
 
 	function handleNext() {
 		if (!canNext) return;
-		onNext({ studyProgramId, semester, expectedGraduation });
+		onNext({
+			firstName: firstName.trim(),
+			lastName: lastName.trim(),
+			studyProgramId,
+			semester,
+			expectedGraduation,
+		});
 	}
 
 	return (
@@ -75,6 +87,34 @@ export function ProgramStep({ data, onNext }: Props) {
 			</div>
 
 			<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+				<div>
+					<label style={labelStyle} htmlFor="firstName">
+						First Name <span style={{ color: "#C03A2E" }}>*</span>
+					</label>
+					<input
+						id="firstName"
+						type="text"
+						value={firstName}
+						onChange={(e) => setFirstName(e.target.value)}
+						placeholder="Enter your first name"
+						style={inputStyle}
+					/>
+				</div>
+
+				<div>
+					<label style={labelStyle} htmlFor="lastName">
+						Last Name <span style={{ color: "#C03A2E" }}>*</span>
+					</label>
+					<input
+						id="lastName"
+						type="text"
+						value={lastName}
+						onChange={(e) => setLastName(e.target.value)}
+						placeholder="Enter your last name"
+						style={inputStyle}
+					/>
+				</div>
+
 				<div style={{ gridColumn: "1 / -1" }}>
 					<label style={labelStyle} htmlFor="studyProgram">
 						Study Program <span style={{ color: "#C03A2E" }}>*</span>

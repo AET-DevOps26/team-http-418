@@ -50,9 +50,9 @@ class CatalogEndpointsTest extends BaseTest {
 	@Test
 	void getStudyProgramByIdReturnsData() throws Exception {
 		mockMvc.perform(
-				get("/api/" + API_VERSION + "/study-programs/522").header("Authorization", "Bearer " + getToken()))
-				.andExpect(status().isOk()).andExpect(jsonPath("$.id").value("522"))
-				.andExpect(jsonPath("$.nameEn").value("Computer Science BSc"));
+				get("/api/" + API_VERSION + "/study-programs/5371").header("Authorization", "Bearer " + getToken()))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.id").value("5371"))
+				.andExpect(jsonPath("$.name").value("Informatik (Bachelor)"));
 	}
 
 	@Test
@@ -64,7 +64,7 @@ class CatalogEndpointsTest extends BaseTest {
 
 	@Test
 	void getStudyProgramCoursesReturnsData() throws Exception {
-		mockMvc.perform(get("/api/" + API_VERSION + "/study-programs/522/courses").header("Authorization",
+		mockMvc.perform(get("/api/" + API_VERSION + "/study-programs/5371/courses").header("Authorization",
 				"Bearer " + getToken())).andExpect(status().isOk()).andExpect(jsonPath("$").isArray())
 				.andExpect(jsonPath("$.length()").value(2));
 	}

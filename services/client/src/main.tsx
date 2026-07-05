@@ -18,7 +18,7 @@ declare module "@tanstack/react-router" {
 }
 
 async function enableMocking() {
-	if (!import.meta.env.VITE_MOCK_API) return;
+	if (import.meta.env.VITE_MOCK_API !== "true") return;
 	const { worker } = await import("./mocks/browser");
 	await worker.start({ onUnhandledRequest: "bypass" });
 }
