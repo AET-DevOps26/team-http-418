@@ -6,3 +6,4 @@
 /server/HELP.md
 /server/.gitattributes
 /server/.gitignore
+/genai/.venv

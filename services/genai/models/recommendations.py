@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 class StudentProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program_id: str | None = Field(default=None, alias="studyProgramId")
+    study_program: str | None = Field(default=None, alias="studyProgramId")
     semester: int
     career_goals: list[str] = Field(default=[], alias="careerGoals")
     interests: list[str] = Field(default=[], alias="interests")
@@ -45,12 +45,12 @@ class RecommendationsRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentProfile
-    completed_courses: list[CourseRef] = Field(default=[], alias="completedCourses")
-    enrolled_courses: list[CourseRef] = Field(default=[], alias="enrolledCourses")
-    available_courses: list[CourseRef] = Field(alias="availableCourses")
+    completed_courses: list[str] = Field(default=[], alias="completedCourses")
+    enrolled_courses: list[str] = Field(default=[], alias="enrolledCourses")
+    available_courses: list[str] = Field(default=[], alias="availableCourses")
     limit: int = 10
     override_goals: list[str] | None = Field(default=None, alias="overrideGoals")
     override_interests: list[str] | None = Field(default=None, alias="overrideInterests")
     exclude_course_ids: list[int] | None = Field(default=None, alias="excludeCourseIds")
     category: str | None = None
-    semester: str | None = None
+    current_semester_key: str | None = None

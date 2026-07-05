@@ -283,13 +283,7 @@ public class APIControllerMe {
 
 	@GetMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid) {
-		final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
-				.body(Profile.class);
-		if (profile == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
-		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/me/recommendations")
-				.contentType(MediaType.APPLICATION_JSON).body(profile).retrieve().body(String.class));
+		return getRecommendations(tumid, new PostRecommendationsBody(List.of(), List.of(), List.of()));
 	}
 
 	@PostMapping("/recommendations")

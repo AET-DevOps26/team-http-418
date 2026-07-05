@@ -52,7 +52,7 @@ def _build_prompt(
 
     return _RECOMMENDATIONS_PROMPT.format(
         limit=request.limit,
-        study_program=request.student.study_program_id or "not specified",
+        study_program=request.student.study_program or "not specified",
         semester=request.student.semester,
         goals=", ".join(goals) or "not specified",
         interests=", ".join(interests) or "not specified",

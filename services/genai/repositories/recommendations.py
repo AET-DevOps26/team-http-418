@@ -12,7 +12,18 @@ def find_similar_courses(
 ) -> list[tuple[int, float]]:
     """Vector similarity search restricted to candidate_ids. Returns (course_id, score) pairs."""
     if not candidate_ids:
-        return []
+        with get_connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                    """
+                    SELECT course_id,
+                           1 - (embedding <=> %(vector)s::vector) AS score
+                    FROM course_embeddings
+                    ORDER BY embedding <=> %(vector)s::vector
+                    LIMIT %(limit)s
+                    """,
+                    {"vector": query_vector, "limit": limit},
+                )
+            return cursor.fetchall()
 
     with get_connection() as connection, connection.cursor() as cursor:
         cursor.execute(

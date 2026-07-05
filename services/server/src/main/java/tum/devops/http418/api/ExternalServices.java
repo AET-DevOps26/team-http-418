@@ -1,6 +1,8 @@
 package tum.devops.http418.api;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import tum.devops.http418.api.dto.Profile;
@@ -36,10 +38,11 @@ public class ExternalServices {
 	}
 
 	public Profile.CvData callCvParse(byte[] fileBytes) {
+		Resource requestBody = new ByteArrayResource(fileBytes);
 		return restClient.post()
 				.uri(GENAI_PATH + "/cv/parse")
 				.contentType(MediaType.APPLICATION_OCTET_STREAM)
-				.body(fileBytes)
+				.body(requestBody)
 				.retrieve()
 				.body(Profile.CvData.class);
 	}
