@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { CourseSearchParams } from "#/api/types";
 import { CourseCard } from "#/components/courses/CourseCard";
 import { CourseDetailSheet } from "#/components/courses/CourseDetailSheet";
@@ -275,7 +275,9 @@ function CoursesPage() {
 					<button
 						key={key}
 						type="button"
-						onClick={() => setSearch({ view: key === "catalog" ? undefined : key })}
+						onClick={() =>
+							setSearch({ view: key === "catalog" ? undefined : key })
+						}
 						style={{
 							padding: "6px 16px",
 							borderRadius: "var(--r-sm, 6px)",
@@ -285,8 +287,7 @@ function CoursesPage() {
 							fontWeight: 600,
 							background: view === key ? "var(--surface, #fff)" : "transparent",
 							color: view === key ? "var(--ink)" : "var(--muted)",
-							boxShadow:
-								view === key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+							boxShadow: view === key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
 							transition: "all 0.15s",
 						}}
 					>
@@ -332,7 +333,11 @@ function CoursesPage() {
 					{isError && (
 						<div style={{ textAlign: "center", marginTop: 48 }}>
 							<p
-								style={{ color: "var(--muted)", fontSize: 14, marginBottom: 12 }}
+								style={{
+									color: "var(--muted)",
+									fontSize: 14,
+									marginBottom: 12,
+								}}
 							>
 								Failed to load courses.
 							</p>

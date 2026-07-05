@@ -49,7 +49,7 @@ public class APIControllerMeRoadmap {
 	@PostMapping("/generate")
 	public ResponseEntity<RoadmapDTO> generateRoadmap(@AuthenticationPrincipal String tumid) {
 		try {
-			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/v1/get/" + tumid).retrieve()
+			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
 					.body(Profile.class);
 			final Profile.Student profileStudent = profile != null ? profile.student() : null;
 

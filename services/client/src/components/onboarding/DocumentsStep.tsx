@@ -1,11 +1,11 @@
 import { CheckCircle, MinusCircle } from "lucide-react";
 import type { CvData } from "#/api/types";
 import { ImportedTable } from "#/components/progress/ImportedTable";
-import { UnmatchedTable } from "#/components/progress/UnmatchedTable";
-import type { OnboardingStep2 } from "#/hooks/useOnboarding";
-import { useImportReducer } from "#/hooks/useImportReducer";
-import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
+import { UnmatchedTable } from "#/components/progress/UnmatchedTable";
+import { useImportReducer } from "#/hooks/useImportReducer";
+import type { OnboardingStep2 } from "#/hooks/useOnboarding";
+import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
 import { CvUploader } from "./CvUploader";
 
 type Props = {
@@ -320,10 +320,7 @@ function TranscriptDone({
 					borderRadius: 10,
 				}}
 			>
-				<CheckCircle
-					size={20}
-					style={{ color: "#2D6FB5", flexShrink: 0 }}
-				/>
+				<CheckCircle size={20} style={{ color: "#2D6FB5", flexShrink: 0 }} />
 				<span style={{ fontSize: 14, color: "#0B1F33", fontWeight: 500 }}>
 					{count} course{count !== 1 ? "s" : ""} imported successfully
 				</span>

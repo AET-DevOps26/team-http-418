@@ -268,12 +268,14 @@ public class CoursesDataDB {
 			params.addValue("semester", semester);
 		}
 		if (query != null && !query.trim().isEmpty()) {
-			sqlQuery.append(" AND (title_ger ILIKE :query OR title_en ILIKE :query OR description_ger ILIKE :query OR description_en ILIKE :query)");
+			sqlQuery.append(
+					" AND (title_ger ILIKE :query OR title_en ILIKE :query OR description_ger ILIKE :query OR description_en ILIKE :query)");
 			params.addValue("query", "%" + query.trim() + "%");
 		}
 
 		if (department != null && !department.isBlank()) {
-			sqlQuery.append(" AND (organizations.name_ger ILIKE :department OR organizations.name_en ILIKE :department)");
+			sqlQuery.append(
+					" AND (organizations.name_ger ILIKE :department OR organizations.name_en ILIKE :department)");
 			params.addValue("department", "%" + department + "%");
 		}
 
@@ -288,7 +290,8 @@ public class CoursesDataDB {
 		}
 
 		if (level != null && !level.isBlank()) {
-			sqlQuery.append(" AND curriculum_connections.path @@ ('$[*].name like_regex ' || :levelRegex || ' flag \"i\"')::jsonpath");
+			sqlQuery.append(
+					" AND curriculum_connections.path @@ ('$[*].name like_regex ' || :levelRegex || ' flag \"i\"')::jsonpath");
 			params.addValue("levelRegex", ".*" + level.trim() + ".*");
 		}
 

@@ -7,7 +7,7 @@ export function ProfileHeader({ profile }: { profile: StudentProfile }) {
 		.join(" ");
 	const initials = [profile.student.firstName, profile.student.lastName]
 		.filter(Boolean)
-		.map((n) => n![0]?.toUpperCase())
+		.map((n) => n?.[0]?.toUpperCase())
 		.join("");
 
 	return (

@@ -77,7 +77,12 @@ function OnboardingPage() {
 
 	if (state.currentStep === 1) {
 		return (
-			<WizardLayout currentStep={1} onSkipAll={handleSkipAll} onStepClick={handleStepClick} isLoading={finishMutation.isPending}>
+			<WizardLayout
+				currentStep={1}
+				onSkipAll={handleSkipAll}
+				onStepClick={handleStepClick}
+				isLoading={finishMutation.isPending}
+			>
 				<ProgramStep
 					data={state.step1}
 					onNext={(data) => {

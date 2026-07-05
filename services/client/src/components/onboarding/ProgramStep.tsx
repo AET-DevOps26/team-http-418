@@ -59,7 +59,13 @@ export function ProgramStep({ data, onNext }: Props) {
 
 	function handleNext() {
 		if (!canNext) return;
-		onNext({ firstName: firstName.trim(), lastName: lastName.trim(), studyProgramId, semester, expectedGraduation });
+		onNext({
+			firstName: firstName.trim(),
+			lastName: lastName.trim(),
+			studyProgramId,
+			semester,
+			expectedGraduation,
+		});
 	}
 
 	return (

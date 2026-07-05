@@ -17,7 +17,9 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 				width: "100%",
 				font: "inherit",
 			}}
-			onClick={() => navigate({ to: "/courses", search: { course: rec.courseId } })}
+			onClick={() =>
+				navigate({ to: "/courses", search: { course: rec.courseId } })
+			}
 		>
 			<div style={{ marginBottom: 8 }}>
 				<span

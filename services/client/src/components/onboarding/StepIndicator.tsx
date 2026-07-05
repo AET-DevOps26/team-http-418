@@ -39,9 +39,7 @@ export function StepIndicator({ currentStep, onStepClick }: Props) {
 									? "linear-gradient(135deg, #8A57E0, #2D6FB5)"
 									: "#E2E7EF",
 							color: done || active ? "#fff" : "#6E7E94",
-							boxShadow: active
-								? "0 2px 8px rgba(138,87,224,0.35)"
-								: "none",
+							boxShadow: active ? "0 2px 8px rgba(138,87,224,0.35)" : "none",
 							transition: "all 0.2s",
 						}}
 					>
@@ -81,9 +79,7 @@ export function StepIndicator({ currentStep, onStepClick }: Props) {
 									fontWeight: active ? 600 : 400,
 									color: active ? "#8A57E0" : done ? "#2D6FB5" : "#6E7E94",
 									letterSpacing: "0.03em",
-									cursor: clickable ? "pointer" : "default",
 								}}
-								onClick={clickable ? () => onStepClick(stepNum) : undefined}
 							>
 								{label}
 							</span>

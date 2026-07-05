@@ -117,7 +117,8 @@ public class AuthService {
 					}
 				}
 			} catch (Exception e) {
-				logger.warn("Could not create test user or profile (profile-service may be unavailable): {}", e.getMessage());
+				logger.warn("Could not create test user or profile (profile-service may be unavailable): {}",
+						e.getMessage());
 			}
 		};
 	}

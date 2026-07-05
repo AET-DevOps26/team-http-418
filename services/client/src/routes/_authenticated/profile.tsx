@@ -181,15 +181,9 @@ function ProfilePage() {
 			dirty.studyProgramId = draft.studyProgramId;
 		if (draft.semester !== profile.student.semester)
 			dirty.semester = draft.semester;
-		if (
-			draft.expectedGraduation !==
-			(profile.student.expectedGraduation ?? "")
-		)
+		if (draft.expectedGraduation !== (profile.student.expectedGraduation ?? ""))
 			dirty.expectedGraduation = draft.expectedGraduation;
-		if (
-			draft.industryPreference !==
-			(profile.student.industryPreference ?? "")
-		)
+		if (draft.industryPreference !== (profile.student.industryPreference ?? ""))
 			dirty.industryPreference = draft.industryPreference;
 		if (draft.rolePreference !== (profile.student.rolePreference ?? ""))
 			dirty.rolePreference = draft.rolePreference;
@@ -306,6 +300,7 @@ function ProfilePage() {
 							>
 								<div>
 									<label
+										htmlFor="profile-first-name"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -317,6 +312,7 @@ function ProfilePage() {
 										First Name
 									</label>
 									<input
+										id="profile-first-name"
 										type="text"
 										value={d.firstName}
 										onChange={(e) =>
@@ -329,6 +325,7 @@ function ProfilePage() {
 								</div>
 								<div>
 									<label
+										htmlFor="profile-last-name"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -340,6 +337,7 @@ function ProfilePage() {
 										Last Name
 									</label>
 									<input
+										id="profile-last-name"
 										type="text"
 										value={d.lastName}
 										onChange={(e) =>
@@ -361,9 +359,7 @@ function ProfilePage() {
 								value={d.studyProgramId}
 								onChange={(e) =>
 									setDraft((prev) =>
-										prev
-											? { ...prev, studyProgramId: e.target.value }
-											: prev,
+										prev ? { ...prev, studyProgramId: e.target.value } : prev,
 									)
 								}
 								style={{ ...inputStyle, cursor: "pointer" }}
@@ -492,6 +488,7 @@ function ProfilePage() {
 							>
 								<div>
 									<label
+										htmlFor="profile-current-semester"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -503,6 +500,7 @@ function ProfilePage() {
 										Current Semester
 									</label>
 									<input
+										id="profile-current-semester"
 										type="number"
 										min={1}
 										max={20}
@@ -519,6 +517,7 @@ function ProfilePage() {
 								</div>
 								<div>
 									<label
+										htmlFor="profile-expected-graduation"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -530,6 +529,7 @@ function ProfilePage() {
 										Expected Graduation
 									</label>
 									<select
+										id="profile-expected-graduation"
 										value={d.expectedGraduation}
 										onChange={(e) =>
 											setDraft((prev) =>
@@ -608,6 +608,7 @@ function ProfilePage() {
 							>
 								<div>
 									<label
+										htmlFor="profile-industry"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -619,6 +620,7 @@ function ProfilePage() {
 										Industry
 									</label>
 									<select
+										id="profile-industry"
 										value={d.industryPreference}
 										onChange={(e) =>
 											setDraft((prev) =>
@@ -639,6 +641,7 @@ function ProfilePage() {
 								</div>
 								<div>
 									<label
+										htmlFor="profile-role"
 										style={{
 											display: "block",
 											fontSize: 12,
@@ -650,6 +653,7 @@ function ProfilePage() {
 										Role
 									</label>
 									<select
+										id="profile-role"
 										value={d.rolePreference}
 										onChange={(e) =>
 											setDraft((prev) =>
@@ -716,9 +720,7 @@ function ProfilePage() {
 					</div>
 
 					<WorkloadPicker
-						value={
-							editing && d ? d.preferredWorkload : s.preferredWorkload
-						}
+						value={editing && d ? d.preferredWorkload : s.preferredWorkload}
 						editing={editing}
 						onChange={(v) =>
 							setDraft((prev) =>
@@ -741,9 +743,7 @@ function ProfilePage() {
 						items={editing && d ? d.interests : s.interests}
 						editing={editing}
 						onChange={(items) =>
-							setDraft((prev) =>
-								prev ? { ...prev, interests: items } : prev,
-							)
+							setDraft((prev) => (prev ? { ...prev, interests: items } : prev))
 						}
 					/>
 				</div>

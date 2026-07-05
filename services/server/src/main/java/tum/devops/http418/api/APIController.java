@@ -50,7 +50,7 @@ public class APIController {
 			try {
 				final List<GenAICourseResponse> aiResponse = restClient.get()
 						.uri(uriBuilder -> uriBuilder
-								.path(GENAI_PATH + "/v1/courses")
+								.path(GENAI_PATH + "/courses")
 								.queryParamIfPresent("query", Optional.ofNullable(query))
 								.queryParam("limit", pageSize)
 								.queryParamIfPresent("department", Optional.ofNullable(department))

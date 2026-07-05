@@ -77,9 +77,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 				<Link to="/profile" className="sidebar-avatar" title="Profile">
 					TU
 				</Link>
-				{!collapsed && (
-					<span className="sidebar-user-name">TUM Student</span>
-				)}
+				{!collapsed && <span className="sidebar-user-name">TUM Student</span>}
 				<button
 					type="button"
 					className="sidebar-logout-btn"

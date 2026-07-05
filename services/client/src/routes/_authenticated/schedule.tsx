@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ConflictBanner } from "#/components/schedule/ConflictBanner";
 import { SemesterSelector } from "#/components/schedule/SemesterSelector";

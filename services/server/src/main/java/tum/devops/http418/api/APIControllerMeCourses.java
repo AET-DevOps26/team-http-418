@@ -39,7 +39,8 @@ public class APIControllerMeCourses {
 	public ResponseEntity<CompletedCourseDTO> addCompleted(@AuthenticationPrincipal String tumid,
 			@RequestBody AddCompletedCourseRequest request) {
 		final StudentDataDB.CompletedCourseRow row = studentDataDB.insertCompletedCourse(tumid, request.courseId(),
-				request.grade(), request.credits() != null ? request.credits() : 0, request.semesterOrNull(), request.category());
+				request.grade(), request.credits() != null ? request.credits() : 0, request.semesterOrNull(),
+				request.category());
 		if (row == null) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).build();
 		}
