@@ -1,11 +1,7 @@
-import type { Dashboard, DashboardProgress } from "#/api/types";
-
-const MOCK_REQUIREMENTS = [
-	{ name: "Core · Informatics", earned: 67, total: 72 },
-	{ name: "Electives · Informatics", earned: 6, total: 30 },
-	{ name: "Electives · Application", earned: 8, total: 18 },
-	{ name: "Mathematics", earned: 5, total: 8 },
-];
+import { Link } from "@tanstack/react-router";
+import { Info } from "lucide-react";
+import type { AcademicProgress, DegreeRequirements } from "#/api/types";
+import { InfoBanner } from "#/components/dashboard/InfoBanner";
 
 function ProgressRing({ pct }: { pct: number }) {
 	const r = 50;
@@ -51,14 +47,43 @@ function ProgressRing({ pct }: { pct: number }) {
 }
 
 type Props = {
-	progress: DashboardProgress;
-	requirements?: Dashboard["requirements"];
+	progress?: AcademicProgress;
+	requirements?: DegreeRequirements;
+	hasTranscript: boolean;
+	hasStudyProgram: boolean;
 };
 
-export function DegreeProgress({ progress, requirements }: Props) {
-	const reqs = requirements ?? MOCK_REQUIREMENTS;
-	const { totalCreditsEarned, totalCreditsRequired, progressPercentage } =
-		progress;
+export function DegreeProgress({
+	progress,
+	requirements,
+	hasTranscript,
+	hasStudyProgram,
+}: Props) {
+	const totalCreditsEarned = progress?.totalCreditsEarned ?? 0;
+	const creditsRequired = progress?.totalCreditsRequired ?? 0;
+	const progressPct = progress?.progressPercentage ?? 0;
+
+	if (!hasTranscript) {
+		return (
+			<div className="card" style={{ padding: "20px", height: "100%" }}>
+				<div className="eyebrow">Degree Progress</div>
+				<InfoBanner
+					icon={<Info size={16} />}
+					title="Upload your transcript to track progress"
+					description="Import your academic history so we can calculate your progress toward your degree."
+					action={
+						<Link
+							to="/progress"
+							className="btn btn-primary"
+							style={{ fontSize: 12, padding: "5px 12px", display: "inline-flex" }}
+						>
+							Upload transcript
+						</Link>
+					}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className="card" style={{ padding: "20px", height: "100%" }}>
@@ -73,7 +98,7 @@ export function DegreeProgress({ progress, requirements }: Props) {
 					marginBottom: 20,
 				}}
 			>
-				<ProgressRing pct={progressPercentage} />
+				<ProgressRing pct={progressPct} />
 				<div
 					style={{
 						position: "absolute",
@@ -94,50 +119,70 @@ export function DegreeProgress({ progress, requirements }: Props) {
 						{totalCreditsEarned}
 					</div>
 					<div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>
-						of {totalCreditsRequired} ECTS
+						of {creditsRequired} ECTS
 					</div>
 				</div>
 			</div>
 
-			<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-				{reqs.map((req) => {
-					const pct = Math.min(100, (req.earned / req.total) * 100);
-					return (
-						<div key={req.name}>
-							<div
-								style={{
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "baseline",
-									marginBottom: 4,
-								}}
-							>
-								<span
+			{!hasStudyProgram ? (
+				<InfoBanner
+					icon={<Info size={16} />}
+					title="Select a study program"
+					description="Choose your study program to see detailed requirement breakdowns."
+					action={
+						<Link
+							to="/profile"
+							className="btn btn-primary"
+							style={{ fontSize: 12, padding: "5px 12px", display: "inline-flex" }}
+						>
+							Update profile
+						</Link>
+					}
+				/>
+			) : requirements?.categories?.length ? (
+				<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+					{requirements.categories.map((cat) => {
+						const pct = Math.min(
+							100,
+							(cat.creditsEarned / cat.creditsRequired) * 100,
+						);
+						return (
+							<div key={cat.name}>
+								<div
 									style={{
-										fontSize: 11.5,
-										color: "var(--ink-soft)",
-										fontWeight: 500,
+										display: "flex",
+										justifyContent: "space-between",
+										alignItems: "baseline",
+										marginBottom: 4,
 									}}
 								>
-									{req.name}
-								</span>
-								<span
-									style={{
-										fontSize: 11,
-										color: "var(--muted)",
-										fontFamily: "var(--font-mono)",
-									}}
-								>
-									{req.earned}/{req.total}
-								</span>
+									<span
+										style={{
+											fontSize: 11.5,
+											color: "var(--ink-soft)",
+											fontWeight: 500,
+										}}
+									>
+										{cat.name}
+									</span>
+									<span
+										style={{
+											fontSize: 11,
+											color: "var(--muted)",
+											fontFamily: "var(--font-mono)",
+										}}
+									>
+										{cat.creditsEarned}/{cat.creditsRequired}
+									</span>
+								</div>
+								<div className="req-bar-track">
+									<div className="req-bar-fill" style={{ width: `${pct}%` }} />
+								</div>
 							</div>
-							<div className="req-bar-track">
-								<div className="req-bar-fill" style={{ width: `${pct}%` }} />
-							</div>
-						</div>
-					);
-				})}
-			</div>
+						);
+					})}
+				</div>
+			) : null}
 
 			<button
 				type="button"
