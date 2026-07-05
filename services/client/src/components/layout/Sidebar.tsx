@@ -1,6 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BookOpen,
+	ChevronsLeft,
+	ChevronsRight,
 	Home,
 	LogOut,
 	Map as MapIcon,
@@ -18,7 +20,12 @@ const mainNav = [
 
 const aiNav = [{ label: "Advisor", icon: MessageCircle, href: "/advisor" }];
 
-export function Sidebar() {
+type Props = {
+	collapsed: boolean;
+	onToggle: () => void;
+};
+
+export function Sidebar({ collapsed, onToggle }: Props) {
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -32,10 +39,10 @@ export function Sidebar() {
 	}
 
 	return (
-		<aside className="sidebar">
+		<aside className={`sidebar${collapsed ? " sidebar--collapsed" : ""}`}>
 			<div className="sidebar-brand">
 				<div className="sidebar-brand-mark">A</div>
-				<span className="sidebar-brand-name">AIDAN</span>
+				{!collapsed && <span className="sidebar-brand-name">AIDAN</span>}
 			</div>
 
 			<nav className="sidebar-nav">
@@ -43,23 +50,25 @@ export function Sidebar() {
 					<Link
 						key={href}
 						to={href}
+						title={label}
 						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
 					>
 						<Icon size={16} strokeWidth={1.75} />
-						{label}
+						{!collapsed && label}
 					</Link>
 				))}
 
-				<span className="sidebar-section-label">AI</span>
+				{!collapsed && <span className="sidebar-section-label">AI</span>}
 
 				{aiNav.map(({ label, icon: Icon, href }) => (
 					<Link
 						key={href}
 						to={href}
+						title={label}
 						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
 					>
 						<Icon size={16} strokeWidth={1.75} />
-						{label}
+						{!collapsed && label}
 					</Link>
 				))}
 			</nav>
@@ -68,7 +77,9 @@ export function Sidebar() {
 				<Link to="/profile" className="sidebar-avatar" title="Profile">
 					TU
 				</Link>
-				<span className="sidebar-user-name">TUM Student</span>
+				{!collapsed && (
+					<span className="sidebar-user-name">TUM Student</span>
+				)}
 				<button
 					type="button"
 					className="sidebar-logout-btn"
@@ -78,6 +89,19 @@ export function Sidebar() {
 					<LogOut size={15} strokeWidth={1.75} />
 				</button>
 			</div>
+
+			<button
+				type="button"
+				className="sidebar-toggle-btn"
+				onClick={onToggle}
+				title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+			>
+				{collapsed ? (
+					<ChevronsRight size={16} strokeWidth={1.75} />
+				) : (
+					<ChevronsLeft size={16} strokeWidth={1.75} />
+				)}
+			</button>
 		</aside>
 	);
 }

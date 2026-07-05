@@ -257,8 +257,9 @@ public class APIControllerMe {
 		final Profile current = transcriptService.fetchProfile(tumid);
 		final Profile.Student s = (current != null && current.student() != null)
 				? current.student()
-				: new Profile.Student(null, 0, List.of(), List.of(), 0, 0, 0, null, null, null, null, false);
+				: new Profile.Student(null, null, null, 0, List.of(), List.of(), 0, 0, 0, null, null, null, null, false);
 		final Profile.Student updated = new Profile.Student(
+				s.firstName(), s.lastName(),
 				s.studyProgramId(), s.semester(), s.careerGoals(), s.interests(),
 				s.preferredWorkload(), s.creditsEarned(), s.creditsRequired(),
 				s.expectedGraduation(), s.industryPreference(),

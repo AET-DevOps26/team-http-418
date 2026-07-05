@@ -3,6 +3,8 @@ import { useReducer } from "react";
 import type { CvData } from "#/api/types";
 
 export type OnboardingStep1 = {
+	firstName: string;
+	lastName: string;
 	studyProgramId: string;
 	semester: number;
 	expectedGraduation: string;
@@ -35,6 +37,7 @@ export type OnboardingAction =
 	| { type: "SET_STEP3"; data: OnboardingStep3 }
 	| { type: "NEXT_STEP" }
 	| { type: "PREV_STEP" }
+	| { type: "GOTO_STEP"; step: 1 | 2 | 3 }
 	| { type: "RESET" };
 
 const initialState: OnboardingState = {
@@ -73,6 +76,11 @@ function reducer(
 			return {
 				...state,
 				currentStep: Math.max(1, state.currentStep - 1) as 1 | 2 | 3,
+			};
+		case "GOTO_STEP":
+			return {
+				...state,
+				currentStep: action.step,
 			};
 		case "RESET":
 			return initialState;

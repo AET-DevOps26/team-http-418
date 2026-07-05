@@ -195,7 +195,7 @@ function CoursesPage() {
 	const search = Route.useSearch();
 	const navigate = useNavigate({ from: Route.fullPath });
 
-	const view = search.view ?? "catalog";
+	const view = search.view ?? "recommended";
 
 	const params: Omit<CourseSearchParams, "page" | "size"> = {
 		search: search.q || undefined,
@@ -268,8 +268,8 @@ function CoursesPage() {
 			>
 				{(
 					[
-						{ key: "catalog", label: "All Courses" },
 						{ key: "recommended", label: "For You" },
+						{ key: "catalog", label: "All Courses" },
 					] as const
 				).map(({ key, label }) => (
 					<button

@@ -79,6 +79,7 @@ type Props = {
 	onSkip?: () => void;
 	onSkipAll?: () => void;
 	onNext?: () => void;
+	onStepClick?: (step: 1 | 2 | 3) => void;
 	nextLabel?: string;
 	nextDisabled?: boolean;
 	isLoading?: boolean;
@@ -93,6 +94,7 @@ export function WizardLayout({
 	onSkip,
 	onSkipAll,
 	onNext,
+	onStepClick,
 	nextLabel = "Next",
 	nextDisabled = false,
 	isLoading = false,
@@ -177,7 +179,7 @@ export function WizardLayout({
 						)}
 					</div>
 
-					<StepIndicator currentStep={currentStep} />
+					<StepIndicator currentStep={currentStep} onStepClick={onStepClick} />
 
 					<div style={{ minHeight: 280 }}>{children}</div>
 

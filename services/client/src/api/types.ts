@@ -481,13 +481,15 @@ export type CvData = {
 };
 
 export type Student = {
+	firstName?: string;
+	lastName?: string;
 	interests: string[];
 	creditsRequired: number;
 	creditsEarned: number;
 	careerGoals: string[];
 	preferredWorkload: number;
 	semester: number;
-	studyProgram: StudyProgramRef;
+	studyProgram?: StudyProgramRef;
 	studyProgramId?: string;
 	expectedGraduation?: string;
 	industryPreference?: string;
