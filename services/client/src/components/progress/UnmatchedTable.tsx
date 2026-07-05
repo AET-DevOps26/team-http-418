@@ -66,9 +66,10 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 				setError(`No AI match found for: ${unmatchedCourse.module.titleEn ?? unmatchedCourse.module.moduleId}`);
 				return;
 			}
+			const grade = parseFloat(unmatchedCourse.module.grade ?? "1.0");
 			const completed = await addCompletedCourse({
 				courseId: match.courseId,
-				grade: parseFloat(unmatchedCourse.module.grade ?? "1.0"),
+				grade: Number.isNaN(grade) ? 1.0 : grade,
 			});
 			const reviewable: ReviewableCourse = {
 				courseId: completed.courseId,

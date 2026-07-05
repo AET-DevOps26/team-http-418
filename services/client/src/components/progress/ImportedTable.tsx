@@ -134,7 +134,7 @@ export function ImportedTable({ imported, dispatch }: Props) {
 										(c.grade ?? "—")
 									)}
 								</td>
-								<td>{c.credits}</td>
+								<td>{c.credits ?? 0}</td>
 								<td>
 									{!hasCourseId ? (
 										<span style={{ fontSize: 11.5, color: "var(--muted)" }}>

@@ -33,9 +33,10 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 				);
 				if (!unmatchedCourse) continue;
 				try {
+					const grade = parseFloat(unmatchedCourse.module.grade ?? "1.0");
 					const completed = await addCompletedCourse({
 						courseId: match.courseId,
-						grade: parseFloat(unmatchedCourse.module.grade ?? "1.0"),
+						grade: Number.isNaN(grade) ? 1.0 : grade,
 					});
 					const reviewable: ReviewableCourse = {
 						courseId: completed.courseId,

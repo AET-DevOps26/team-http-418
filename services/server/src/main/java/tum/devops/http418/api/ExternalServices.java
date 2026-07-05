@@ -18,7 +18,7 @@ public class ExternalServices {
 				.body(String.class);
 	}
 
-	public String callTranscriptMatch(String body) {
+	public String callTranscriptMatch(Object body) {
 		return restClient.post()
 				.uri(GENAI_PATH + "/transcript/match")
 				.contentType(MediaType.APPLICATION_JSON)

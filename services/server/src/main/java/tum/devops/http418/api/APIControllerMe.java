@@ -154,8 +154,7 @@ public class APIControllerMe {
 				entry.put("title_de", m.titleDe());
 				aiModules.add(entry);
 			}
-			final String aiBody = objectMapper.writeValueAsString(Map.of("modules", aiModules));
-			final String aiResponse = transcriptService.callTranscriptMatch(aiBody);
+			final String aiResponse = transcriptService.callTranscriptMatch(Map.of("modules", aiModules));
 			final Map<String, Object> aiResult = objectMapper.readValue(aiResponse, new TypeReference<>() {
 			});
 			@SuppressWarnings("unchecked")
