@@ -139,16 +139,20 @@ if $START_DB; then
   log_db "Starting db container..."
   (cd "$SCRIPT_DIR" && docker compose up -d db)
   WE_STARTED_DB=true
-  log_db "Waiting for db healthcheck..."
+  log_db "Waiting for db to be ready..."
   container_id=$(cd "$SCRIPT_DIR" && docker compose ps -q db 2>/dev/null)
-  for i in $(seq 1 60); do
-    status=$(docker inspect --format='{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "")
-    if [ "$status" = "healthy" ]; then
-      log_db "DB healthy after ${i}s."; break
+  # Wait until postgres logs "ready to accept connections" as one of its last lines.
+  # On first run, init scripts import ~100MB of seed data — the temp server's "ready"
+  # message gets pushed far up in the logs. The normal server's "ready" only appears
+  # in the tail once init is done and postgres has restarted.
+  for i in $(seq 1 300); do
+    if docker logs "$container_id" 2>&1 | tail -5 | grep -q "ready to accept connections"; then
+      log_db "DB ready after ${i}s."; break
     fi
+    [ $((i % 30)) -eq 0 ] && log_db "Still waiting for db init... (${i}s, first run imports seed data)"
     sleep 1
-    if [ "$i" -eq 60 ]; then
-      err "DB did not become healthy within 60s."; exit 1
+    if [ "$i" -eq 300 ]; then
+      err "DB did not become ready within 300s."; exit 1
     fi
   done
 fi
