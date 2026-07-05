@@ -526,3 +526,22 @@ export type CourseSearchParams = {
 	page?: number;
 	size?: number;
 };
+
+export type AiMatchModule = {
+	moduleId: string;
+	titleEn?: string;
+	titleDe?: string;
+};
+
+export type AiMatchResult = {
+	moduleId: string;
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	score: number;
+};
+
+export type AiMatchResponse = {
+	matches: AiMatchResult[];
+	unmatched: string[];
+};

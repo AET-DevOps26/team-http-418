@@ -103,8 +103,8 @@ export function ImportedTable({ imported, dispatch }: Props) {
 			<table className="progress-table">
 				<thead>
 					<tr>
-						<th>Module ID</th>
-						<th>Course Name</th>
+						<th>Transcript Subject</th>
+						<th>Matched Course</th>
 						<th>Grade</th>
 						<th>Credits</th>
 						<th>Actions</th>
@@ -118,16 +118,8 @@ export function ImportedTable({ imported, dispatch }: Props) {
 						const isLoading = hasCourseId && loadingId === c.courseId;
 						return (
 							<tr key={key}>
-								<td
-									style={{
-										fontFamily: "var(--font-mono)",
-										fontSize: 12,
-										color: "var(--blue-700)",
-									}}
-								>
-									{c.moduleId ?? c.courseCode ?? "—"}
-								</td>
-								<td>{c.courseName ?? c.titleEn ?? "—"}</td>
+								<td>{c.titleEn ?? c.titleDe ?? c.moduleId ?? "—"}</td>
+								<td>{c.courseName ?? c.courseCode ?? "—"}</td>
 								<td>
 									{isEditing ? (
 										<input

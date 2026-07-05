@@ -2,6 +2,8 @@ import { apiFetch } from "#/api/client";
 import type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
+	AiMatchModule,
+	AiMatchResponse,
 	CompletedCourse,
 	DegreeRequirements,
 	EnrollCourseRequest,
@@ -73,4 +75,13 @@ export function dropCourse(courseId: string): Promise<void> {
 
 export function getRequirements(): Promise<DegreeRequirements> {
 	return apiFetch<DegreeRequirements>("/me/requirements");
+}
+
+export function aiMatchTranscript(
+	modules: AiMatchModule[],
+): Promise<AiMatchResponse> {
+	return apiFetch<AiMatchResponse>("/me/transcript/ai-match", {
+		method: "POST",
+		body: JSON.stringify({ modules }),
+	});
 }

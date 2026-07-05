@@ -32,6 +32,7 @@ export { getDashboard } from "#/api/dashboard";
 export { getProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
+	aiMatchTranscript,
 	dropCourse,
 	enrollCourse,
 	getCompletedCourses,
@@ -60,6 +61,9 @@ export { getSchedule } from "#/api/schedule";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
+	AiMatchModule,
+	AiMatchResponse,
+	AiMatchResult,
 	AddCourseRequest,
 	AdvisorSSEEvent,
 	AlertSeverity,
