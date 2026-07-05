@@ -1,7 +1,17 @@
-import type { Dispatch } from "react";
-import { useReducer } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+import {
+	cancelImport,
+	confirmImport,
+	getImportState,
+	skipImportCourse,
+	unresolveImportCourse,
+	unskipImportCourse,
+	updateImportGrade,
+} from "#/api/progress";
 import type {
-	ImportedCourse,
+	ImportRow,
+	ImportState as ServerImportState,
 	TranscriptImportResult,
 	UnmatchedModule,
 } from "#/api/types";
@@ -9,12 +19,22 @@ import type {
 export type ImportPhase = "empty" | "review" | "done";
 
 export type UnmatchedCourse = {
+	rowId: number;
 	module: UnmatchedModule;
 	originalError: string;
 	skipped: boolean;
 };
 
-export type ReviewableCourse = ImportedCourse & {
+export type ReviewableCourse = {
+	rowId: number;
+	courseId?: string;
+	courseCode?: string;
+	courseName?: string;
+	moduleId?: string;
+	titleDe?: string;
+	titleEn?: string;
+	grade?: string;
+	credits: number;
 	editedGrade?: string;
 	editedCredits?: number;
 };
@@ -39,180 +59,147 @@ export type ImportAction =
 	| { type: "FINISH_IMPORT" }
 	| { type: "RESET" };
 
-const UNMATCHED_PATTERN = /^No catalog match for ([^:]+): (.+)$/;
-const ALREADY_IMPORTED_PATTERN =
-	/^Already imported: ([^\s(]+)\s*(?:\(([^)]+)\))?/;
-
-type ParsedErrors = {
-	unmatched: UnmatchedCourse[];
-	alreadyImported: ReviewableCourse[];
-	general: string[];
-};
-
-function parseErrors(errors: string[]): ParsedErrors {
-	const unmatched: UnmatchedCourse[] = [];
-	const alreadyImported: ReviewableCourse[] = [];
-	const general: string[] = [];
-	for (const err of errors) {
-		const unmatchedMatch = UNMATCHED_PATTERN.exec(err);
-		if (unmatchedMatch) {
-			unmatched.push({
-				module: {
-					moduleId: unmatchedMatch[1].trim(),
-					titleEn: unmatchedMatch[2].trim(),
-				},
-				originalError: err,
-				skipped: false,
-			});
-			continue;
-		}
-		const alreadyMatch = ALREADY_IMPORTED_PATTERN.exec(err);
-		if (alreadyMatch) {
-			alreadyImported.push({
-				moduleId: alreadyMatch[1].trim(),
-				courseName: alreadyMatch[2]?.trim() ?? alreadyMatch[1].trim(),
-				credits: 0,
-			});
-			continue;
-		}
-		general.push(err);
-	}
-	return { unmatched, alreadyImported, general };
-}
-
-const initialState: ImportState = {
-	phase: "empty",
-	imported: [],
-	unmatched: [],
-	generalErrors: [],
-};
-
-function toErrorString(e: TranscriptImportResult["errors"][number]): string {
-	return typeof e === "string" ? e : e.message;
-}
-
-function reducer(state: ImportState, action: ImportAction): ImportState {
-	switch (action.type) {
-		case "UPLOAD_SUCCESS": {
-			const { result } = action;
-			const allErrors = result.errors.map(toErrorString);
-			const parsed = parseErrors(allErrors);
-
-			let unmatched = parsed.unmatched;
-			if (result.unmatchedModules && result.unmatchedModules.length > 0) {
-				unmatched = result.unmatchedModules.map((m) => ({
-					module: m,
-					originalError: `No catalog match for ${m.moduleId ?? ""}: ${m.titleEn ?? m.titleDe ?? ""}`,
-					skipped: false,
-				}));
-			}
-
-			const imported = [
-				...(result.importedCourses as ReviewableCourse[]),
-				...parsed.alreadyImported,
-			];
-
-			return {
-				phase: "review",
-				imported,
-				unmatched,
-				generalErrors: parsed.general,
-			};
-		}
-
-		case "RESOLVE_COURSE": {
-			return {
-				...state,
-				imported: [...state.imported, action.course],
-				unmatched: state.unmatched.filter(
-					(u) => u.module.moduleId !== action.moduleId,
-				),
-			};
-		}
-
-		case "UNRESOLVE_COURSE": {
-			const course = state.imported.find((c) => c.courseId === action.courseId);
-			if (!course) return state;
-			const unmatchedCourse: UnmatchedCourse = {
-				module: {
-					moduleId: course.moduleId ?? "",
-					titleEn: course.titleEn,
-					titleDe: course.titleDe,
-					grade: course.grade,
-					credits: course.credits,
-				},
-				originalError: `No catalog match for ${course.moduleId ?? ""}: ${course.titleEn ?? course.titleDe ?? ""}`,
-				skipped: false,
-			};
-			return {
-				...state,
-				imported: state.imported.filter((c) => c.courseId !== action.courseId),
-				unmatched: [...state.unmatched, unmatchedCourse],
-			};
-		}
-
-		case "EDIT_COURSE": {
-			return {
-				...state,
-				imported: state.imported.map((c) =>
-					c.courseId === action.courseId ? { ...c, ...action.updates } : c,
-				),
-			};
-		}
-
-		case "SKIP_COURSE": {
-			return {
-				...state,
-				unmatched: state.unmatched.map((u) =>
-					u.module.moduleId === action.moduleId ? { ...u, skipped: true } : u,
-				),
-			};
-		}
-
-		case "FINISH_IMPORT":
-			return { ...state, phase: "done" };
-
-		case "RESET":
-			return initialState;
-
-		default:
-			return state;
-	}
-}
-
-const STORAGE_KEY = "import-state";
-
-function loadState(): ImportState {
-	try {
-		const raw = sessionStorage.getItem(STORAGE_KEY);
-		if (raw) return JSON.parse(raw);
-	} catch {
-		/* ignore */
-	}
-	return initialState;
-}
-
-function saveState(state: ImportState) {
-	try {
-		if (state.phase === "empty") {
-			sessionStorage.removeItem(STORAGE_KEY);
-		} else {
-			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-		}
-	} catch {
-		/* ignore */
-	}
-}
-
-function persistingReducer(
-	state: ImportState,
-	action: ImportAction,
+function serverStateToLocal(
+	server: ServerImportState | undefined,
 ): ImportState {
-	const next = reducer(state, action);
-	saveState(next);
-	return next;
+	if (!server || !server.active) {
+		return { phase: "empty", imported: [], unmatched: [], generalErrors: [] };
+	}
+
+	const imported: ReviewableCourse[] = server.pending.map((row) => ({
+		rowId: row.id,
+		courseId: row.courseId != null ? String(row.courseId) : undefined,
+		courseName: row.courseName ?? undefined,
+		moduleId: row.moduleId ?? undefined,
+		titleEn: row.moduleTitle ?? undefined,
+		grade: row.grade != null ? String(row.grade) : undefined,
+		credits: row.credits,
+	}));
+
+	const unmatched: UnmatchedCourse[] = [
+		...server.unmatched.map((row) => rowToUnmatched(row, false)),
+		...server.skipped.map((row) => rowToUnmatched(row, true)),
+	];
+
+	return { phase: "review", imported, unmatched, generalErrors: [] };
 }
 
-export function useImportReducer(): [ImportState, Dispatch<ImportAction>] {
-	return useReducer(persistingReducer, undefined, loadState);
+function rowToUnmatched(row: ImportRow, skipped: boolean): UnmatchedCourse {
+	return {
+		rowId: row.id,
+		module: {
+			moduleId: row.moduleId ?? "",
+			titleEn: row.moduleTitle ?? undefined,
+			grade: row.grade != null ? String(row.grade) : undefined,
+			credits: row.credits,
+		},
+		originalError: `No catalog match for ${row.moduleId ?? ""}: ${row.moduleTitle ?? ""}`,
+		skipped,
+	};
+}
+
+const IMPORT_STATE_KEY = ["importState"];
+
+function invalidateAll(queryClient: ReturnType<typeof useQueryClient>) {
+	queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY });
+	queryClient.invalidateQueries({ queryKey: ["completedCourses"] });
+	queryClient.invalidateQueries({ queryKey: ["progress"] });
+	queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+	queryClient.invalidateQueries({ queryKey: ["requirements"] });
+}
+
+export function useImportReducer(): [
+	ImportState,
+	(action: ImportAction) => void,
+] {
+	const queryClient = useQueryClient();
+	const [doneSnapshot, setDoneSnapshot] = useState<ImportState | null>(null);
+
+	const { data: serverState } = useQuery({
+		queryKey: IMPORT_STATE_KEY,
+		queryFn: getImportState,
+		staleTime: 30_000,
+		refetchOnWindowFocus: true,
+	});
+
+	const serverDerivedState = useMemo(
+		() => serverStateToLocal(serverState),
+		[serverState],
+	);
+	const state = doneSnapshot ?? serverDerivedState;
+
+	const confirmMutation = useMutation({
+		mutationFn: confirmImport,
+		onSuccess: () => invalidateAll(queryClient),
+	});
+
+	const cancelMutation = useMutation({
+		mutationFn: cancelImport,
+		onSuccess: () => invalidateAll(queryClient),
+	});
+
+	const dispatch = useCallback(
+		(action: ImportAction) => {
+			switch (action.type) {
+				case "UPLOAD_SUCCESS":
+					setDoneSnapshot(null);
+					queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY });
+					break;
+				case "RESOLVE_COURSE":
+					queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY });
+					break;
+				case "UNRESOLVE_COURSE": {
+					const row = serverDerivedState.imported.find(
+						(c) => c.courseId === action.courseId,
+					);
+					if (row) {
+						unresolveImportCourse(row.rowId).then(() =>
+							queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY }),
+						);
+					}
+					break;
+				}
+				case "EDIT_COURSE": {
+					const row = serverDerivedState.imported.find(
+						(c) => c.courseId === action.courseId,
+					);
+					if (row && action.updates.grade != null) {
+						updateImportGrade(row.rowId, parseFloat(action.updates.grade)).then(
+							() =>
+								queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY }),
+						);
+					}
+					break;
+				}
+				case "SKIP_COURSE": {
+					const row = serverDerivedState.unmatched.find(
+						(u) => u.module.moduleId === action.moduleId,
+					);
+					if (row) {
+						const fn = row.skipped ? unskipImportCourse : skipImportCourse;
+						fn(row.rowId).then(() =>
+							queryClient.invalidateQueries({ queryKey: IMPORT_STATE_KEY }),
+						);
+					}
+					break;
+				}
+				case "FINISH_IMPORT":
+					setDoneSnapshot({
+						...serverDerivedState,
+						phase: "done",
+					});
+					confirmMutation.mutate();
+					break;
+				case "RESET":
+					setDoneSnapshot(null);
+					if (serverDerivedState.phase !== "empty") {
+						cancelMutation.mutate();
+					}
+					break;
+			}
+		},
+		[serverDerivedState, queryClient, confirmMutation, cancelMutation],
+	);
+
+	return [state, dispatch];
 }

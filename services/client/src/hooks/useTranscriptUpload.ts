@@ -7,9 +7,7 @@ export function useTranscriptUpload() {
 	return useMutation({
 		mutationFn: uploadTranscript,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["completedCourses"] });
-			queryClient.invalidateQueries({ queryKey: ["progress"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
 		},
 	});
 }

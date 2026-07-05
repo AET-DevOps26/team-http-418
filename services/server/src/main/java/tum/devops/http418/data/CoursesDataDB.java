@@ -224,6 +224,16 @@ public class CoursesDataDB {
 		return titles.isEmpty() ? null : titles.getFirst();
 	}
 
+	public record CourseInfo(String titleEn, String key) {}
+
+	public CourseInfo getCourseInfo(long courseId) {
+		final List<CourseInfo> results = template.query(
+				"SELECT c.title_en AS titleEn, ct.\"key\" FROM courses c JOIN course_types ct ON c.course_type_id = ct.id WHERE c.id = :id",
+				new MapSqlParameterSource("id", courseId),
+				new DataClassRowMapper<>(CourseInfo.class));
+		return results.isEmpty() ? null : results.getFirst();
+	}
+
 	public record CourseNameRow(long id, String titleEn) {
 	}
 

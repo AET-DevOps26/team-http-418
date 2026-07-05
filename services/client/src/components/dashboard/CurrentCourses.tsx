@@ -1,16 +1,68 @@
+import { Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
-import type { UpcomingCourse } from "#/api/types";
+import type { CourseSummary, ScheduleEvent } from "#/api/types";
+import { InfoBanner } from "#/components/dashboard/InfoBanner";
 
 function formatDay(day: string): string {
 	return day.charAt(0) + day.slice(1).toLowerCase();
 }
 
-type Props = {
-	courses: UpcomingCourse[];
-	semester: string;
+type CourseDisplay = {
+	courseId: string;
+	courseCode: string;
+	courseName: string;
+	session?: { day: string; startTime: string; room: string };
 };
 
-export function CurrentCourses({ courses, semester }: Props) {
+function getCoursesFromEvents(events: ScheduleEvent[]): CourseDisplay[] {
+	const seen = new Set<string>();
+	const result: CourseDisplay[] = [];
+	for (const event of events) {
+		if (!seen.has(event.courseId)) {
+			seen.add(event.courseId);
+			result.push({
+				courseId: event.courseId,
+				courseCode: event.courseCode,
+				courseName: event.courseName,
+				session: {
+					day: event.day,
+					startTime: event.startTime,
+					room: event.room,
+				},
+			});
+		}
+	}
+	return result;
+}
+
+function getCoursesFromEnrolled(courses: CourseSummary[]): CourseDisplay[] {
+	return courses.map((c) => ({
+		courseId: c.id,
+		courseCode: c.courseCode,
+		courseName: c.name,
+	}));
+}
+
+type Props = {
+	events?: ScheduleEvent[];
+	enrolledCourses?: CourseSummary[];
+	semester?: string;
+	hasScheduleData: boolean;
+};
+
+export function CurrentCourses({
+	events,
+	enrolledCourses,
+	semester,
+	hasScheduleData,
+}: Props) {
+	const courses: CourseDisplay[] =
+		hasScheduleData && events?.length
+			? getCoursesFromEvents(events)
+			: enrolledCourses?.length
+				? getCoursesFromEnrolled(enrolledCourses)
+				: [];
+
 	return (
 		<div className="card" style={{ padding: "20px" }}>
 			<div
@@ -22,7 +74,7 @@ export function CurrentCourses({ courses, semester }: Props) {
 				}}
 			>
 				<div className="eyebrow" style={{ marginBottom: 0 }}>
-					Current Courses · {semester}
+					Current Courses{semester ? ` · ${semester}` : ""}
 				</div>
 				<button
 					type="button"
@@ -35,9 +87,23 @@ export function CurrentCourses({ courses, semester }: Props) {
 			</div>
 
 			{courses.length === 0 ? (
-				<p style={{ fontSize: 13, color: "var(--muted)" }}>
-					No courses enrolled.
-				</p>
+				<InfoBanner
+					title="Enroll in courses to see your semester"
+					description="Browse available courses and enroll to track your semester schedule here."
+					action={
+						<Link
+							to="/courses"
+							className="btn btn-primary"
+							style={{
+								fontSize: 12,
+								padding: "5px 12px",
+								display: "inline-flex",
+							}}
+						>
+							Browse courses
+						</Link>
+					}
+				/>
 			) : (
 				<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
 					{courses.map((course, i) => (
@@ -73,7 +139,7 @@ export function CurrentCourses({ courses, semester }: Props) {
 											marginRight: 6,
 										}}
 									>
-										{course?.courseCode ?? "N/A"}
+										{course.courseCode ?? "N/A"}
 									</span>
 									<span
 										style={{
@@ -86,22 +152,23 @@ export function CurrentCourses({ courses, semester }: Props) {
 									</span>
 								</div>
 							</div>
-							<div
-								style={{
-									marginTop: 4,
-									fontSize: 11.5,
-									color: "var(--muted)",
-									display: "flex",
-									gap: 8,
-								}}
-							>
-								<span>
-									{formatDay(course.nextSession.day)}{" "}
-									{course.nextSession.startTime}
-								</span>
-								<span>·</span>
-								<span>{course.nextSession.room}</span>
-							</div>
+							{course.session && (
+								<div
+									style={{
+										marginTop: 4,
+										fontSize: 11.5,
+										color: "var(--muted)",
+										display: "flex",
+										gap: 8,
+									}}
+								>
+									<span>
+										{formatDay(course.session.day)} {course.session.startTime}
+									</span>
+									<span>·</span>
+									<span>{course.session.room}</span>
+								</div>
+							)}
 						</li>
 					))}
 				</ul>

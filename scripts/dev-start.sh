@@ -226,6 +226,26 @@ if $START_CLIENT; then
   PIDS+=($!)
 fi
 
+# ── embeddings (background, one-time) ───────────────────────────────────────
+if $START_GENAI; then
+  EMBED_COUNT=$(docker compose exec -T db psql -U postgres -d courses-data -t -A -c "SELECT count(*) FROM course_embeddings" 2>/dev/null || echo "0")
+  EMBED_COUNT=$(echo "$EMBED_COUNT" | tr -d '[:space:]')
+  if [ "$EMBED_COUNT" = "0" ]; then
+    log_gen "No course embeddings found — generating in background (requires eduVPN)..."
+    (
+      # Wait for genai to be ready
+      for i in $(seq 1 60); do
+        nc -z localhost 8000 2>/dev/null && break
+        sleep 1
+      done
+      "$SCRIPT_DIR/scripts/generate-embeddings.sh" 2>&1 | while read -r line; do log_gen "$line"; done
+    ) &
+    PIDS+=($!)
+  else
+    log_gen "Course embeddings present ($EMBED_COUNT). Skipping generation."
+  fi
+fi
+
 # ── scraper (one-shot) ───────────────────────────────────────────────────────
 if $START_SCRAPER; then
   log_scr "Setting up scraper venv..."
