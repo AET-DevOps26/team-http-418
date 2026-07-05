@@ -1,20 +1,21 @@
-import type { Dispatch } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { addCompletedCourse, aiMatchTranscript } from "#/api/progress";
+import {
+	aiMatchTranscript,
+	resolveImportCourse,
+	skipImportCourse,
+	unskipImportCourse,
+} from "#/api/progress";
 import type { CourseSummary } from "#/api/types";
-import type {
-	ImportAction,
-	ReviewableCourse,
-	UnmatchedCourse,
-} from "#/hooks/useImportReducer";
+import type { UnmatchedCourse } from "#/hooks/useImportReducer";
 import { CourseSearchPopover } from "./CourseSearchPopover";
 
 type Props = {
 	unmatched: UnmatchedCourse[];
-	dispatch: Dispatch<ImportAction>;
 };
 
-export function UnmatchedTable({ unmatched, dispatch }: Props) {
+export function UnmatchedTable({ unmatched }: Props) {
+	const queryClient = useQueryClient();
 	const [resolvingId, setResolvingId] = useState<string | null>(null);
 	const [loadingId, setLoadingId] = useState<string | null>(null);
 	const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
@@ -29,21 +30,8 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 		setLoadingId(moduleId);
 		setError(null);
 		try {
-			const completed = await addCompletedCourse({
-				courseId: course.id,
-				grade: parseFloat(unmatchedCourse.module.grade ?? "1.0"),
-			});
-			const reviewable: ReviewableCourse = {
-				courseId: completed.courseId,
-				courseCode: completed.courseCode || course.courseCode,
-				courseName: completed.courseName || course.name,
-				credits: completed.credits,
-				grade: String(completed.grade),
-				moduleId: unmatchedCourse.module.moduleId,
-				titleEn: unmatchedCourse.module.titleEn,
-				titleDe: unmatchedCourse.module.titleDe,
-			};
-			dispatch({ type: "RESOLVE_COURSE", moduleId, course: reviewable });
+			await resolveImportCourse(unmatchedCourse.rowId, Number(course.id));
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
 		} catch {
 			setError("Failed to resolve. Try again.");
 		} finally {
@@ -56,36 +44,41 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 		setAiLoadingId(moduleId);
 		setError(null);
 		try {
-			const result = await aiMatchTranscript([{
-				moduleId: unmatchedCourse.module.moduleId ?? "",
-				titleEn: unmatchedCourse.module.titleEn,
-				titleDe: unmatchedCourse.module.titleDe,
-			}]);
-			const match = result.matches.find((m) => m.moduleId === unmatchedCourse.module.moduleId);
+			const result = await aiMatchTranscript([
+				{
+					moduleId: unmatchedCourse.module.moduleId ?? "",
+					titleEn: unmatchedCourse.module.titleEn,
+					titleDe: unmatchedCourse.module.titleDe,
+				},
+			]);
+			const match = result.matches.find(
+				(m) => m.moduleId === unmatchedCourse.module.moduleId,
+			);
 			if (!match) {
-				setError(`No AI match found for: ${unmatchedCourse.module.titleEn ?? unmatchedCourse.module.moduleId}`);
+				setError(
+					`No AI match found for: ${unmatchedCourse.module.titleEn ?? unmatchedCourse.module.moduleId}`,
+				);
 				return;
 			}
-			const grade = parseFloat(unmatchedCourse.module.grade ?? "1.0");
-			const completed = await addCompletedCourse({
-				courseId: match.courseId,
-				grade: Number.isNaN(grade) ? 1.0 : grade,
-			});
-			const reviewable: ReviewableCourse = {
-				courseId: completed.courseId,
-				courseCode: completed.courseCode || match.courseCode,
-				courseName: completed.courseName || match.courseName,
-				credits: completed.credits,
-				grade: String(completed.grade),
-				moduleId: unmatchedCourse.module.moduleId,
-				titleEn: unmatchedCourse.module.titleEn,
-				titleDe: unmatchedCourse.module.titleDe,
-			};
-			dispatch({ type: "RESOLVE_COURSE", moduleId, course: reviewable });
+			await resolveImportCourse(unmatchedCourse.rowId, Number(match.courseId));
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
 		} catch {
 			setError("AI resolve failed. Try again.");
 		} finally {
 			setAiLoadingId(null);
+		}
+	}
+
+	async function handleSkip(unmatchedCourse: UnmatchedCourse) {
+		try {
+			if (unmatchedCourse.skipped) {
+				await unskipImportCourse(unmatchedCourse.rowId);
+			} else {
+				await skipImportCourse(unmatchedCourse.rowId);
+			}
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
+		} catch {
+			setError("Skip failed. Try again.");
 		}
 	}
 
@@ -162,7 +155,16 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 									)}
 								</td>
 								<td>
-									{!u.skipped && (
+									{u.skipped ? (
+										<button
+											type="button"
+											className="btn btn-ghost"
+											style={{ fontSize: 12, padding: "4px 10px" }}
+											onClick={() => handleSkip(u)}
+										>
+											Unskip
+										</button>
+									) : (
 										<div
 											style={{
 												display: "flex",
@@ -198,12 +200,7 @@ export function UnmatchedTable({ unmatched, dispatch }: Props) {
 												className="btn btn-ghost"
 												style={{ fontSize: 12, padding: "4px 10px" }}
 												disabled={isLoading || isAiLoading}
-												onClick={() =>
-													dispatch({
-														type: "SKIP_COURSE",
-														moduleId: u.module.moduleId ?? "",
-													})
-												}
+												onClick={() => handleSkip(u)}
 											>
 												Skip
 											</button>

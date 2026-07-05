@@ -221,6 +221,25 @@ export type TranscriptImportResult = {
 	unmatchedModules?: UnmatchedModule[];
 };
 
+export type ImportRow = {
+	id: number;
+	courseId: number | null;
+	courseName: string | null;
+	moduleId: string | null;
+	moduleTitle: string | null;
+	grade: number | null;
+	credits: number;
+	category: string | null;
+	status: "pending" | "unmatched" | "skipped";
+};
+
+export type ImportState = {
+	active: boolean;
+	pending: ImportRow[];
+	unmatched: ImportRow[];
+	skipped: ImportRow[];
+};
+
 export type CreditsByCategory = {
 	category: string;
 	earned: number;

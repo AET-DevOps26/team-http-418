@@ -189,7 +189,11 @@ function Dashboard() {
 	if (isLoading) return <DashboardSkeleton />;
 
 	const showProfileCompletion =
-		!hasStudyProgram || !hasTranscript || !hasGoalsOrInterests || !hasCv || !hasEnrolledCourses;
+		!hasStudyProgram ||
+		!hasTranscript ||
+		!hasGoalsOrInterests ||
+		!hasCv ||
+		!hasEnrolledCourses;
 	const firstName = profile?.student?.firstName;
 
 	return (

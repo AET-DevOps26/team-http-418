@@ -43,6 +43,14 @@ export function useDashboardData() {
 		creditsRequired > 0
 			? ((progress?.totalCreditsEarned ?? 0) / creditsRequired) * 100
 			: (progress?.progressPercentage ?? 0);
+	const dashboardProgress = progress
+		? {
+				...progress,
+				totalCreditsRequired: creditsRequired,
+				currentSemester,
+				progressPercentage,
+			}
+		: undefined;
 
 	return {
 		profileQuery,
@@ -51,7 +59,7 @@ export function useDashboardData() {
 		recommendationsQuery,
 		requirementsQuery,
 		profile,
-		progress,
+		progress: dashboardProgress,
 		schedule,
 		recommendations,
 		requirements,

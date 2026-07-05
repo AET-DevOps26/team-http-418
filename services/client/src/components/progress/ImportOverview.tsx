@@ -150,7 +150,9 @@ export function ImportOverview({ state, dispatch }: Props) {
 							</tr>
 						) : (
 							filtered.map((c) => (
-								<tr key={c.courseId ?? `${c.moduleId}-${c.courseName}`}>
+								<tr
+									key={c.rowId ?? c.courseId ?? `${c.moduleId}-${c.courseName}`}
+								>
 									<td
 										style={{
 											fontFamily: "var(--font-mono)",

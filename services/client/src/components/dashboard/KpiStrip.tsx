@@ -56,7 +56,11 @@ function KpiCard({ label, value, sub, ai }: KpiCardProps) {
 	);
 }
 
-export function KpiStrip({ progress, creditsRequired, semesterCredits }: Props) {
+export function KpiStrip({
+	progress,
+	creditsRequired,
+	semesterCredits,
+}: Props) {
 	const { totalCreditsEarned, gpa, enrolledCourseCount } = progress;
 	const remaining = Math.max(0, creditsRequired - totalCreditsEarned);
 
@@ -77,12 +81,7 @@ export function KpiStrip({ progress, creditsRequired, semesterCredits }: Props) 
 				value={gpa != null ? gpa.toFixed(2) : "—"}
 				sub="cumulative"
 			/>
-			<KpiCard
-				label="Remaining"
-				value={remaining}
-				sub="ECTS to complete"
-				ai
-			/>
+			<KpiCard label="Remaining" value={remaining} sub="ECTS to complete" ai />
 		</div>
 	);
 }

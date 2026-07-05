@@ -1,8 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle, MinusCircle } from "lucide-react";
 import type { Dispatch } from "react";
 import { useState } from "react";
-import { addCompletedCourse, aiMatchTranscript } from "#/api/progress";
-import type { ImportAction, ImportState, ReviewableCourse } from "#/hooks/useImportReducer";
+import { aiMatchTranscript, resolveImportCourse } from "#/api/progress";
+import type { ImportAction, ImportState } from "#/hooks/useImportReducer";
 import { ImportedTable } from "./ImportedTable";
 import { UnmatchedTable } from "./UnmatchedTable";
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ImportReviewLayout({ state, dispatch }: Props) {
+	const queryClient = useQueryClient();
 	const [aiLoading, setAiLoading] = useState(false);
 	const [aiError, setAiError] = useState<string | null>(null);
 	const activeUnmatched = state.unmatched.filter((u) => !u.skipped);
@@ -33,30 +35,15 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 				);
 				if (!unmatchedCourse) continue;
 				try {
-					const grade = parseFloat(unmatchedCourse.module.grade ?? "1.0");
-					const completed = await addCompletedCourse({
-						courseId: match.courseId,
-						grade: Number.isNaN(grade) ? 1.0 : grade,
-					});
-					const reviewable: ReviewableCourse = {
-						courseId: completed.courseId,
-						courseCode: completed.courseCode || match.courseCode,
-						courseName: completed.courseName || match.courseName,
-						credits: completed.credits,
-						grade: String(completed.grade),
-						moduleId: unmatchedCourse.module.moduleId,
-						titleEn: unmatchedCourse.module.titleEn,
-						titleDe: unmatchedCourse.module.titleDe,
-					};
-					dispatch({
-						type: "RESOLVE_COURSE",
-						moduleId: match.moduleId,
-						course: reviewable,
-					});
+					await resolveImportCourse(
+						unmatchedCourse.rowId,
+						Number(match.courseId),
+					);
 				} catch {
 					// individual failure — leave in unmatched
 				}
 			}
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
 		} catch {
 			setAiError("AI resolve failed. Try again.");
 		} finally {
@@ -128,11 +115,11 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 			<div className="import-review-grid">
 				<div className="card" style={{ padding: 20 }}>
 					<div className="eyebrow">Imported Courses</div>
-					<ImportedTable imported={state.imported} dispatch={dispatch} />
+					<ImportedTable imported={state.imported} />
 				</div>
 				<div className="card" style={{ padding: 20 }}>
 					<div className="eyebrow">Unmatched Courses</div>
-					<UnmatchedTable unmatched={state.unmatched} dispatch={dispatch} />
+					<UnmatchedTable unmatched={state.unmatched} />
 				</div>
 			</div>
 
@@ -146,7 +133,12 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 			)}
 
 			<div
-				style={{ marginTop: 24, display: "flex", gap: 10, justifyContent: "flex-end" }}
+				style={{
+					marginTop: 24,
+					display: "flex",
+					gap: 10,
+					justifyContent: "flex-end",
+				}}
 			>
 				<button
 					type="button"
@@ -154,7 +146,9 @@ export function ImportReviewLayout({ state, dispatch }: Props) {
 					disabled={aiLoading || activeUnmatched.length === 0}
 					onClick={handleAiResolveAll}
 				>
-					{aiLoading ? "AI Resolving..." : `AI Resolve All (${activeUnmatched.length})`}
+					{aiLoading
+						? "AI Resolving..."
+						: `AI Resolve All (${activeUnmatched.length})`}
 				</button>
 				<button
 					type="button"

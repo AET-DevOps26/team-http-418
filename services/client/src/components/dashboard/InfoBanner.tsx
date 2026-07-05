@@ -21,9 +21,7 @@ export function InfoBanner({ icon, title, description, action }: Props) {
 			}}
 		>
 			{icon && (
-				<div
-					style={{ color: "var(--blue-500)", flexShrink: 0, marginTop: 1 }}
-				>
+				<div style={{ color: "var(--blue-500)", flexShrink: 0, marginTop: 1 }}>
 					{icon}
 				</div>
 			)}

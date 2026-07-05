@@ -61,11 +61,11 @@ export { getSchedule } from "#/api/schedule";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
+	AddCourseRequest,
+	AdvisorSSEEvent,
 	AiMatchModule,
 	AiMatchResponse,
 	AiMatchResult,
-	AddCourseRequest,
-	AdvisorSSEEvent,
 	AlertSeverity,
 	AlertType,
 	AuthResponse,

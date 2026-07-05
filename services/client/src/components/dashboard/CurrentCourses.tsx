@@ -94,7 +94,11 @@ export function CurrentCourses({
 						<Link
 							to="/courses"
 							className="btn btn-primary"
-							style={{ fontSize: 12, padding: "5px 12px", display: "inline-flex" }}
+							style={{
+								fontSize: 12,
+								padding: "5px 12px",
+								display: "inline-flex",
+							}}
 						>
 							Browse courses
 						</Link>

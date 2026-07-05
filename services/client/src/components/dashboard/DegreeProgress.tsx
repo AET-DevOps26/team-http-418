@@ -75,7 +75,11 @@ export function DegreeProgress({
 						<Link
 							to="/progress"
 							className="btn btn-primary"
-							style={{ fontSize: 12, padding: "5px 12px", display: "inline-flex" }}
+							style={{
+								fontSize: 12,
+								padding: "5px 12px",
+								display: "inline-flex",
+							}}
 						>
 							Upload transcript
 						</Link>
@@ -133,7 +137,11 @@ export function DegreeProgress({
 						<Link
 							to="/profile"
 							className="btn btn-primary"
-							style={{ fontSize: 12, padding: "5px 12px", display: "inline-flex" }}
+							style={{
+								fontSize: 12,
+								padding: "5px 12px",
+								display: "inline-flex",
+							}}
 						>
 							Update profile
 						</Link>
