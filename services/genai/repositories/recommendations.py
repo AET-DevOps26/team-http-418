@@ -14,15 +14,15 @@ def find_similar_courses(
     if not candidate_ids:
         with get_connection() as connection, connection.cursor() as cursor:
             cursor.execute(
-                    """
+                """
                     SELECT course_id,
                            1 - (embedding <=> %(vector)s::vector) AS score
                     FROM course_embeddings
                     ORDER BY embedding <=> %(vector)s::vector
                     LIMIT %(limit)s
                     """,
-                    {"vector": query_vector, "limit": limit},
-                )
+                {"vector": query_vector, "limit": limit},
+            )
             return cursor.fetchall()
 
     with get_connection() as connection, connection.cursor() as cursor:

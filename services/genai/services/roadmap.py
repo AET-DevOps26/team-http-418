@@ -48,7 +48,7 @@ def _build_prompt(request: RoadmapRequest) -> str:
     )
 
     return _ROADMAP_PROMPT.format(
-        study_program= student.study_program or "not specified",
+        study_program=student.study_program or "not specified",
         current_semester=request.current_semester_key,
         career_goals=", ".join(student.career_goals) or "not specified",
         interests=", ".join(student.interests) or "not specified",

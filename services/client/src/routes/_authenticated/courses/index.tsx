@@ -275,9 +275,7 @@ function CoursesPage() {
 					<button
 						key={key}
 						type="button"
-						onClick={() =>
-							setSearch({ view: key })
-						}
+						onClick={() => setSearch({ view: key })}
 						style={{
 							padding: "6px 16px",
 							borderRadius: "var(--r-sm, 6px)",
