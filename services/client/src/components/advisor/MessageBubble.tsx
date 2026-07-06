@@ -16,9 +16,15 @@ export function MessageBubble({ sender, content, referencedCourses }: Props) {
 				display: "flex",
 				flexDirection: "column",
 				alignItems: isUser ? "flex-end" : "flex-start",
+				width: "100%",
 			}}
 		>
-			<div className={isUser ? "msg-user" : "msg-assistant"}>{content}</div>
+			<div
+				className={isUser ? "msg-user" : "msg-assistant"}
+				style={{ whiteSpace: "pre-wrap" }}
+			>
+				{content}
+			</div>
 			{referencedCourses && referencedCourses.length > 0 && (
 				<div
 					style={{

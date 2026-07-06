@@ -25,7 +25,7 @@ public record Profile(Student student, List<String> completedCourses, List<Strin
 	}
 
 	public Profile() { // default
-		this(new Student(null, null, "no study program", 1, List.of(), List.of(), 0, 0, 0, null, null, null, null,
+		this(new Student("", "", "no study program", 1, List.of(), List.of(), 0, 0, 0, null, null, null, null,
 				false),
 				List.of(), List.of(), List.of(), 10, "all", "26S");
 	}
