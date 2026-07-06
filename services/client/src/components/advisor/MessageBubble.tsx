@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { MessageRole, ReferencedCourse } from "#/api/types";
 
 type Props = {
@@ -20,10 +22,21 @@ export function MessageBubble({ sender, content, referencedCourses }: Props) {
 			}}
 		>
 			<div
-				className={isUser ? "msg-user" : "msg-assistant"}
-				style={{ whiteSpace: "pre-wrap" }}
+				className={`${isUser ? "msg-user" : "msg-assistant"} prose prose-sm max-w-none`}
+				style={isUser ? { whiteSpace: "pre-wrap" } : {}}
 			>
-				{content}
+				{isUser ? (
+					content
+				) : (
+					<ReactMarkdown
+						remarkPlugins={[remarkGfm]}
+						components={{
+							p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+						}}
+					>
+						{content}
+					</ReactMarkdown>
+				)}
 			</div>
 			{referencedCourses && referencedCourses.length > 0 && (
 				<div
