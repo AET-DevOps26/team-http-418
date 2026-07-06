@@ -96,7 +96,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         rows = find_similar_courses(
             query_vector=query_vector,
             candidate_ids=candidate_ids,
-            limit=request.limit * 2,
+            limit=request.limit * 3,
         )
     except OperationalError as e:
         logger.error("recommendations | DB connection failed: %s", e)
