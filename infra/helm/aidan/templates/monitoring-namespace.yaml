@@ -1,0 +1,19 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.monitoring.namespace }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: monitoring-quota
+  namespace: {{ .Values.monitoring.namespace }}
+spec:
+  hard:
+    requests.cpu: {{ .Values.monitoring.quota.requestsCpu | quote }}
+    requests.memory: {{ .Values.monitoring.quota.requestsMemory | quote }}
+    limits.cpu: {{ .Values.monitoring.quota.limitsCpu | quote }}
+    limits.memory: {{ .Values.monitoring.quota.limitsMemory | quote }}
+    requests.storage: {{ .Values.monitoring.quota.storage | quote }}
+{{- end }}
