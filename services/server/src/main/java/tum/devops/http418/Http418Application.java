@@ -6,17 +6,25 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 
 @SpringBootApplication
 public class Http418Application {
 
-	public static final RestClient restClient = RestClient.builder()
-			.requestFactory(new JdkClientHttpRequestFactory(
-					HttpClient.newBuilder()
-							.version(HttpClient.Version.HTTP_1_1)
-							.build()
-			))
-			.build();
+	public static final RestClient restClient;
+	static {
+		JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
+				HttpClient.newBuilder()
+						.version(HttpClient.Version.HTTP_1_1)
+						.connectTimeout(Duration.ofSeconds(5))
+						.build()
+		);
+		factory.setReadTimeout(Duration.ofSeconds(30));
+
+		restClient = RestClient.builder()
+				.requestFactory(factory)
+				.build();
+	}
 
 	public static final String GENAI_PATH = envOrDefault("GENAI_SERVICE_URL", "http://genai:8000/v1");
 	public static final String PROFILE_SERVICE = envOrDefault("PROFILE_SERVICE_URL",

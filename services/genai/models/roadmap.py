@@ -65,6 +65,7 @@ class RoadmapRequest(BaseModel):
     enrolled_courses: list[CourseRef] = Field(default=[], alias="enrolledCourses")
     degree_requirements: DegreeRequirements = Field(alias="degreeRequirements")
     available_courses: list[AvailableCourseRef] = Field(alias="availableCourses")
+    current_semester_key: str = Field(alias="currentSemesterKey")
 
 
 StudentRoadmapProfile.model_rebuild()
