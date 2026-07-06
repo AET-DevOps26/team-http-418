@@ -6,33 +6,28 @@ metadata:
   namespace: {{ .Values.monitoring.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   name: {{ .Release.Name }}-prometheus-discovery
+  namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups: [""]
-    resources:
-      - endpoints
-      - nodes
-      - pods
-      - services
-    verbs:
-      - get
-      - list
-      - watch
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
   name: {{ .Release.Name }}-prometheus-discovery
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ .Release.Name }}-prometheus-discovery
+  namespace: {{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: prometheus
-    namespace: {{ .Values.monitoring.namespace }}
+    name: {{ .Release.Name }}-prometheus
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-prometheus-discovery
+  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: ConfigMap
