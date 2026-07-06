@@ -33,25 +33,42 @@ public class DataSourceConfig {
 	private String password;
 
 	private void createCoursesDatabaseIfNotExists() {
-		final HikariDataSource adminDataSource = new HikariDataSource();
+		final int maxAttempts = 10;
+		for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+			HikariDataSource adminDataSource = null;
+			try {
+				adminDataSource = new HikariDataSource();
+				adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+				adminDataSource.setUsername(username);
+				adminDataSource.setPassword(password);
+				adminDataSource.setDriverClassName("org.postgresql.Driver");
+				adminDataSource.setMaximumPoolSize(1);
+				adminDataSource.setInitializationFailTimeout(5000);
 
-		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-		adminDataSource.setUsername(username);
-		adminDataSource.setPassword(password);
-		adminDataSource.setDriverClassName("org.postgresql.Driver");
-
-		try {
-			final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
-
-			final Boolean exists = jdbcTemplate.queryForObject(
-					"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-					Boolean.class, "courses-data");
-
-			if (Boolean.FALSE.equals(exists)) {
-				jdbcTemplate.execute("CREATE DATABASE \"courses-data\"");
+				final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+				final Boolean exists = jdbcTemplate.queryForObject(
+						"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+						Boolean.class, "courses-data");
+				if (Boolean.FALSE.equals(exists)) {
+					jdbcTemplate.execute("CREATE DATABASE \"courses-data\"");
+				}
+				return;
+			} catch (Exception e) {
+				logger.warn("DB not ready (attempt {}/{}): {}", attempt, maxAttempts, e.getMessage());
+				if (attempt == maxAttempts) {
+					throw new RuntimeException("Could not connect to database after " + maxAttempts + " attempts", e);
+				}
+				try {
+					Thread.sleep(2000L * attempt);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					throw new RuntimeException("Interrupted while waiting for database readiness", ie);
+				}
+			} finally {
+				if (adminDataSource != null) {
+					adminDataSource.close();
+				}
 			}
-		} finally {
-			adminDataSource.close();
 		}
 	}
 
@@ -80,24 +97,43 @@ public class DataSourceConfig {
 	}
 
 	private void createSecurityDatabaseIfNotExists() {
-		final HikariDataSource adminDataSource = new HikariDataSource();
+		final int maxAttempts = 10;
+		for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+			HikariDataSource adminDataSource = null;
+			try {
+				adminDataSource = new HikariDataSource();
+				adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+				adminDataSource.setUsername(username);
+				adminDataSource.setPassword(password);
+				adminDataSource.setDriverClassName("org.postgresql.Driver");
+				adminDataSource.setMaximumPoolSize(1);
+				adminDataSource.setInitializationFailTimeout(5000);
 
-		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-		adminDataSource.setUsername(username);
-		adminDataSource.setPassword(password);
-		adminDataSource.setDriverClassName("org.postgresql.Driver");
-
-		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
-
-		final Boolean exists = jdbcTemplate.queryForObject(
-				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-				Boolean.class, "security");
-
-		if (Boolean.FALSE.equals(exists)) {
-			jdbcTemplate.execute("CREATE DATABASE security");
+				final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+				final Boolean exists = jdbcTemplate.queryForObject(
+						"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+						Boolean.class, "security");
+				if (Boolean.FALSE.equals(exists)) {
+					jdbcTemplate.execute("CREATE DATABASE security");
+				}
+				return;
+			} catch (Exception e) {
+				logger.warn("DB not ready (attempt {}/{}): {}", attempt, maxAttempts, e.getMessage());
+				if (attempt == maxAttempts) {
+					throw new RuntimeException("Could not connect to database after " + maxAttempts + " attempts", e);
+				}
+				try {
+					Thread.sleep(2000L * attempt);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					throw new RuntimeException("Interrupted while waiting for database readiness", ie);
+				}
+			} finally {
+				if (adminDataSource != null) {
+					adminDataSource.close();
+				}
+			}
 		}
-
-		adminDataSource.close();
 	}
 
 	@Bean
@@ -135,17 +171,33 @@ public class DataSourceConfig {
 				    )
 				""");
 
-		jdbcTemplate.execute("""
-				CREATE TABLE IF NOT EXISTS student_completed_courses (
-				    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-				    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
-				    course_id BIGINT NOT NULL,
+			jdbcTemplate.execute("""
+					CREATE TABLE IF NOT EXISTS student_completed_courses (
+					    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+					    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
+				    course_id BIGINT,
 				    grade NUMERIC(2,1) CHECK (grade >= 0),
 				    credits INT NOT NULL DEFAULT 0 CHECK (credits >= 0),
 				    semester_key TEXT,
 				    category TEXT,
-				    UNIQUE (username, course_id)
-				)
+				    status TEXT NOT NULL DEFAULT 'confirmed',
+				    module_id TEXT,
+					    module_title TEXT
+					)
+					""");
+			jdbcTemplate.execute("ALTER TABLE student_completed_courses ALTER COLUMN course_id DROP NOT NULL");
+			jdbcTemplate.execute(
+					"ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'confirmed'");
+			jdbcTemplate.execute("ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS module_id TEXT");
+			jdbcTemplate.execute("ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS module_title TEXT");
+			jdbcTemplate.execute("""
+					CREATE UNIQUE INDEX IF NOT EXISTS uq_completed_course
+					    ON student_completed_courses (username, course_id) WHERE course_id IS NOT NULL
+					""");
+		jdbcTemplate.execute("""
+				CREATE UNIQUE INDEX IF NOT EXISTS uq_unmatched_module
+				    ON student_completed_courses (username, module_id)
+				    WHERE module_id IS NOT NULL AND course_id IS NULL
 				""");
 
 		jdbcTemplate.execute("""

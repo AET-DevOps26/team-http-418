@@ -37,9 +37,11 @@ public class StudentDataDB {
 
 	// --- Completed courses ---
 
-	public record CompletedCourseRow(long id, String username, long courseId, BigDecimal grade, int credits,
-			String semesterKey, String category) {
+	public record CompletedCourseRow(long id, String username, Long courseId, BigDecimal grade, int credits,
+			String semesterKey, String category, String status, String moduleId, String moduleTitle) {
 	}
+
+	private static final String COMPLETED_COLS = "id, username, course_id AS courseId, grade, credits, semester_key AS semesterKey, category, status, module_id AS moduleId, module_title AS moduleTitle";
 
 	public List<CompletedCourseRow> getCompletedCourses(String username, int page, int size) {
 		final MapSqlParameterSource params = new MapSqlParameterSource();
@@ -47,19 +49,24 @@ public class StudentDataDB {
 		params.addValue("limit", size);
 		params.addValue("offset", Math.max(0, page) * size);
 		return template.query(
-				"SELECT id, username, course_id AS courseId, grade, credits, semester_key AS semesterKey, category FROM student_completed_courses WHERE username = :username ORDER BY id LIMIT :limit OFFSET :offset",
+				"SELECT " + COMPLETED_COLS + " FROM student_completed_courses WHERE username = :username AND status = 'confirmed' ORDER BY id LIMIT :limit OFFSET :offset",
 				params, new DataClassRowMapper<>(CompletedCourseRow.class));
 	}
 
 	public int countCompletedCourses(String username) {
 		final Integer count = template.queryForObject(
-				"SELECT COUNT(*) FROM student_completed_courses WHERE username = :username",
+				"SELECT COUNT(*) FROM student_completed_courses WHERE username = :username AND status = 'confirmed'",
 				new MapSqlParameterSource("username", username), Integer.class);
 		return count != null ? count : 0;
 	}
 
 	public CompletedCourseRow insertCompletedCourse(String username, long courseId, BigDecimal grade, int credits,
 			String semesterKey, String category) {
+		return insertCompletedCourse(username, courseId, grade, credits, semesterKey, category, "confirmed", null, null);
+	}
+
+	public CompletedCourseRow insertCompletedCourse(String username, Long courseId, BigDecimal grade, int credits,
+			String semesterKey, String category, String status, String moduleId, String moduleTitle) {
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("username", username);
 		params.addValue("courseId", courseId);
@@ -67,15 +74,24 @@ public class StudentDataDB {
 		params.addValue("credits", credits);
 		params.addValue("semesterKey", semesterKey);
 		params.addValue("category", category);
+		params.addValue("status", status);
+		params.addValue("moduleId", moduleId);
+		params.addValue("moduleTitle", moduleTitle);
 		try {
 			template.update(
-					"INSERT INTO student_completed_courses (username, course_id, grade, credits, semester_key, category) VALUES (:username, :courseId, :grade, :credits, :semesterKey, :category)",
+					"INSERT INTO student_completed_courses (username, course_id, grade, credits, semester_key, category, status, module_id, module_title) VALUES (:username, :courseId, :grade, :credits, :semesterKey, :category, :status, :moduleId, :moduleTitle)",
 					params);
 		} catch (DuplicateKeyException e) {
 			return null;
 		}
+		if (courseId != null) {
+			final List<CompletedCourseRow> rows = template.query(
+					"SELECT " + COMPLETED_COLS + " FROM student_completed_courses WHERE username = :username AND course_id = :courseId",
+					params, new DataClassRowMapper<>(CompletedCourseRow.class));
+			return rows.isEmpty() ? null : rows.getFirst();
+		}
 		final List<CompletedCourseRow> rows = template.query(
-				"SELECT id, username, course_id AS courseId, grade, credits, semester_key AS semesterKey, category FROM student_completed_courses WHERE username = :username AND course_id = :courseId",
+				"SELECT " + COMPLETED_COLS + " FROM student_completed_courses WHERE username = :username AND module_id = :moduleId AND course_id IS NULL",
 				params, new DataClassRowMapper<>(CompletedCourseRow.class));
 		return rows.isEmpty() ? null : rows.getFirst();
 	}
@@ -86,6 +102,87 @@ public class StudentDataDB {
 		params.addValue("courseId", courseId);
 		return template.update(
 				"DELETE FROM student_completed_courses WHERE username = :username AND course_id = :courseId",
+				params);
+	}
+
+	// --- Import state ---
+
+	public List<CompletedCourseRow> getImportState(String username) {
+		return template.query(
+				"SELECT " + COMPLETED_COLS + " FROM student_completed_courses WHERE username = :username AND status IN ('pending', 'unmatched', 'skipped') ORDER BY id",
+				new MapSqlParameterSource("username", username),
+				new DataClassRowMapper<>(CompletedCourseRow.class));
+	}
+
+	public boolean hasActiveImport(String username) {
+		final Integer count = template.queryForObject(
+				"SELECT COUNT(*) FROM student_completed_courses WHERE username = :username AND status IN ('pending', 'unmatched')",
+				new MapSqlParameterSource("username", username), Integer.class);
+		return count != null && count > 0;
+	}
+
+	public int resolveUnmatched(long id, String username, long courseId, String category) {
+		final MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("id", id);
+		params.addValue("username", username);
+		params.addValue("courseId", courseId);
+		params.addValue("category", category);
+		return template.update(
+				"UPDATE student_completed_courses SET course_id = :courseId, category = :category, status = 'pending' WHERE id = :id AND username = :username AND status = 'unmatched'",
+				params);
+	}
+
+	public int unresolve(long id, String username) {
+		final MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("id", id);
+		params.addValue("username", username);
+		return template.update(
+				"UPDATE student_completed_courses SET course_id = NULL, category = NULL, status = 'unmatched' WHERE id = :id AND username = :username AND status = 'pending'",
+				params);
+	}
+
+	public int skipUnmatched(long id, String username) {
+		final MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("id", id);
+		params.addValue("username", username);
+		return template.update(
+				"UPDATE student_completed_courses SET status = 'skipped' WHERE id = :id AND username = :username AND status IN ('unmatched', 'skipped')",
+				params);
+	}
+
+	public int unskipCourse(long id, String username) {
+		final MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("id", id);
+		params.addValue("username", username);
+		return template.update(
+				"UPDATE student_completed_courses SET status = 'unmatched' WHERE id = :id AND username = :username AND status = 'skipped'",
+				params);
+	}
+
+	public int confirmImport(String username) {
+		final MapSqlParameterSource params = new MapSqlParameterSource("username", username);
+		final int confirmed = template.update(
+				"UPDATE student_completed_courses SET status = 'confirmed' WHERE username = :username AND status = 'pending'",
+				params);
+		template.update(
+				"DELETE FROM student_completed_courses WHERE username = :username AND status IN ('unmatched', 'skipped')",
+				params);
+		return confirmed;
+	}
+
+	public void cancelImport(String username) {
+		template.update(
+				"DELETE FROM student_completed_courses WHERE username = :username AND status IN ('pending', 'unmatched', 'skipped')",
+				new MapSqlParameterSource("username", username));
+	}
+
+	public int updateImportCourseGrade(long id, String username, BigDecimal grade) {
+		final MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("id", id);
+		params.addValue("username", username);
+		params.addValue("grade", grade);
+		return template.update(
+				"UPDATE student_completed_courses SET grade = :grade WHERE id = :id AND username = :username AND status = 'pending'",
 				params);
 	}
 
@@ -299,14 +396,14 @@ public class StudentDataDB {
 
 	public int sumCredits(String username) {
 		final Integer sum = template.queryForObject(
-				"SELECT COALESCE(SUM(credits), 0) FROM student_completed_courses WHERE username = :username",
+				"SELECT COALESCE(SUM(credits), 0) FROM student_completed_courses WHERE username = :username AND status = 'confirmed'",
 				new MapSqlParameterSource("username", username), Integer.class);
 		return sum != null ? sum : 0;
 	}
 
 	public BigDecimal avgGrade(String username) {
 		final BigDecimal avg = template.queryForObject(
-				"SELECT AVG(grade) FROM student_completed_courses WHERE username = :username AND grade IS NOT NULL",
+				"SELECT AVG(grade) FROM student_completed_courses WHERE username = :username AND grade IS NOT NULL AND status = 'confirmed'",
 				new MapSqlParameterSource("username", username), BigDecimal.class);
 		return avg;
 	}
@@ -316,13 +413,13 @@ public class StudentDataDB {
 
 	public List<CreditsByCategoryRow> creditsByCategory(String username) {
 		return template.query(
-				"SELECT COALESCE(category, 'Uncategorized') AS category, SUM(credits) AS totalCredits FROM student_completed_courses WHERE username = :username GROUP BY category",
+				"SELECT COALESCE(category, 'Uncategorized') AS category, SUM(credits) AS totalCredits FROM student_completed_courses WHERE username = :username AND status = 'confirmed' GROUP BY category",
 				new MapSqlParameterSource("username", username),
 				new DataClassRowMapper<>(CreditsByCategoryRow.class));
 	}
 
 	public List<Long> getCompletedCourseIds(String username) {
-		return template.queryForList("SELECT course_id FROM student_completed_courses WHERE username = :username",
+		return template.queryForList("SELECT course_id FROM student_completed_courses WHERE username = :username AND status = 'confirmed'",
 				new MapSqlParameterSource("username", username), Long.class);
 	}
 
