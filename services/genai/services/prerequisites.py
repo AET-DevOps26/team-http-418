@@ -74,7 +74,7 @@ async def extract_prerequisites(request: PrerequisiteExtractRequest) -> dict:
         filtered_available_courses = [c for c in request.available_courses if c.course_id in candidate_ids_retrieved]
 
     # Temporarily swap available_courses for prompt building
-    original_available = request.available_courses
+    original_available_ = request.available_courses
     request.available_courses = filtered_available_courses
 
     prompt = _build_prompt(request)
