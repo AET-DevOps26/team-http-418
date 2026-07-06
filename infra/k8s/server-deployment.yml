@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: server
+        monitoring: "true"
     spec:
       containers:
         - name: server
@@ -35,6 +36,13 @@ kind: Service
 metadata:
   name: server-service
   namespace: aidan
+  labels:
+    app: server
+    monitoring: "true"
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8080"
 spec:
   selector:
     app: server

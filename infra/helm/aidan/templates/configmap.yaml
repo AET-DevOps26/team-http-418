@@ -12,6 +12,7 @@ data:
   DB_HOST: "postgres-service"
   DB_PORT: {{ .Values.postgres.port | quote }}
   DB_PASS: {{ .Values.postgres.password | quote }}
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
   EMBEDDING_MODEL_CLOUD: {{ .Values.genai.embeddingModelCloud | quote }}
   LLM_PROVIDER: {{ .Values.genai.llmProvider | quote }}
   LOGOS_BASE_URL: {{ .Values.genai.logosBaseUrl | quote }}

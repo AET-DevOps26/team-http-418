@@ -3,6 +3,14 @@ kind: Service
 metadata:
   name: server-service
   namespace: {{ .Values.namespace }}
+  labels:
+    app: server
+    monitoring: "true"
+    {{- include "aidan.labels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: {{ .Values.server.metricsPath | quote }}
+    prometheus.io/port: {{ .Values.server.port | quote }}
 spec:
   selector:
     app: server
