@@ -1,6 +1,5 @@
 package tum.devops.http418.api;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
