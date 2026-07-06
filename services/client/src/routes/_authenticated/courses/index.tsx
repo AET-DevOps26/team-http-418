@@ -276,7 +276,7 @@ function CoursesPage() {
 						key={key}
 						type="button"
 						onClick={() =>
-							setSearch({ view: key === "catalog" ? undefined : key })
+							setSearch({ view: key })
 						}
 						style={{
 							padding: "6px 16px",
