@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -71,3 +72,4 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         exc.errors(),  # This contains exactly which field failed and why
         decoded_body,
     )
+    return await request_validation_exception_handler(request, exc)

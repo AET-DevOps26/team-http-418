@@ -38,6 +38,10 @@ public class APIControllerMeAdvisor {
 	private final StudentDataDB studentDataDB;
 	private final ObjectMapper objectMapper;
 
+	public enum MessageRole {
+		USER, ASSISTANT
+	}
+
 	@GetMapping("/conversations")
 	public ResponseEntity<PageDTO<ConversationSummaryDTO>> getConversations(@AuthenticationPrincipal String tumid,
 			@RequestParam(defaultValue = "0") @Min(0) int page,
@@ -95,7 +99,7 @@ public class APIControllerMeAdvisor {
 		final List<Map<String, String>> historyPayload = history.stream()
 				.map(msg -> Map.of("role", msg.role(), "content", msg.content())).toList();
 
-		studentDataDB.insertMessage(id, "user", request.content(), List.of());
+		studentDataDB.insertMessage(id, MessageRole.USER, request.content(), List.of());
 
 		final SseEmitter emitter = new SseEmitter(60000L);
 
@@ -105,6 +109,7 @@ public class APIControllerMeAdvisor {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/conversations/%s/messages".formatted(id);
 				final Map<String, Object> studentPayload = new LinkedHashMap<>();
 				studentPayload.put("studyProgram", profile.student().studyProgramId());
+                studentPayload.putIfAbsent("studyProgram", "");
 				studentPayload.put("semester", profile.student().semester());
 				studentPayload.put("careerGoals", profile.student().careerGoals());
 				studentPayload.put("interests", profile.student().interests());
@@ -141,17 +146,30 @@ public class APIControllerMeAdvisor {
 							if ("[DONE]".equals(data)) {
 								break;
 							}
-							fullResponse.append(data);
-							emitter.send(SseEmitter.event().data(data));
+
+							try {
+								final Map<String, Object> json = objectMapper.readValue(data, Map.class);
+								if (json.containsKey("token")) {
+									final String token = (String) json.get("token");
+									fullResponse.append(token);
+									emitter.send(SseEmitter.event().data(token));
+								} else if (json.containsKey("fullContent")) {
+									// redundant if we append tokens, but could be used to ensure full consistency
+									// fullResponse.setLength(0);
+									// fullResponse.append((String) json.get("fullContent"));
+								}
+							} catch (Exception e) {
+								log.warn("Failed to parse SSE data: {}", data);
+							}
 						}
 					}
 				}
 
-				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), List.of()); // TODO add previous list?
+				studentDataDB.insertMessage(id, MessageRole.ASSISTANT, fullResponse.toString(), List.of()); // TODO add previous list?
 				emitter.complete();
 			} catch (Exception e) {
 				log.error("Error streaming advisor response for conversation {}", id, e);
-				studentDataDB.insertMessage(id, "assistant",
+				studentDataDB.insertMessage(id, MessageRole.ASSISTANT,
 						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of()); // TODO add previous list?
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));

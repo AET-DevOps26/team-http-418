@@ -6,7 +6,7 @@ Course: {course_name}
 Prerequisite text:
 {previous_knowledge_text}
 
-Available courses catalog:
+Potential candidate courses from catalog:
 {available_courses_text}
 
 Instructions:

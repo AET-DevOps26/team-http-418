@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tum.devops.http418.api.APIControllerMeAdvisor;
 import tum.devops.http418.api.dto.SimpleCourseData;
 
 import java.math.BigDecimal;
@@ -331,13 +332,13 @@ public class StudentDataDB {
 		}
 	}
 
-	public MessageRow insertMessage(String conversationId, String role, String content,
-			@NonNull List<String> referencedCourses) {
+	public MessageRow insertMessage(String conversationId, APIControllerMeAdvisor.MessageRole role, String content,
+									@NonNull List<String> referencedCourses) {
 		final String id = UUID.randomUUID().toString();
 		final MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("id", id);
 		params.addValue("conversationId", conversationId);
-		params.addValue("role", role);
+		params.addValue("role", role.name());
 		params.addValue("content", content);
 		params.addValue("referencedCourses", toJsonString(referencedCourses));
 		template.update(

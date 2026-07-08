@@ -52,7 +52,7 @@ def _build_prompt(
 
     return _RECOMMENDATIONS_PROMPT.format(
         limit=request.limit,
-        study_program=request.student.study_program_id or "not specified",
+        study_program=request.student.study_program or "not specified",
         semester=request.student.semester,
         goals=", ".join(goals) or "not specified",
         interests=", ".join(interests) or "not specified",
@@ -96,7 +96,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         rows = find_similar_courses(
             query_vector=query_vector,
             candidate_ids=candidate_ids,
-            limit=request.limit * 2,
+            limit=request.limit * 3,
         )
     except OperationalError as e:
         logger.error("recommendations | DB connection failed: %s", e)

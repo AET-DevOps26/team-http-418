@@ -86,15 +86,28 @@ export async function* sendMessage(
 			for (const part of parts) {
 				const line = part.trim();
 				if (!line.startsWith("data: ")) continue;
-				const json = line.slice(6);
-				yield JSON.parse(json) as AdvisorSSEEvent;
+				const data = line.slice(6);
+				if (data === "[DONE]") continue;
+
+				try {
+					yield JSON.parse(data) as AdvisorSSEEvent;
+				} catch (e) {
+					console.warn("Failed to parse SSE data:", data);
+				}
 			}
 		}
 
 		if (buffer.trim()) {
 			const line = buffer.trim();
 			if (line.startsWith("data: ")) {
-				yield JSON.parse(line.slice(6)) as AdvisorSSEEvent;
+				const data = line.slice(6);
+				if (data !== "[DONE]") {
+					try {
+						yield JSON.parse(data) as AdvisorSSEEvent;
+					} catch (e) {
+						console.warn("Failed to parse SSE data:", data);
+					}
+				}
 			}
 		}
 	} finally {
