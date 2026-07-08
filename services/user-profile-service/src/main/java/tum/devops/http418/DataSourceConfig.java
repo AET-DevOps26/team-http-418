@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,12 +36,7 @@ public class DataSourceConfig {
 	@Profile("!test")
 	public DataSource profileDataSource() {
 		createProfilesDatabaseIfNotExists();
-		final HikariDataSource dataSource = new HikariDataSource();
-
-		dataSource.setJdbcUrl(baseUrl + "/profiles");
-		dataSource.setUsername(username);
-		dataSource.setPassword(password);
-		dataSource.setDriverClassName("org.postgresql.Driver");
+		final HikariDataSource dataSource = configureDataSource("/profiles");
 
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		try {
@@ -62,6 +58,24 @@ public class DataSourceConfig {
 				                              semester TEXT
 				                          );
 				""");
+		return dataSource;
+	}
+
+	private @NonNull HikariDataSource configureDataSource(String databaseName) {
+		final HikariDataSource dataSource = new HikariDataSource();
+
+		dataSource.setJdbcUrl(baseUrl + databaseName);
+		dataSource.setUsername(username);
+		dataSource.setPassword(password);
+		dataSource.setDriverClassName("org.postgresql.Driver");
+		dataSource.setMaximumPoolSize(10);
+		dataSource.setMinimumIdle(2);
+
+		dataSource.setConnectionTimeout(30_000);
+		dataSource.setValidationTimeout(5_000);
+		dataSource.setIdleTimeout(600_000);
+		dataSource.setMaxLifetime(1_800_000);
+		dataSource.setKeepaliveTime(300_000);
 		return dataSource;
 	}
 
