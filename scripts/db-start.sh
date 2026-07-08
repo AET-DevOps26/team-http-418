@@ -25,4 +25,4 @@ log_db "Press Ctrl+C to stop."
 echo ""
 
 cd "$SCRIPT_DIR"
-exec docker compose up db
+exec docker compose up --build db

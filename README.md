@@ -85,7 +85,7 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 ### Build Instructions
 
-**Prerequisites:** Git LFS required to fetch the DB dump (`infra/db/init/courses-data.sql.gz`).
+**Prerequisites:** Git LFS required to fetch seed data (course catalog + embeddings).
 ```bash
 git lfs install
 git lfs pull
@@ -97,14 +97,16 @@ cp .env.example .env
 # edit .env — set LOGOS_API_KEY (get from tutor), adjust LLM_PROVIDER if needed
 ```
 
-**2. Start the database** (in its own terminal, stays in foreground):
+**2. Start the database** (Terminal 1 — stays in foreground):
 ```bash
 ./scripts/db-start.sh
-# First run imports ~100MB of course seed data — wait for "ready to accept connections"
+# First run imports ~100MB course data + ~160MB embeddings — wait for "ready to accept connections"
 # Press Ctrl+C to stop the database
 ```
 
-**3. Start application services** (in a second terminal):
+Course embeddings are pre-seeded in the database — no separate generation step or eduVPN needed for development.
+
+**3. Start application services** (Terminal 2):
 ```bash
 ./scripts/dev-start.sh --all      # start server + client + genai + pdf-parser
 # or pick individual services:
@@ -136,17 +138,25 @@ Services started with `--all`:
 # Stops all containers and removes all volumes — next db-start re-imports seed data
 ```
 
-**6. Run scraper** (on-demand, after database is running):
+**6. Re-generate embeddings** (only needed if course data or embedding model changes):
+```bash
+# Requires genai service running + eduVPN for LOGOS API
+./scripts/generate-embeddings.sh    # populate course_embeddings table
+./scripts/dump-embeddings.sh        # export to seed file for other developers
+# Commit the updated infra/db/init/embeddings-data.sql.gz.data
+```
+
+**7. Run scraper** (on-demand, after database is running):
 ```bash
 ./scripts/dev-start.sh --scraper
 ```
 
-**7. Run with Docker Compose** (alternative, all-in-one):
+**8. Run with Docker Compose** (alternative, all-in-one):
 ```bash
 docker compose up --build
 ```
 
-**8. Run with local LLM** (Ollama instead of Logos cloud):
+**9. Run with local LLM** (Ollama instead of Logos cloud):
 ```bash
 # set LLM_PROVIDER=local in .env first
 docker compose --profile local up --build
