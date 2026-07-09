@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -102,14 +104,16 @@ public class APIControllerMeAdvisor {
 		studentDataDB.insertMessage(id, MessageRole.USER, request.content(), List.of());
 
 		final SseEmitter emitter = new SseEmitter(60000L);
+		final SecurityContext context = SecurityContextHolder.getContext();
 
 		Thread.startVirtualThread(() -> {
+			SecurityContextHolder.setContext(context);
 			HttpURLConnection connection = null;
 			try {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/conversations/%s/messages".formatted(id);
 				final Map<String, Object> studentPayload = new LinkedHashMap<>();
-				studentPayload.put("studyProgram", profile.student().studyProgramId());
-                studentPayload.putIfAbsent("studyProgram", "");
+				studentPayload.put("studyProgramName", profile.student().studyProgramName());
+                studentPayload.put("studyProgramId", profile.student().studyProgramId());
 				studentPayload.put("semester", profile.student().semester());
 				studentPayload.put("careerGoals", profile.student().careerGoals());
 				studentPayload.put("interests", profile.student().interests());
@@ -181,6 +185,7 @@ public class APIControllerMeAdvisor {
 				if (connection != null) {
 					connection.disconnect();
 				}
+				SecurityContextHolder.clearContext();
 			}
 		});
 
