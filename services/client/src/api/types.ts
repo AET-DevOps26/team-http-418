@@ -508,7 +508,7 @@ export type Student = {
 	careerGoals: string[];
 	preferredWorkload: number;
 	semester: number;
-	studyProgram?: StudyProgramRef;
+	studyProgramName?: string;
 	studyProgramId?: string;
 	expectedGraduation?: string;
 	industryPreference?: string;

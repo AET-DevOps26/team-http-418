@@ -5,6 +5,7 @@ type ProfilePatch = {
 	firstName?: string;
 	lastName?: string;
 	studyProgramId?: string;
+	studyProgramName?: string;
 	semester?: number;
 	expectedGraduation?: string;
 	industryPreference?: string;

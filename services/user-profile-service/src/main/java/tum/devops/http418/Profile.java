@@ -18,7 +18,7 @@ public record Profile(@Nonnull Student student, List<String> completedCourses, L
 	}
 
 	public record Student(String firstName, String lastName,
-			String studyProgramId, int semester, List<String> careerGoals, List<String> interests,
+			String studyProgramId, String studyProgramName, int semester, List<String> careerGoals, List<String> interests,
 			int preferredWorkload, int creditsEarned, int creditsRequired,
 			String expectedGraduation, String industryPreference,
 			String rolePreference, CvData cvData, boolean onboardingCompleted) {

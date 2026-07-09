@@ -104,6 +104,7 @@ type Draft = {
 	firstName: string;
 	lastName: string;
 	studyProgramId: string;
+	studyProgramName: string;
 	semester: number;
 	expectedGraduation: string;
 	industryPreference: string;
@@ -154,6 +155,7 @@ function ProfilePage() {
 			firstName: profile.student.firstName ?? "",
 			lastName: profile.student.lastName ?? "",
 			studyProgramId: profile.student.studyProgramId ?? "",
+			studyProgramName: profile.student.studyProgramName ?? "",
 			semester: profile.student.semester,
 			expectedGraduation: profile.student.expectedGraduation ?? "WS2027/28",
 			industryPreference: profile.student.industryPreference ?? "",
@@ -177,8 +179,13 @@ function ProfilePage() {
 			dirty.firstName = draft.firstName;
 		if (draft.lastName !== (profile.student.lastName ?? ""))
 			dirty.lastName = draft.lastName;
-		if (draft.studyProgramId !== (profile.student.studyProgramId ?? ""))
+		if (draft.studyProgramId !== (profile.student.studyProgramId ?? "")) {
 			dirty.studyProgramId = draft.studyProgramId;
+			dirty.studyProgramName = studyPrograms?.find(
+				(sp) => sp.id === draft.studyProgramId,
+			)?.name ?? "";
+		}
+
 		if (draft.semester !== profile.student.semester)
 			dirty.semester = draft.semester;
 		if (draft.expectedGraduation !== (profile.student.expectedGraduation ?? ""))
