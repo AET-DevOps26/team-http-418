@@ -4,7 +4,8 @@ from pydantic import BaseModel, Field
 class StudentProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program: str | None = Field(default=None, alias="studyProgramId")
+    study_program: str | None = Field(default="no study program", alias="studyProgramName")
+    study_program_id: str | None = Field(default="invalid id", alias="studyProgramId")
     semester: int
     career_goals: list[str] = Field(default=[], alias="careerGoals")
     interests: list[str] = Field(default=[], alias="interests")

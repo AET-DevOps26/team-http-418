@@ -93,7 +93,7 @@ public class APIControllerMeRoadmap {
 			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 			final Set<Long> usedIds = new HashSet<>(completedIds);
 			usedIds.addAll(enrolledIds);
-			final List<Map<String, Object>> availableCourses = coursesDataDB
+			final List<Map<String, Object>> availableCourses = coursesDataDB //TODO very inefficient
 					.getCoursesByStudyProgramWithSws(studyProgram).stream()
 					.filter(c -> !usedIds.contains(c.id()))
 					.map(c -> {
