@@ -1,12 +1,20 @@
 import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle, Sparkles } from "lucide-react";
-import type { Recommendation } from "#/api/types";
+import type { Recommendation, CourseDetail } from "#/api/types";
+import { useCourse } from "#/hooks/useCourse.ts";
 
 type Props = { recommendation: Recommendation };
 
 export function RecommendationCard({ recommendation: rec }: Props) {
 	const navigate = useNavigate();
+	const { data: courseDetail, isLoading, isError, error, fetchStatus, status } = useCourse(rec.courseId.toString());
+	if (isLoading || !courseDetail) {
+		return <div className="rec-card">Loading…</div>; // or a skeleton
+	}
 
+	if (isError) {
+		return <div className="rec-card">Failed to load course</div>;
+	}
 	return (
 		<button
 			type="button"
@@ -17,8 +25,8 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 				width: "100%",
 				font: "inherit",
 			}}
-			onClick={() =>
-				navigate({ to: "/courses", search: { course: rec.courseId } })
+			onClick={() => //TODO does not work
+				navigate({ to: "/courses", search: { course: rec.courseId.toString() } })
 			}
 		>
 			<div style={{ marginBottom: 8 }}>
@@ -32,7 +40,7 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 						display: "inline-flex",
 					}}
 				>
-					{rec?.courseCode ?? "N/A"}
+					{courseDetail.title_en ?? courseDetail.title_ger ?? "N/A"}
 				</span>
 				<div
 					style={{
@@ -122,21 +130,21 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 					alignItems: "center",
 				}}
 			>
-				<span
-					className={`prereq-badge${rec.prerequisitesMet ? " prereq-badge--met" : " prereq-badge--missing"}`}
-				>
-					{rec.prerequisitesMet ? (
-						<>
-							<CheckCircle size={11} strokeWidth={2} />
-							Prerequisites met
-						</>
-					) : (
-						<>
-							<span style={{ fontSize: 11 }}>⚠</span>
-							Prerequisites missing
-						</>
-					)}
-				</span>
+				{/*<span*/}
+				{/*	className={`prereq-badge${rec.prerequisitesMet ? " prereq-badge--met" : " prereq-badge--missing"}`}*/}
+				{/*>*/}
+				{/*	{rec.prerequisitesMet ? (*/}
+				{/*		<>*/}
+				{/*			<CheckCircle size={11} strokeWidth={2} />*/}
+				{/*			Prerequisites met*/}
+				{/*		</>*/}
+				{/*	) : (*/}
+				{/*		<>*/}
+				{/*			<span style={{ fontSize: 11 }}>⚠</span>*/}
+				{/*			Prerequisites missing*/}
+				{/*		</>*/}
+				{/*	)}*/}
+				{/*</span>*/}
 			</div>
 		</button>
 	);

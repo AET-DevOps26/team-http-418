@@ -31,7 +31,7 @@ def _build_prompt(
     completed_names = request.completed_courses
     courses_text = "\n".join(
         f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
-        + (f" | {course.description[:200]}" if course.description else "")
+        + (f" | {course.description}" if course.description else "") #todo eng or de description
         for course, score in candidates
     )
 

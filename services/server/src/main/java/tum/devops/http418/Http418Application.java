@@ -19,7 +19,7 @@ public class Http418Application {
 						.connectTimeout(Duration.ofSeconds(5))
 						.build()
 		);
-		factory.setReadTimeout(Duration.ofSeconds(30));
+		factory.setReadTimeout(Duration.ofSeconds(60));
 
 		restClient = RestClient.builder()
 				.requestFactory(factory)

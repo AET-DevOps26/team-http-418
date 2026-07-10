@@ -64,13 +64,13 @@ export type DashboardRecommendation = {
 };
 
 export type Recommendation = {
-	courseId: string;
-	courseCode: string;
-	courseName: string;
+	courseId: number;
+	// courseCode: string; //probably never provided or empty string
+	// courseName: string;
 	relevanceScore: number;
 	reason: string;
 	tags: string[];
-	prerequisitesMet: boolean;
+	// prerequisitesMet: boolean;
 };
 
 export type RecommendationList = {
@@ -412,23 +412,34 @@ export type CourseStudyProgramRef = {
 };
 
 export type CourseDetail = {
-	id: string;
-	courseCode: string;
-	name: string;
-	department: string;
-	credits: number;
-	language: Language;
-	level: CourseLevel;
-	preferredSemester: PreferredSemester;
-	hasPrerequisites: boolean;
-	instructors: Instructor[];
-	description: string;
-	generalRequirements: string;
-	schedule: ScheduleSlot[];
-	prerequisites: CoursePrerequisiteRef[];
-	studyPrograms: CourseStudyProgramRef[];
-	sourceUrl: string;
-	lastUpdated: IsoDateString;
+	id: number;
+	title_ger: string;
+	title_en: string;
+	// courseCode: string;
+	// name: string;
+	sws: number,
+	description_ger: string;
+	description_en: string;
+	course_objective_en: string;
+	course_objective_ger: string;
+	teaching_method_en: string;
+	teaching_method_ger: string;
+	registration_info: string;
+	course_type: string;
+	semester_key: string;
+	org_name_ger: string;
+	org_name_en: string;
+	org_url: string;
+	people: [];
+	appointments: [];
+	curriculumConnections: [];
+	// language: Language;
+	// level: CourseLevel;
+	// preferredSemester: PreferredSemester;
+	// hasPrerequisites: boolean;
+	// instructors: Instructor[];
+	// description: string;
+	// generalRequirements: string;
 };
 
 export type PrerequisiteNode = {

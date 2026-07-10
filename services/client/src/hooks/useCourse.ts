@@ -4,7 +4,7 @@ import { getCourse } from "#/api/courses";
 export function useCourse(courseId?: string) {
 	return useQuery({
 		queryKey: ["course", courseId],
-		queryFn: () => getCourse(courseId as string),
-		enabled: !!courseId,
+		queryFn: () => getCourse(courseId!),
+		enabled: courseId != null && courseId !== "",
 	});
 }
