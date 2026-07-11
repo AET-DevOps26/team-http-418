@@ -7,7 +7,7 @@ type Props = { recommendation: Recommendation };
 
 export function RecommendationCard({ recommendation: rec }: Props) {
 	const navigate = useNavigate();
-	const { data: courseDetail } = useCourse<CourseDetail>(
+	const { data: courseDetail, isError, isLoading } = useCourse<CourseDetail>(
 		rec.courseId.toString(),
 	);
 	if (isError) {

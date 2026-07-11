@@ -1,4 +1,4 @@
-// import { ExternalLink, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect } from "react";
 import { isAuthenticated } from "#/api";
 import type { CourseDetail } from "#/api/types";
