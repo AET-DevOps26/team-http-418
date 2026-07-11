@@ -181,9 +181,8 @@ function ProfilePage() {
 			dirty.lastName = draft.lastName;
 		if (draft.studyProgramId !== (profile.student.studyProgramId ?? "")) {
 			dirty.studyProgramId = draft.studyProgramId;
-			dirty.studyProgramName = studyPrograms?.find(
-				(sp) => sp.id === draft.studyProgramId,
-			)?.name ?? "";
+			dirty.studyProgramName =
+				studyPrograms?.find((sp) => sp.id === draft.studyProgramId)?.name ?? "";
 		}
 
 		if (draft.semester !== profile.student.semester)

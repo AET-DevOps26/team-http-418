@@ -14,7 +14,11 @@ type Props = {
 };
 
 export function CourseDetailSheet({ courseId, onClose }: Props) {
-	const { data: course, isLoading, isError } = useCourse<CourseDetail>(courseId);
+	const {
+		data: course,
+		isLoading,
+		isError,
+	} = useCourse<CourseDetail>(courseId);
 	const { data: prereqTree } = usePrerequisiteTree(courseId);
 	const { data: prereqCheck } = usePrerequisiteCheck(courseId);
 	const authed = isAuthenticated();
@@ -120,9 +124,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										background: "var(--canvas-2)",
 										color: "var(--ink-soft)",
 									}}
-								>
-
-								</span>
+								></span>
 								<span
 									className="tag"
 									style={{
@@ -136,8 +138,15 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							<h2 className="catalog-sheet-title">{course.name}</h2>
 							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
 								{course.org_name_en}
-								<br/>
-								{course.org_url && <a style={{color: "blue", textDecoration: "underline"}} href={course.org_url}>Chair Homepage</a>}
+								<br />
+								{course.org_url && (
+									<a
+										style={{ color: "blue", textDecoration: "underline" }}
+										href={course.org_url}
+									>
+										Chair Homepage
+									</a>
+								)}
 							</p>
 						</div>
 
@@ -173,7 +182,8 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							</p>
 						</section>
 
-						{(course.previous_knowledge_en ?? course.previous_knowledge_ger) && (
+						{(course.previous_knowledge_en ??
+							course.previous_knowledge_ger) && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Requirements</p>
 								<p
@@ -185,7 +195,8 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										whiteSpace: "pre-line",
 									}}
 								>
-									{course.previous_knowledge_en ?? course.previous_knowledge_ger}
+									{course.previous_knowledge_en ??
+										course.previous_knowledge_ger}
 								</p>
 							</section>
 						)}
@@ -199,7 +210,8 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									{course.people.map((inst) => (
 										<div /*key={inst.email}*/ style={{ fontSize: 13 }}>
 											<span style={{ color: "var(--ink)", fontWeight: 500 }}>
-												{inst.teaching_function}: {inst.last_name}, {inst.first_name}
+												{inst.teaching_function}: {inst.last_name},{" "}
+												{inst.first_name}
 											</span>
 											{/*{inst.email && (*/}
 											{/*	<span style={{ color: "var(--muted)", marginLeft: 8 }}>*/}

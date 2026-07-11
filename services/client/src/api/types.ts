@@ -392,11 +392,11 @@ export type ScheduleSlot = {
 	// endTime: string;
 	// room: string;
 	// type: ScheduleType;
-	weekday_key: string,
-	time_from: LocalTime,
-	time_to: LocalTime,
-	place: string,
-	is_series: boolean
+	weekday_key: string;
+	time_from: LocalTime;
+	time_to: LocalTime;
+	place: string;
+	is_series: boolean;
 };
 
 export type Instructor = {
@@ -424,7 +424,7 @@ export type CourseDetail = {
 	title_en: string;
 	// courseCode: string;
 	// name: string;
-	sws: number,
+	sws: number;
 	description_ger: string;
 	description_en: string;
 	course_objective_en: string;

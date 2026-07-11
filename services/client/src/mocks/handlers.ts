@@ -1358,7 +1358,7 @@ export const handlers = [
 			creditsByCategory: getCreditsByCategory(),
 		});
 	}),
-	http.get(`/api/${API_VERSION}/courses/:courseid`,({})=>{
+	http.get(`/api/${API_VERSION}/courses/:courseid`, ({}) => {
 		throw new Error("should not happen");
 	}),
 	http.get(`/api/${API_VERSION}/me/courses/completed`, ({ request }) => {

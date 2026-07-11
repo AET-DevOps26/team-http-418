@@ -7,7 +7,14 @@ type Props = { recommendation: Recommendation };
 
 export function RecommendationCard({ recommendation: rec }: Props) {
 	const navigate = useNavigate();
-	const { data: courseDetail, isLoading, isError, error, fetchStatus, status } = useCourse<CourseDetail>(rec.courseId.toString());
+	const {
+		data: courseDetail,
+		isLoading,
+		isError,
+		error,
+		fetchStatus,
+		status,
+	} = useCourse<CourseDetail>(rec.courseId.toString());
 	if (isLoading || !courseDetail) {
 		return <div className="rec-card">Loading…</div>; // or a skeleton
 	}
@@ -26,7 +33,10 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 				font: "inherit",
 			}}
 			onClick={() =>
-				navigate({ to: "/courses", search: { course: rec.courseId.toString() } })
+				navigate({
+					to: "/courses",
+					search: { course: rec.courseId.toString() },
+				})
 			}
 		>
 			<div style={{ marginBottom: 8 }}>

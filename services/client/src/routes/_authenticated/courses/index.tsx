@@ -399,7 +399,6 @@ function CoursesPage() {
 							</button>
 						</div>
 					)}
-
 				</>
 			)}
 			{search.course && (

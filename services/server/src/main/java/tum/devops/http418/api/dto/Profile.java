@@ -1,6 +1,5 @@
 package tum.devops.http418.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 

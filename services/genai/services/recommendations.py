@@ -10,8 +10,8 @@ from db import ensure_schema_initialized
 from llm.embeddings import get_embedding_dimensions, get_embeddings
 from llm.provider import get_llm
 from models.recommendations import CourseRef, RecommendationsRequest
-from repositories.recommendations import find_similar_courses
 from repositories.courses import get_course_refs
+from repositories.recommendations import find_similar_courses
 
 _RECOMMENDATIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "recommendations.txt").read_text()
 
@@ -31,7 +31,7 @@ def _build_prompt(
     completed_names = request.completed_courses
     courses_text = "\n".join(
         f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
-        + (f" | {course.description}" if course.description else "") #todo eng or de description
+        + (f" | {course.description}" if course.description else "")  # todo eng or de description
         for course, score in candidates
     )
 
@@ -84,7 +84,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
             detail="Embedding service unavailable — could not convert query to vector",
         ) from e
 
-    completed_ids = {course.course_id for course in request.completed_courses} #TODO
+    completed_ids = {course.course_id for course in request.completed_courses}  # TODO
     exclude_ids = set(request.exclude_course_ids or [])
     candidate_ids = [
         course.course_id

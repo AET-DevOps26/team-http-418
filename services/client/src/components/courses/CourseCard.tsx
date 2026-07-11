@@ -1,6 +1,6 @@
 import { BookOpen } from "lucide-react";
-import type {CourseDetail, CourseSummary} from "#/api/types";
-import {useCourse} from "../../hooks/useCourse";
+import type { CourseDetail, CourseSummary } from "#/api/types";
+import { useCourse } from "../../hooks/useCourse";
 
 type Props = {
 	course: CourseSummary;
@@ -8,7 +8,11 @@ type Props = {
 };
 
 export function CourseCard({ course, onClick }: Props) {
-	const { data: courseDetail, isLoading, isError } = useCourse<CourseDetail>(course.id);
+	const {
+		data: courseDetail,
+		isLoading,
+		isError,
+	} = useCourse<CourseDetail>(course.id);
 	return (
 		<button
 			type="button"
@@ -34,13 +38,15 @@ export function CourseCard({ course, onClick }: Props) {
 					</span>
 				</div>
 			</div>
-			<p className="catalog-course-name">{course?.title_ger ?? course?.title_en}</p>
+			<p className="catalog-course-name">
+				{course?.title_ger ?? course?.title_en}
+			</p>
 			<div className="catalog-course-meta">
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
 					{course?.department ?? "N/A"}
 				</span>
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
-					{`≈ ${Math.round(courseDetail?.sws * 1.25+0.5) ?? "?"} ECTS`}
+					{`≈ ${Math.round(courseDetail?.sws * 1.25 + 0.5) ?? "?"} ECTS`}
 				</span>
 			</div>
 			{(course?.hasPrerequisites ?? false) && (

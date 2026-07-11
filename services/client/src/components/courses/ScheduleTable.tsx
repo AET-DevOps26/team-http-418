@@ -1,14 +1,6 @@
 import type { ScheduleSlot } from "#/api/types";
 
-const DAY_ORDER = [
-	"Mo.",
-	"Di.",
-	"Mi.",
-	"Do.",
-	"Fr.",
-	"Sa.",
-	"So.",
-];
+const DAY_ORDER = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."];
 
 const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
 	LECTURE: { bg: "var(--blue-50)", color: "var(--blue-700)" },
@@ -35,7 +27,8 @@ export function ScheduleTable({ slots }: Props) {
 
 	const sorted = [...slots].sort(
 		(a, b) =>
-			dayRank(a.weekday_key) - dayRank(b.weekday_key) || a.time_from < b.time_from,
+			dayRank(a.weekday_key) - dayRank(b.weekday_key) ||
+			a.time_from < b.time_from,
 	);
 
 	return (
@@ -50,7 +43,7 @@ export function ScheduleTable({ slots }: Props) {
 			</thead>
 			<tbody>
 				{sorted.map((s) => {
-					const colors = /*TYPE_COLORS[s.type] ?? */{
+					const colors = /*TYPE_COLORS[s.type] ?? */ {
 						bg: "var(--canvas-2)",
 						color: "var(--ink-soft)",
 					};
@@ -66,7 +59,7 @@ export function ScheduleTable({ slots }: Props) {
 									className="tag"
 									style={{ background: colors.bg, color: colors.color }}
 								>
-									{s.is_series? "series": "one time"}
+									{s.is_series ? "series" : "one time"}
 								</span>
 							</td>
 						</tr>

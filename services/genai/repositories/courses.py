@@ -21,7 +21,8 @@ def search_courses(query_vector: list[float], limit: int) -> list[tuple[int, flo
         )
         return cursor.fetchall()
 
-def get_course_refs(rankings: list[tuple[int,float]]) -> list[tuple[CourseRef, float]]:
+
+def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, float]]:
     if not rankings:
         return []
 
@@ -45,12 +46,15 @@ def get_course_refs(rankings: list[tuple[int,float]]) -> list[tuple[CourseRef, f
         # credits are missing in the main courses table, estimating based on SWS
         # approximation from scraper: ECTS ≈ ROUND(SWS * 1.25 + 0.5)
         return [
-            (CourseRef(
-                courseId=row[0],
-                courseCode=row[1],
-                courseName=row[2],
-                credits=int(round(row[3] * 1.25 + 0.5)) if row[3] else 0,
-                description=row[4] if row[4] else row[5],
-            ), next(filter(lambda ranking: ranking[0] == row[0], rankings))[1])
+            (
+                CourseRef(
+                    courseId=row[0],
+                    courseCode=row[1],
+                    courseName=row[2],
+                    credits=int(round(row[3] * 1.25 + 0.5)) if row[3] else 0,
+                    description=row[4] if row[4] else row[5],
+                ),
+                next(filter(lambda ranking: ranking[0] == row[0], rankings))[1],
+            )
             for row in rows
         ]
