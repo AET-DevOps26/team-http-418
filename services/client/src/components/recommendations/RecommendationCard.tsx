@@ -1,20 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CheckCircle, Sparkles } from "lucide-react";
-import type { Recommendation, CourseDetail } from "#/api/types";
+import { Sparkles } from "lucide-react";
+import type { CourseDetail, Recommendation } from "#/api/types";
 import { useCourse } from "#/hooks/useCourse.ts";
 
 type Props = { recommendation: Recommendation };
 
 export function RecommendationCard({ recommendation: rec }: Props) {
 	const navigate = useNavigate();
-	const {
-		data: courseDetail,
-		isLoading,
-		isError,
-		error,
-		fetchStatus,
-		status,
-	} = useCourse<CourseDetail>(rec.courseId.toString());
+	const { data: courseDetail } = useCourse<CourseDetail>(
+		rec.courseId.toString(),
+	);
 	if (isLoading || !courseDetail) {
 		return <div className="rec-card">Loading…</div>; // or a skeleton
 	}

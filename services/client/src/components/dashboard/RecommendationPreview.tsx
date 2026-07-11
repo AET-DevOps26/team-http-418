@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
-import type { CourseDetail, Recommendation } from "#/api/types";
+import type { Recommendation } from "#/api/types";
 import { InfoBanner } from "#/components/dashboard/InfoBanner";
-import { useCourse } from "../../hooks/useCourse";
+import { RecommendationPreviewCard } from "#/components/dashboard/RecommendationPreviewCard";
 
 type Props = {
 	recommendations?: Recommendation[];
@@ -18,15 +17,6 @@ export function RecommendationPreview({
 	onGenerate,
 }: Props) {
 	const top3 = recommendations?.slice(0, 3) ?? [];
-	const details: CourseDetail[] = [];
-	top3.forEach((rec) => {
-		const {
-			data: course,
-			courseIsLoading,
-			isError,
-		} = useCourse<CourseDetail>(rec.courseId);
-		details.push(course);
-	});
 	const header = (
 		<div
 			className="eyebrow"
@@ -140,83 +130,11 @@ export function RecommendationPreview({
 			) : (
 				<>
 					<div className="rec-row">
-						{top3.map((rec, index) => (
-							<Link
+						{top3.map((rec) => (
+							<RecommendationPreviewCard
 								key={rec.courseId}
-								to="/courses"
-								search={{ course: rec.courseId }}
-								style={{ textDecoration: "none", display: "flex" }}
-							>
-								<div className="rec-card">
-									<div style={{ marginBottom: 8 }}>
-										<span
-											className="tag"
-											style={{
-												background: "var(--blue-50)",
-												color: "var(--blue-700)",
-												fontFamily: "var(--font-mono)",
-												marginBottom: 6,
-												display: "inline-flex",
-											}}
-										>
-											{details[index]?.title_en ??
-												details[index]?.title_ger ??
-												"N/A"}
-										</span>
-										<div
-											style={{
-												fontSize: 13,
-												fontWeight: 600,
-												color: "var(--ink)",
-												lineHeight: 1.3,
-											}}
-										>
-											{rec.courseName}
-										</div>
-									</div>
-
-									<div className="ai-reason" style={{ flex: 1 }}>
-										<div
-											style={{
-												display: "flex",
-												alignItems: "center",
-												gap: 4,
-												marginBottom: 3,
-												fontSize: 10,
-												fontWeight: 700,
-												letterSpacing: "0.05em",
-												textTransform: "uppercase",
-												color: "#7c3aed",
-											}}
-										>
-											<Sparkles size={10} strokeWidth={2} />
-											Why AIDAN recommends this
-										</div>
-										{rec.reason}
-									</div>
-
-									<div
-										style={{
-											marginTop: 10,
-											display: "flex",
-											justifyContent: "flex-end",
-										}}
-									>
-										<span
-											style={{
-												fontSize: 11,
-												fontWeight: 600,
-												color: "#5b21b6",
-												background: "#ede9fe",
-												borderRadius: "var(--r-sm)",
-												padding: "2px 7px",
-											}}
-										>
-											{Math.round(rec.relevanceScore * 100)}% match
-										</span>
-									</div>
-								</div>
-							</Link>
+								recommendation={rec}
+							/>
 						))}
 					</div>
 					<div

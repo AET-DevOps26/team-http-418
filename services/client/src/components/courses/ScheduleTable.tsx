@@ -2,12 +2,12 @@ import type { ScheduleSlot } from "#/api/types";
 
 const DAY_ORDER = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."];
 
-const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
-	LECTURE: { bg: "var(--blue-50)", color: "var(--blue-700)" },
-	TUTORIAL: { bg: "#f0fdf4", color: "#15803d" },
-	LAB: { bg: "#fff7ed", color: "#c2410c" },
-	EXAM: { bg: "#fef2f2", color: "#b91c1c" },
-};
+// const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
+// 	LECTURE: { bg: "var(--blue-50)", color: "var(--blue-700)" },
+// 	TUTORIAL: { bg: "#f0fdf4", color: "#15803d" },
+// 	LAB: { bg: "#fff7ed", color: "#c2410c" },
+// 	EXAM: { bg: "#fef2f2", color: "#b91c1c" },
+// };
 
 type Props = { slots: ScheduleSlot[] };
 

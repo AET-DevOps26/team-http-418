@@ -8,11 +8,7 @@ type Props = {
 };
 
 export function CourseCard({ course, onClick }: Props) {
-	const {
-		data: courseDetail,
-		isLoading,
-		isError,
-	} = useCourse<CourseDetail>(course.id);
+	const { data: courseDetail } = useCourse<CourseDetail>(course.id);
 	return (
 		<button
 			type="button"

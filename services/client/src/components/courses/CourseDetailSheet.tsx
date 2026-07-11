@@ -1,12 +1,12 @@
-import { ExternalLink, X } from "lucide-react";
+// import { ExternalLink, X } from "lucide-react";
 import { useEffect } from "react";
 import { isAuthenticated } from "#/api";
+import type { CourseDetail } from "#/api/types";
 import { PrerequisiteTree } from "#/components/courses/PrerequisiteTree";
 import { ScheduleTable } from "#/components/courses/ScheduleTable";
 import { useCourse } from "#/hooks/useCourse";
 import { usePrerequisiteCheck } from "#/hooks/usePrerequisiteCheck";
 import { usePrerequisiteTree } from "#/hooks/usePrerequisiteTree";
-import type { CourseDetail } from "#/api/types";
 
 type Props = {
 	courseId: string;
@@ -208,7 +208,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									style={{ display: "flex", flexDirection: "column", gap: 6 }}
 								>
 									{course.people.map((inst) => (
-										<div /*key={inst.email}*/ style={{ fontSize: 13 }}>
+										<div key={inst.last_name} style={{ fontSize: 13 }}>
 											<span style={{ color: "var(--ink)", fontWeight: 500 }}>
 												{inst.teaching_function}: {inst.last_name},{" "}
 												{inst.first_name}
