@@ -29,12 +29,11 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 		document.addEventListener("keydown", onKey);
 		return () => document.removeEventListener("keydown", onKey);
 	}, [onClose]);
-	if (isLoading || !course) {
-		return <div className="rec-card">Loading…</div>; // or a skeleton
-	}
-
 	if (isError) {
 		return <div className="rec-card">Failed to load course</div>;
+	}
+	if (isLoading || !course) {
+		return <div className="rec-card">Loading…</div>; // or a skeleton
 	}
 
 	const metIds = prereqCheck
@@ -135,7 +134,9 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									{course.sws} SWS
 								</span>
 							</div>
-							<h2 className="catalog-sheet-title">{course.name}</h2>
+							<h2 className="catalog-sheet-title">
+								{course.title_en ?? course.title_ger ?? "N/A"}
+							</h2>
 							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
 								{course.org_name_en}
 								<br />

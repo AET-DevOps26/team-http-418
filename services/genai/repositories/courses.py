@@ -45,8 +45,7 @@ def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, 
 
         # credits are missing in the main courses table, estimating based on SWS
         # approximation from scraper: ECTS ≈ ROUND(SWS * 1.25 + 0.5)
-        return [
-            (
+        return sorted(list((
                 CourseRef(
                     courseId=row[0],
                     courseCode=row[1],
@@ -56,5 +55,4 @@ def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, 
                 ),
                 next(filter(lambda ranking: ranking[0] == row[0], rankings))[1],
             )
-            for row in rows
-        ]
+            for row in rows), key=lambda x: x[1], reverse=True)

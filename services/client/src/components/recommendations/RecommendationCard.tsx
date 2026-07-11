@@ -10,13 +10,13 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 	const { data: courseDetail } = useCourse<CourseDetail>(
 		rec.courseId.toString(),
 	);
+	if (isError) {
+		return <div className="rec-card">Failed to load course</div>;
+	}
 	if (isLoading || !courseDetail) {
 		return <div className="rec-card">Loading…</div>; // or a skeleton
 	}
 
-	if (isError) {
-		return <div className="rec-card">Failed to load course</div>;
-	}
 	return (
 		<button
 			type="button"

@@ -387,11 +387,6 @@ export type CourseSummary = {
 
 type LocalTime = string; // only clocktime: hh:mm:ss
 export type ScheduleSlot = {
-	// day: string;
-	// startTime: string;
-	// endTime: string;
-	// room: string;
-	// type: ScheduleType;
 	weekday_key: string;
 	time_from: LocalTime;
 	time_to: LocalTime;
@@ -438,8 +433,8 @@ export type CourseDetail = {
 	org_name_en: string;
 	org_url: string;
 	people: Instructor[];
-	appointments: string[];
-	curriculumConnections: []; //TODO
+	appointments: ScheduleSlot[];
+	curriculumConnections: undefined[]; //TODO define correct type and use data
 	previous_knowledge_ger: string;
 	previous_knowledge_en: string;
 	// language: Language;

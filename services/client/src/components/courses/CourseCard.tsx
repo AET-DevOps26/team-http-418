@@ -42,7 +42,7 @@ export function CourseCard({ course, onClick }: Props) {
 					{course?.department ?? "N/A"}
 				</span>
 				<span style={{ color: "var(--muted)", fontSize: 12 }}>
-					{`≈ ${Math.round(courseDetail?.sws * 1.25 + 0.5) ?? "?"} ECTS`}
+					{`≈ ${courseDetail?.sws != null ? Math.round(courseDetail?.sws * 1.25 + 0.5) : "?"} ECTS`}
 				</span>
 			</div>
 			{(course?.hasPrerequisites ?? false) && (

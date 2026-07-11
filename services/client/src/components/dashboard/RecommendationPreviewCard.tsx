@@ -1,7 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import type { CourseDetail, Recommendation } from "#/api/types";
 import { useCourse } from "#/hooks/useCourse";
-import { Link } from "@tanstack/react-router";
 
 type RecommendationCardProps = {
 	recommendation: Recommendation;

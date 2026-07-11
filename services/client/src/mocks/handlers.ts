@@ -1358,9 +1358,7 @@ export const handlers = [
 			creditsByCategory: getCreditsByCategory(),
 		});
 	}),
-	http.get(`/api/${API_VERSION}/courses/:courseid`, () => {
-		throw new Error("should not happen");
-	}),
+
 	http.get(`/api/${API_VERSION}/me/courses/completed`, ({ request }) => {
 		if (!isMocked("GET", "/me/courses/completed")) return passthrough();
 		const url = new URL(request.url);

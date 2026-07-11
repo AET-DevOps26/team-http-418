@@ -124,7 +124,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
 
     prompt = _build_prompt(request, goals, interests, candidates)
 
-    logger.info("recommendations | prompt=%s", prompt)
+    # logger.info("recommendations | prompt=%s", prompt)
     try:
         llm = get_llm()
         result = await llm.ainvoke(prompt)
