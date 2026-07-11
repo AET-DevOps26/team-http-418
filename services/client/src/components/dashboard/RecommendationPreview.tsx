@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import type { Recommendation } from "#/api/types";
+import type {CourseDetail, Recommendation} from "#/api/types";
 import { InfoBanner } from "#/components/dashboard/InfoBanner";
+import {useCourse} from "../../hooks/useCourse";
 
 type Props = {
 	recommendations?: Recommendation[];
@@ -17,7 +18,11 @@ export function RecommendationPreview({
 	onGenerate,
 }: Props) {
 	const top3 = recommendations?.slice(0, 3) ?? [];
-
+	const details: CourseDetail[] = [];
+	top3.forEach((rec) => {
+		const { data: course, courseIsLoading, isError } = useCourse<CourseDetail>(rec.courseId);
+		details.push(course);
+	})
 	const header = (
 		<div
 			className="eyebrow"
@@ -131,7 +136,7 @@ export function RecommendationPreview({
 			) : (
 				<>
 					<div className="rec-row">
-						{top3.map((rec) => (
+						{top3.map((rec, index) => (
 							<Link
 								key={rec.courseId}
 								to="/courses"
@@ -150,7 +155,7 @@ export function RecommendationPreview({
 												display: "inline-flex",
 											}}
 										>
-											{rec?.courseCode ?? "N/A"}
+											{details[index]?.title_en ?? details[index]?.title_ger ?? "N/A"}
 										</span>
 										<div
 											style={{

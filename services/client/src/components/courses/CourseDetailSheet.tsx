@@ -6,6 +6,7 @@ import { ScheduleTable } from "#/components/courses/ScheduleTable";
 import { useCourse } from "#/hooks/useCourse";
 import { usePrerequisiteCheck } from "#/hooks/usePrerequisiteCheck";
 import { usePrerequisiteTree } from "#/hooks/usePrerequisiteTree";
+import type { CourseDetail } from "#/api/types";
 
 type Props = {
 	courseId: string;
@@ -13,11 +14,10 @@ type Props = {
 };
 
 export function CourseDetailSheet({ courseId, onClose }: Props) {
-	const { data: course, isLoading, isError } = useCourse(courseId);
+	const { data: course, isLoading, isError } = useCourse<CourseDetail>(courseId);
 	const { data: prereqTree } = usePrerequisiteTree(courseId);
 	const { data: prereqCheck } = usePrerequisiteCheck(courseId);
 	const authed = isAuthenticated();
-
 	useEffect(() => {
 		function onKey(e: KeyboardEvent) {
 			if (e.key === "Escape") onClose();
@@ -25,6 +25,13 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 		document.addEventListener("keydown", onKey);
 		return () => document.removeEventListener("keydown", onKey);
 	}, [onClose]);
+	if (isLoading || !course) {
+		return <div className="rec-card">Loading…</div>; // or a skeleton
+	}
+
+	if (isError) {
+		return <div className="rec-card">Failed to load course</div>;
+	}
 
 	const metIds = prereqCheck
 		? new Set(prereqCheck.metPrerequisites.map((r) => r.courseId))
@@ -96,7 +103,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										fontWeight: 600,
 									}}
 								>
-									{course?.courseCode ?? "N/A"}
+									{course.title_en ?? course.title_ger ?? "N/A"}
 								</span>
 								<span
 									className="tag"
@@ -105,7 +112,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										color: "var(--blue-700)",
 									}}
 								>
-									{course.language}
+									{course.course_type}
 								</span>
 								<span
 									className="tag"
@@ -114,7 +121,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										color: "var(--ink-soft)",
 									}}
 								>
-									{course.level}
+
 								</span>
 								<span
 									className="tag"
@@ -123,12 +130,14 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										color: "var(--muted)",
 									}}
 								>
-									{course.credits} ECTS
+									{course.sws} SWS
 								</span>
 							</div>
 							<h2 className="catalog-sheet-title">{course.name}</h2>
 							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-								{course.department}
+								{course.org_name_en}
+								<br/>
+								{course.org_url && <a style={{color: "blue", textDecoration: "underline"}} href={course.org_url}>Chair Homepage</a>}
 							</p>
 						</div>
 
@@ -149,23 +158,22 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							</div>
 						)}
 
-						{course.description && (
-							<section className="catalog-sheet-section">
-								<p className="eyebrow">Description</p>
-								<p
-									style={{
-										fontSize: 13,
-										lineHeight: 1.6,
-										color: "var(--ink-soft)",
-										margin: 0,
-									}}
-								>
-									{course.description}
-								</p>
-							</section>
-						)}
+						<section className="catalog-sheet-section">
+							<p className="eyebrow">Description</p>
+							<p
+								style={{
+									fontSize: 13,
+									lineHeight: 1.6,
+									color: "var(--ink-soft)",
+									margin: 0,
+									whiteSpace: "pre-line",
+								}}
+							>
+								{course.description_en ?? course.description_ger ?? "N/A"}
+							</p>
+						</section>
 
-						{course.generalRequirements && (
+						{(course.previous_knowledge_en ?? course.previous_knowledge_ger) && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Requirements</p>
 								<p
@@ -174,29 +182,30 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										lineHeight: 1.6,
 										color: "var(--ink-soft)",
 										margin: 0,
+										whiteSpace: "pre-line",
 									}}
 								>
-									{course.generalRequirements}
+									{course.previous_knowledge_en ?? course.previous_knowledge_ger}
 								</p>
 							</section>
 						)}
 
-						{course.instructors?.length > 0 && (
+						{course.people?.length > 0 && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Instructors</p>
 								<div
 									style={{ display: "flex", flexDirection: "column", gap: 6 }}
 								>
-									{course.instructors.map((inst) => (
-										<div key={inst.email} style={{ fontSize: 13 }}>
+									{course.people.map((inst) => (
+										<div /*key={inst.email}*/ style={{ fontSize: 13 }}>
 											<span style={{ color: "var(--ink)", fontWeight: 500 }}>
-												{inst.name}
+												{inst.teaching_function}: {inst.last_name}, {inst.first_name}
 											</span>
-											{inst.email && (
-												<span style={{ color: "var(--muted)", marginLeft: 8 }}>
-													{inst.email}
-												</span>
-											)}
+											{/*{inst.email && (*/}
+											{/*	<span style={{ color: "var(--muted)", marginLeft: 8 }}>*/}
+											{/*		{inst.email}*/}
+											{/*	</span>*/}
+											{/*)}*/}
 										</div>
 									))}
 								</div>
@@ -205,7 +214,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 
 						<section className="catalog-sheet-section">
 							<p className="eyebrow">Schedule</p>
-							<ScheduleTable slots={course.schedule} />
+							<ScheduleTable slots={course.appointments} />
 						</section>
 
 						{prereqTree && prereqTree.prerequisites.length > 0 && (
@@ -220,40 +229,40 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 							</section>
 						)}
 
-						{course.studyPrograms?.length > 0 && (
-							<section className="catalog-sheet-section">
-								<p className="eyebrow">Study Programs</p>
-								<div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-									{course.studyPrograms.map((sp) => (
-										<span
-											key={sp.id}
-											className="tag"
-											style={{
-												background: "var(--canvas-2)",
-												color: "var(--ink-soft)",
-											}}
-										>
-											{sp.name}
-										</span>
-									))}
-								</div>
-							</section>
-						)}
+						{/*{course.studyPrograms?.length > 0 && (*/}
+						{/*	<section className="catalog-sheet-section">*/}
+						{/*		<p className="eyebrow">Study Programs</p>*/}
+						{/*		<div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>*/}
+						{/*			{course.studyPrograms.map((sp) => (*/}
+						{/*				<span*/}
+						{/*					key={sp.id}*/}
+						{/*					className="tag"*/}
+						{/*					style={{*/}
+						{/*						background: "var(--canvas-2)",*/}
+						{/*						color: "var(--ink-soft)",*/}
+						{/*					}}*/}
+						{/*				>*/}
+						{/*					{sp.name}*/}
+						{/*				</span>*/}
+						{/*			))}*/}
+						{/*		</div>*/}
+						{/*	</section>*/}
+						{/*)}*/}
 
-						{course.sourceUrl && (
-							<section className="catalog-sheet-section">
-								<a
-									href={course.sourceUrl}
-									target="_blank"
-									rel="noreferrer"
-									className="btn btn-ghost"
-									style={{ fontSize: 12 }}
-								>
-									<ExternalLink size={13} strokeWidth={1.75} />
-									View official page
-								</a>
-							</section>
-						)}
+						{/*{course.sourceUrl && (*/}
+						{/*	<section className="catalog-sheet-section">*/}
+						{/*		<a*/}
+						{/*			href={course.sourceUrl}*/}
+						{/*			target="_blank"*/}
+						{/*			rel="noreferrer"*/}
+						{/*			className="btn btn-ghost"*/}
+						{/*			style={{ fontSize: 12 }}*/}
+						{/*		>*/}
+						{/*			<ExternalLink size={13} strokeWidth={1.75} />*/}
+						{/*			View official page*/}
+						{/*		</a>*/}
+						{/*	</section>*/}
+						{/*)}*/}
 					</div>
 				)}
 			</div>

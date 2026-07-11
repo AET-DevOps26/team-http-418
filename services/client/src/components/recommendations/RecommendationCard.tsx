@@ -7,7 +7,7 @@ type Props = { recommendation: Recommendation };
 
 export function RecommendationCard({ recommendation: rec }: Props) {
 	const navigate = useNavigate();
-	const { data: courseDetail, isLoading, isError, error, fetchStatus, status } = useCourse(rec.courseId.toString());
+	const { data: courseDetail, isLoading, isError, error, fetchStatus, status } = useCourse<CourseDetail>(rec.courseId.toString());
 	if (isLoading || !courseDetail) {
 		return <div className="rec-card">Loading…</div>; // or a skeleton
 	}
@@ -25,7 +25,7 @@ export function RecommendationCard({ recommendation: rec }: Props) {
 				width: "100%",
 				font: "inherit",
 			}}
-			onClick={() => //TODO does not work
+			onClick={() =>
 				navigate({ to: "/courses", search: { course: rec.courseId.toString() } })
 			}
 		>

@@ -1,13 +1,13 @@
 import type { ScheduleSlot } from "#/api/types";
 
 const DAY_ORDER = [
-	"MONDAY",
-	"TUESDAY",
-	"WEDNESDAY",
-	"THURSDAY",
-	"FRIDAY",
-	"SATURDAY",
-	"SUNDAY",
+	"Mo.",
+	"Di.",
+	"Mi.",
+	"Do.",
+	"Fr.",
+	"Sa.",
+	"So.",
 ];
 
 const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
@@ -20,7 +20,7 @@ const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
 type Props = { slots: ScheduleSlot[] };
 
 export function ScheduleTable({ slots }: Props) {
-	if (!slots?.length) {
+	if (!slots.length) {
 		return (
 			<p style={{ fontSize: 13, color: "var(--muted)" }}>
 				No schedule available.
@@ -35,7 +35,7 @@ export function ScheduleTable({ slots }: Props) {
 
 	const sorted = [...slots].sort(
 		(a, b) =>
-			dayRank(a.day) - dayRank(b.day) || a.startTime.localeCompare(b.startTime),
+			dayRank(a.weekday_key) - dayRank(b.weekday_key) || a.time_from < b.time_from,
 	);
 
 	return (
@@ -50,23 +50,23 @@ export function ScheduleTable({ slots }: Props) {
 			</thead>
 			<tbody>
 				{sorted.map((s) => {
-					const colors = TYPE_COLORS[s.type] ?? {
+					const colors = /*TYPE_COLORS[s.type] ?? */{
 						bg: "var(--canvas-2)",
 						color: "var(--ink-soft)",
 					};
 					return (
-						<tr key={`${s.day}-${s.startTime}-${s.type}`}>
-							<td>{s.day}</td>
+						<tr key={`${s.weekday_key}-${s.time_from}`}>
+							<td>{s.weekday_key}</td>
 							<td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
-								{s.startTime} – {s.endTime}
+								{s.time_from} – {s.time_to}
 							</td>
-							<td>{s.room}</td>
+							<td>{s.place}</td>
 							<td>
 								<span
 									className="tag"
 									style={{ background: colors.bg, color: colors.color }}
 								>
-									{s.type}
+									{s.is_series? "series": "one time"}
 								</span>
 							</td>
 						</tr>

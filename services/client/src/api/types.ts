@@ -377,25 +377,32 @@ export type CourseSummary = {
 	courseCode: string;
 	name: string;
 	department: string;
-	credits: number;
+	// credits: number;
 	language: Language;
 	level: CourseLevel;
 	preferredSemester: PreferredSemester;
 	hasPrerequisites: boolean;
-	instructors: string[];
+	instructors: Instructor[];
 };
 
+type LocalTime = string; // only clocktime: hh:mm:ss
 export type ScheduleSlot = {
-	day: string;
-	startTime: string;
-	endTime: string;
-	room: string;
-	type: ScheduleType;
+	// day: string;
+	// startTime: string;
+	// endTime: string;
+	// room: string;
+	// type: ScheduleType;
+	weekday_key: string,
+	time_from: LocalTime,
+	time_to: LocalTime,
+	place: string,
+	is_series: boolean
 };
 
 export type Instructor = {
-	name: string;
-	email: string;
+	first_name: string;
+	last_name: string;
+	teaching_function: string;
 };
 
 export type CoursePrerequisiteRef = {
@@ -430,9 +437,11 @@ export type CourseDetail = {
 	org_name_ger: string;
 	org_name_en: string;
 	org_url: string;
-	people: [];
-	appointments: [];
-	curriculumConnections: [];
+	people: Instructor[];
+	appointments: string[];
+	curriculumConnections: []; //TODO
+	previous_knowledge_ger: string;
+	previous_knowledge_en: string;
 	// language: Language;
 	// level: CourseLevel;
 	// preferredSemester: PreferredSemester;
