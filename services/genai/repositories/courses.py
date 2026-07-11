@@ -45,14 +45,20 @@ def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, 
 
         # credits are missing in the main courses table, estimating based on SWS
         # approximation from scraper: ECTS ≈ ROUND(SWS * 1.25 + 0.5)
-        return sorted(list((
-                CourseRef(
-                    courseId=row[0],
-                    courseCode=row[1],
-                    courseName=row[2],
-                    credits=int(round(row[3] * 1.25 + 0.5)) if row[3] else 0,
-                    description=row[4] if row[4] else row[5],
-                ),
-                next(filter(lambda ranking: ranking[0] == row[0], rankings))[1],
-            )
-            for row in rows), key=lambda x: x[1], reverse=True)
+        return sorted(
+            list(
+                (
+                    CourseRef(
+                        courseId=row[0],
+                        courseCode=row[1],
+                        courseName=row[2],
+                        credits=int(round(row[3] * 1.25 + 0.5)) if row[3] else 0,
+                        description=row[4] if row[4] else row[5],
+                    ),
+                    next(filter(lambda ranking: ranking[0] == row[0], rankings))[1],
+                )
+                for row in rows
+            ),
+            key=lambda x: x[1],
+            reverse=True,
+        )
