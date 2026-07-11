@@ -48,7 +48,7 @@ public class APIController {
 
 		if (ai) {
 			try {
-				final List<GenAICourseResponse> aiResponse = restClient.get()
+				final List<GenAICourseResponse> aiResponse = restClient.get() //TODO this does not work
 						.uri(uriBuilder -> uriBuilder
 								.path(GENAI_PATH + "/courses")
 								.queryParamIfPresent("query", Optional.ofNullable(query))
@@ -67,7 +67,7 @@ public class APIController {
 					return ResponseEntity.status(HttpStatus.OK).body(courses);
 				}
 			} catch (Exception e) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 			}
 		}
 		final List<SimpleCourseData> courses = coursesDataDB.getByQuery(query, department, departmentID, language,
