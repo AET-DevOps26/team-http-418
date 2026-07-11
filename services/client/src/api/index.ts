@@ -28,7 +28,6 @@ export {
 	getCoursePrerequisites,
 	getCourses,
 } from "#/api/courses";
-export { getDashboard } from "#/api/dashboard";
 export { getProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
@@ -82,11 +81,7 @@ export type {
 	CourseStatus,
 	CourseStudyProgramRef,
 	CourseSummary,
-	Dashboard,
 	DashboardAlert,
-	DashboardProgress,
-	DashboardRecommendation,
-	DashboardRequirement,
 	DegreeRequirements,
 	Department,
 	EnrollCourseRequest,

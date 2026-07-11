@@ -169,7 +169,6 @@ function Dashboard() {
 		hasTranscript,
 		hasGoalsOrInterests,
 		hasScheduleData,
-		hasCv,
 		hasEnrolledCourses,
 		creditsRequired,
 		currentSemester,
@@ -192,7 +191,6 @@ function Dashboard() {
 		!hasStudyProgram ||
 		!hasTranscript ||
 		!hasGoalsOrInterests ||
-		!hasCv ||
 		!hasEnrolledCourses;
 	const firstName = profile?.student?.firstName;
 
@@ -288,7 +286,6 @@ function Dashboard() {
 							hasStudyProgram={hasStudyProgram}
 							hasTranscript={hasTranscript}
 							hasGoalsOrInterests={hasGoalsOrInterests}
-							hasCv={hasCv}
 							hasEnrolledCourses={hasEnrolledCourses}
 						/>
 					</div>

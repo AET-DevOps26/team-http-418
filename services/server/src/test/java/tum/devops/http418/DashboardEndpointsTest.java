@@ -34,17 +34,6 @@ class DashboardEndpointsTest extends BaseTest {
 	}
 
 	@Test
-	void getDashboardReturnsStructure() throws Exception {
-		mockMvc.perform(
-				get("/api/" + API_VERSION + "/me/dashboard").header("Authorization", "Bearer " + getToken()))
-				.andExpect(status().isOk()).andExpect(jsonPath("$.progress").exists())
-				.andExpect(jsonPath("$.progress.totalCredits").value(0))
-				.andExpect(jsonPath("$.upcomingCourses").isArray())
-				.andExpect(jsonPath("$.alerts").isArray())
-				.andExpect(jsonPath("$.recommendations").isArray());
-	}
-
-	@Test
 	void getProgressReturnsStructure() throws Exception {
 		mockMvc.perform(
 				get("/api/" + API_VERSION + "/me/progress").header("Authorization", "Bearer " + getToken()))

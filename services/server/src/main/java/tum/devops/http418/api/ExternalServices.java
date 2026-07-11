@@ -1,7 +1,5 @@
 package tum.devops.http418.api;
 
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -52,16 +50,6 @@ public class ExternalServices {
 		} catch (Exception e) {
 			throw new RuntimeException("Transcript match request failed", e);
 		}
-	}
-
-	public Profile.CvData callCvParse(byte[] fileBytes) {
-		Resource requestBody = new ByteArrayResource(fileBytes);
-		return restClient.post()
-				.uri(GENAI_PATH + "/cv/parse")
-				.contentType(MediaType.APPLICATION_OCTET_STREAM)
-				.body(requestBody)
-				.retrieve()
-				.body(Profile.CvData.class);
 	}
 
 	public Profile fetchProfile(String tumid) {

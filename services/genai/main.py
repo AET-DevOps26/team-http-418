@@ -13,7 +13,6 @@ from routers import (
     advisor,
     chat,
     courses,
-    cv,
     embeddings,
     plan_validate,
     prerequisites,
@@ -54,7 +53,6 @@ app.include_router(plan_validate.router, prefix="/v1")
 app.include_router(suggestions.router, prefix="/v1")
 app.include_router(prerequisites.router, prefix="/v1")
 app.include_router(roadmap.router, prefix="/v1")
-app.include_router(cv.router, prefix="/v1")
 app.include_router(stubs.router, prefix="/v1")
 
 

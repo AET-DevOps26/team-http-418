@@ -32,9 +32,6 @@ export function useDashboardData() {
 	const hasRecommendations =
 		(recommendations?.recommendations?.length ?? 0) > 0;
 	const hasRequirements = (requirements?.categories?.length ?? 0) > 0;
-	const hasCv =
-		(profile?.student?.cvData?.workExperience?.length ?? 0) > 0 ||
-		(profile?.student?.cvData?.skills?.length ?? 0) > 0;
 
 	const creditsRequired = profile?.student?.creditsRequired ?? 0;
 	const currentSemester =
@@ -71,7 +68,6 @@ export function useDashboardData() {
 		hasScheduleData,
 		hasRecommendations,
 		hasRequirements,
-		hasCv,
 		creditsRequired,
 		currentSemester,
 		progressPercentage,

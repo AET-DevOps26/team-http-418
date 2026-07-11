@@ -289,51 +289,6 @@ public class APIControllerMe {
 		return ResponseEntity.status(entity.getStatusCode()).body(entity.getBody());
 	}
 
-	@PostMapping("/cv/upload")
-	public ResponseEntity<Profile.CvData> uploadCv(@AuthenticationPrincipal String tumid,
-			@RequestParam("file") MultipartFile file) {
-		if (!"application/pdf".equals(file.getContentType())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
-		if (file.getSize() > 10L * 1024 * 1024) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
-		final Profile.CvData cvData;
-		try {
-			cvData = transcriptService.callCvParse(file.getBytes());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-		}
-		if (cvData == null) {
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
-		}
-		final Profile current = transcriptService.fetchProfile(tumid);
-		final Profile.Student s = (current != null && current.student() != null)
-				? current.student()
-				: new Profile.Student(null, null, null, 0, List.of(), List.of(), 0, 0, 0, null, null, null, null,
-						false);
-		final Profile.Student updated = new Profile.Student(
-				s.firstName(), s.lastName(),
-				s.studyProgramId(), s.semester(), s.careerGoals(), s.interests(),
-				s.preferredWorkload(), s.creditsEarned(), s.creditsRequired(),
-				s.expectedGraduation(), s.industryPreference(),
-				s.rolePreference(), cvData, s.onboardingCompleted());
-		final Profile newProfile = new Profile(updated,
-				current != null ? current.completedCourses() : List.of(),
-				current != null ? current.enrolledCourses() : List.of(),
-				current != null ? current.availableCourses() : List.of(),
-				current != null ? current.limit() : 0,
-				current != null ? current.category() : null,
-				current != null ? current.semesterKey() : null);
-		try {
-			restClient.post().uri(PROFILE_SERVICE + "/upsert/" + tumid)
-					.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().toEntity(String.class);
-		} catch (RestClientResponseException e) {
-			return ResponseEntity.status(e.getStatusCode()).build();
-		}
-		return ResponseEntity.ok(cvData);
-	}
-
 	@GetMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid) {
 		return getRecommendations(tumid, new PostRecommendationsBody(List.of(), List.of(), List.of()));
@@ -350,26 +305,6 @@ public class APIControllerMe {
 		final ProfileWithOverrides newProfile = new ProfileWithOverrides(profile, prompt);
 		return ResponseEntity.status(HttpStatus.OK).body(restClient.post().uri(GENAI_PATH + "/me/recommendations")
 				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().body(String.class));
-	}
-
-	@GetMapping("/dashboard")
-	public ResponseEntity<DashboardDTO> getDashboard(@AuthenticationPrincipal String tumid) {
-		final int totalCredits = studentDataDB.sumCredits(tumid);
-		final BigDecimal gpa = studentDataDB.avgGrade(tumid);
-		final int completed = studentDataDB.countCompletedCourses(tumid);
-		final int enrolled = studentDataDB.countEnrolledCourses(tumid);
-		final DashboardDTO.DashboardProgress progress = new DashboardDTO.DashboardProgress(totalCredits, gpa, completed,
-				enrolled);
-
-		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 10);
-		final List<EnrolledCourseDTO> upcoming = enrolledRows.stream().map(row -> {
-			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
-			return new EnrolledCourseDTO(row.courseId(), String.valueOf(row.courseId()),
-					name != null ? name : "Unknown",
-					row.semesterKey());
-		}).toList();
-
-		return ResponseEntity.ok(new DashboardDTO(progress, upcoming, List.of(), List.of()));
 	}
 
 	@GetMapping("/schedule")
