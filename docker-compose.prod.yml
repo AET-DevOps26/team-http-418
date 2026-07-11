@@ -77,7 +77,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./infra/helm/aidan-monitoring/prometheus.yml:/etc/prometheus.yml
+      - ./infra/helm/aidan-monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -112,6 +112,7 @@ services:
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./infra/helm/aidan-monitoring/promtail.yml:/etc/promtail/promtail.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     command: -config.file=/etc/promtail/promtail.yml
     depends_on:
       - loki
@@ -126,6 +127,23 @@ services:
     command: -config.file=/etc/loki/loki-config.yaml
     restart: unless-stopped
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${COURSES_DB_NAME}?sslmode=disable"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
 
 volumes:
   pgdata:

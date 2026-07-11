@@ -21,6 +21,7 @@ from routers import (
     stubs,
     suggestions,
 )
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("genai")
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AIDAN GenAI Service", lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 
 router = APIRouter(prefix="/v1")
 

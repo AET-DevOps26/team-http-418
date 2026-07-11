@@ -3,16 +3,46 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'
+  # Prometheus itself
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets:
+          - prometheus:9090
 
-  - job_name: 'server'
-    metrics_path: '/api/actuator/prometheus'
+  # Spring Boot server
+  - job_name: "server"
+    metrics_path: "/actuator/prometheus"
     static_configs:
-      - targets: ['server:8080']
+      - targets:
+          - server:8080
 
-  - job_name: 'llm-service'
-    metrics_path: '/metrics'
+  # GenAI service
+  - job_name: "genai"
+    metrics_path: "/metrics"
     static_configs:
-      - targets: ['llm:5001']
+      - targets:
+          - genai:8000
+
+  # User Profile Service
+  - job_name: "user-profile-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets:
+          - user-profile-service:8080
+
+  # PDF Parser
+  - job_name: "pdf-parser"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets:
+          - pdf-parser:8080
+
+  - job_name: "postgres"
+    static_configs:
+      - targets:
+          - postgres-exporter:9187
+
+  - job_name: "docker"
+    static_configs:
+      - targets:
+          - cadvisor:8080
