@@ -377,7 +377,6 @@ function ProfilePage() {
 							programs={resolvedProgram ? [resolvedProgram] : []}
 						/>
 					)}
-
 				</div>
 
 				{/* Right column */}

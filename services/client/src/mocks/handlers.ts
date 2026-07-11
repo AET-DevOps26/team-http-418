@@ -1605,5 +1605,4 @@ export const handlers = [
 			],
 		});
 	}),
-
 ];

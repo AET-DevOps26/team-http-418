@@ -108,7 +108,6 @@ export function DocumentsStep({ onUpdate, onNext, onSkip }: Props) {
 						</>
 					)}
 				</div>
-
 			</div>
 
 			<div
