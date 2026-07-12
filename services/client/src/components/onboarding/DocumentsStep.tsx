@@ -1,21 +1,18 @@
 import { CheckCircle, MinusCircle } from "lucide-react";
-import type { CvData } from "#/api/types";
 import { ImportedTable } from "#/components/progress/ImportedTable";
 import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
 import { UnmatchedTable } from "#/components/progress/UnmatchedTable";
 import { useImportReducer } from "#/hooks/useImportReducer";
 import type { OnboardingStep2 } from "#/hooks/useOnboarding";
 import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
-import { CvUploader } from "./CvUploader";
 
 type Props = {
-	data: OnboardingStep2 | null;
 	onUpdate: (data: Partial<OnboardingStep2>) => void;
 	onNext: () => void;
 	onSkip: () => void;
 };
 
-export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
+export function DocumentsStep({ onUpdate, onNext, onSkip }: Props) {
 	const transcriptMutation = useTranscriptUpload();
 	const [importState, importDispatch] = useImportReducer();
 
@@ -26,10 +23,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 				onUpdate({ transcriptUploaded: true });
 			},
 		});
-	}
-
-	function handleCvUploaded(cvData: CvData) {
-		onUpdate({ cvUploaded: true, cvData });
 	}
 
 	function handleNext() {
@@ -48,7 +41,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 		onUpdate({ transcriptUploaded: false });
 	}
 
-	const cvDone = data?.cvUploaded ?? false;
 	const inReview = importState.phase === "review";
 	const importDone = importState.phase === "done";
 
@@ -115,23 +107,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 							)}
 						</>
 					)}
-				</div>
-
-				<div>
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: 8,
-							marginBottom: 10,
-						}}
-					>
-						<span style={{ fontSize: 13, fontWeight: 600, color: "#0B1F33" }}>
-							CV / Résumé
-						</span>
-						{cvDone && <CheckCircle size={15} style={{ color: "#2D6FB5" }} />}
-					</div>
-					<CvUploader onUploaded={handleCvUploaded} uploaded={cvDone} />
 				</div>
 			</div>
 

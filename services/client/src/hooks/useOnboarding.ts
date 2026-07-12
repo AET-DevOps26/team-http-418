@@ -1,6 +1,5 @@
 import type { Dispatch } from "react";
 import { useReducer } from "react";
-import type { CvData } from "#/api/types";
 
 export type OnboardingStep1 = {
 	firstName: string;
@@ -12,8 +11,6 @@ export type OnboardingStep1 = {
 
 export type OnboardingStep2 = {
 	transcriptUploaded: boolean;
-	cvUploaded: boolean;
-	cvData: CvData | null;
 };
 
 export type OnboardingStep3 = {
@@ -59,8 +56,6 @@ function reducer(
 				...state,
 				step2: {
 					transcriptUploaded: false,
-					cvUploaded: false,
-					cvData: null,
 					...state.step2,
 					...action.data,
 				},
@@ -106,10 +101,7 @@ function saveState(state: OnboardingState) {
 		if (state.currentStep === 1 && !state.step1) {
 			sessionStorage.removeItem(STORAGE_KEY);
 		} else {
-			const toSave: OnboardingState = state.step2
-				? { ...state, step2: { ...state.step2, cvData: null } }
-				: state;
-			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 		}
 	} catch {
 		/* ignore */

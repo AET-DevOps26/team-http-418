@@ -8,7 +8,7 @@ Student profile:
 - Interests: {interests}
 - Skills: {skills}
 - Completed courses: {completed_names}
-{cv_context}
+{career_context}
 Candidate courses (sorted by relevance score):
 {courses_text}
 

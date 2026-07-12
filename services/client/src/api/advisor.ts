@@ -91,7 +91,7 @@ export async function* sendMessage(
 
 				try {
 					yield JSON.parse(data) as AdvisorSSEEvent;
-				} catch (e) {
+				} catch {
 					console.warn("Failed to parse SSE data:", data);
 				}
 			}
@@ -104,7 +104,7 @@ export async function* sendMessage(
 				if (data !== "[DONE]") {
 					try {
 						yield JSON.parse(data) as AdvisorSSEEvent;
-					} catch (e) {
+					} catch {
 						console.warn("Failed to parse SSE data:", data);
 					}
 				}

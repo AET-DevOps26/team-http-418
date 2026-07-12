@@ -70,7 +70,7 @@ class TranscriptUploadTest extends BaseTest {
 
 	private static final Profile CS_PROFILE = new Profile(
 			new Profile.Student(null, null, "Computer Science BSc", 3, List.of(), List.of(), 20, 0, 0, null, null,
-					null, null, false),
+					null, false),
 			List.of(), List.of(), List.of(), 10, null, null);
 
 	@Test
