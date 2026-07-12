@@ -34,7 +34,8 @@ def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, 
                 ct.key,
                 c.title_en,
                 COALESCE(c.sws, 0) as sws,
-                c.description_en, c.description_ger
+                c.description_en, c.description_ger,
+                c.title_ger
             FROM courses c
             JOIN course_types ct ON c.course_type_id = ct.id
             WHERE c.id IN %(ids)s
@@ -51,7 +52,7 @@ def get_course_refs(rankings: list[tuple[int, float]]) -> list[tuple[CourseRef, 
                     CourseRef(
                         courseId=row[0],
                         courseCode=row[1],
-                        courseName=row[2],
+                        courseName=row[2] if row[2] else row[6],
                         credits=int(round(row[3] * 1.25 + 0.5)) if row[3] else 0,
                         description=row[4] if row[4] else row[5],
                     ),
