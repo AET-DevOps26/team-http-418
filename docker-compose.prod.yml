@@ -29,8 +29,6 @@ services:
 
   user-profile-service:
     image: ghcr.io/aet-devops26/team-http-418/user-profile-service:${IMAGE_TAG:-latest}
-    ports:
-      - "8060:8080"
     env_file: .env
     healthcheck:
       test: [ "CMD-SHELL", "wget --spider http://localhost:8080/v1/health 2>&1 || exit 1" ]
@@ -43,8 +41,6 @@ services:
 
   pdf-parser:
     image: ghcr.io/aet-devops26/team-http-418/pdf-parser:${IMAGE_TAG:-latest}
-    ports:
-      - "8070:8080"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:8080/v1/health 2>&1 || exit 1"]
       interval: 10s
@@ -74,17 +70,15 @@ services:
   prometheus:
     image: prom/prometheus:v2.52.0
     container_name: prometheus
-    ports:
-      - "9090:9090"
     volumes:
       - ./infra/helm/aidan-monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/helm/aidan-monitoring/prometheus-rules.yml:/etc/prometheus/prometheus-rules.yml:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
     restart: unless-stopped
 
   grafana:
@@ -96,8 +90,8 @@ services:
       - grafana-storage:/var/lib/grafana
       - ./infra/helm/aidan-monitoring/grafana:/etc/grafana/provisioning:ro
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_FEATURE_TOGGLES_ENABLE=logsInExplore
       - GF_LOG_CONSOLECOLORS=true
@@ -120,8 +114,6 @@ services:
 
   loki:
     image: grafana/loki:2.9.0
-    ports:
-      - "3100:3100"
     volumes:
       - ./infra/helm/aidan-monitoring/loki-config.yaml:/etc/loki/loki-config.yaml:ro
     command: -config.file=/etc/loki/loki-config.yaml
@@ -137,8 +129,6 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    ports:
-      - "8081:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
