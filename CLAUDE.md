@@ -25,9 +25,7 @@ After changing Java source, if `bootRun` shows `compileJava UP-TO-DATE` and chan
 
 ### Server → GenAI (Spring Boot → FastAPI/uvicorn)
 
-The static `RestClient.create()` in `Http418Application` has **no Jackson message converters**. Sending `.body(javaObject)` with `contentType(APPLICATION_JSON)` produces an empty HTTP body — Spring silently drops it because no converter matches `Object + application/json`.
-
-**Current workaround** (`ExternalServices.java`): `callTranscriptMatch` uses `java.net.http.HttpClient` with explicit ObjectMapper serialization. Other methods that send JSON bodies via the static `restClient` (e.g. recommendations, profile upsert, roadmap) still have this bug.
+The static `restClient` in `Http418Application` used to be a bare `RestClient.create()` with **no Jackson message converters**: sending `.body(javaObject)` with `contentType(APPLICATION_JSON)` produced an empty HTTP body because Spring silently dropped it. Fixed in #138 — the client is now built via `RestClient.builder()` with a `JdkClientHttpRequestFactory` pinned to HTTP/1.1, and `RestClientJsonBodyTest` guards JSON body serialization against regressions. `callTranscriptMatch` (`ExternalServices.java`) still uses `java.net.http.HttpClient` with explicit ObjectMapper serialization; that is a leftover workaround, not a requirement.
 
 **HTTP/2 breaks uvicorn body parsing.** Java's `HttpClient` defaults to HTTP/2 and sends `Upgrade: h2c` headers. Uvicorn logs `WARNING: Unsupported upgrade request` and drops the request body. Force `HttpClient.Version.HTTP_1_1`.
 
