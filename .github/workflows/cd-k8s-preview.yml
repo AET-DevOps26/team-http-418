@@ -90,14 +90,16 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Create GHCR pull secret
+      - name: Create GHCR pull secret in cluster namespaces
         run: |
-          kubectl create secret docker-registry ghcr-pull-secret \
-            --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GHCR_PULL_TOKEN }} \
-            --namespace=aidan \
-            --dry-run=client -o yaml | kubectl apply -f -
+          for ns in aidan aidan-monitoring; do
+            kubectl create secret docker-registry ghcr-pull-secret \
+              --docker-server=ghcr.io \
+              --docker-username=${{ github.actor }} \
+              --docker-password=${{ secrets.GHCR_PULL_TOKEN }} \
+              --namespace=$ns \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
 
       - name: Reset failed Helm release
         run: |
@@ -109,11 +111,26 @@ jobs:
             echo "Helm release in failed state — will let upgrade --install handle it"
           fi
 
+          # Also handle monitoring release if it is in a stuck state
+          MSTATUS=$(helm status aidan-monitoring -n aidan-monitoring -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
+          if [ "$MSTATUS" = "pending-install" ] || [ "$MSTATUS" = "pending-upgrade" ] || [ "$MSTATUS" = "pending-rollback" ]; then
+            echo "Monitoring Helm release stuck in $MSTATUS — rolling back"
+            helm rollback aidan-monitoring 0 -n aidan-monitoring --force || helm uninstall aidan-monitoring -n aidan-monitoring --no-hooks || true
+          elif [ "$MSTATUS" = "failed" ]; then
+            echo "Monitoring Helm release in failed state — will let upgrade --install handle it"
+          fi
+
       - name: Clean up stuck pods
         run: |
           kubectl delete pods -n aidan --field-selector=status.phase==Failed --ignore-not-found
           for pod in $(kubectl get pods -n aidan -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
             kubectl delete pod "$pod" -n aidan --force --grace-period=0 || true
+          done
+
+          # also clean up in monitoring namespace
+          kubectl delete pods -n aidan-monitoring --field-selector=status.phase==Failed --ignore-not-found
+          for pod in $(kubectl get pods -n aidan-monitoring -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
+            kubectl delete pod "$pod" -n aidan-monitoring --force --grace-period=0 || true
           done
 
       - name: Deploy via Helm
@@ -128,6 +145,18 @@ jobs:
             --namespace aidan \
             --wait \
             --timeout 7m
+
+      - name: Deploy monitoring via Helm
+        run: |
+          helm upgrade --install aidan-monitoring ./infra/helm/aidan-monitoring \
+            -f ./infra/helm/aidan-monitoring/values-prod.yaml \
+            --set grafana.adminUser=${{ secrets.GF_SECURITY_ADMIN_USER }} \
+            --set grafana.adminPassword=${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} \
+            --set postgresExporter.password=${{ secrets.DB_PASSWORD }} \
+            --namespace aidan-monitoring \
+            --create-namespace \
+            --wait \
+            --timeout 5m
 
       - name: Comment on PR
         if: success()
@@ -154,3 +183,6 @@ jobs:
           kubectl logs -l app=genai -n aidan --tail=50 || true
           kubectl logs -l app=user-profile-service -n aidan --tail=50 || true
           kubectl logs -l app=pdf-parser -n aidan --tail=50 || true
+          kubectl get pods -n aidan-monitoring
+          kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp'
+          kubectl describe pods -n aidan-monitoring

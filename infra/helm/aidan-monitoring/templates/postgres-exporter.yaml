@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: postgres-exporter
+    {{- include "aidan-monitoring.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-exporter
+  template:
+    metadata:
+      labels:
+        app: postgres-exporter
+    spec:
+      containers:
+        - name: postgres-exporter
+          image: {{ .Values.postgresExporter.image }}
+          ports:
+            - containerPort: {{ .Values.postgresExporter.port }}
+          envFrom:
+            - secretRef:
+                name: aidan-monitoring-secret
+          resources:
+            {{- toYaml .Values.postgresExporter.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: postgres-exporter
+  ports:
+    - port: {{ .Values.postgresExporter.port }}
+      targetPort: {{ .Values.postgresExporter.port }}

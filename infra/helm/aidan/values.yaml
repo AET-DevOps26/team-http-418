@@ -99,8 +99,4 @@ ingress:
 jwt:
   secret: ""
 
-grafana:
-  adminUser: ""
-  adminPassword: ""
-
 namespace: aidan

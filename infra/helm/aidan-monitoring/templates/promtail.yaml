@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-promtail
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-promtail
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-promtail
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: promtail
+    {{- include "aidan-monitoring.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail
+      containers:
+        - name: promtail
+          image: {{ .Values.promtail.image }}
+          args:
+            - -config.file=/etc/promtail/promtail.yml
+          volumeMounts:
+            - name: promtail-config
+              mountPath: /etc/promtail/promtail.yml
+              subPath: promtail.yml
+            - name: pods-logs
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: containers-logs
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+          resources:
+            {{- toYaml .Values.promtail.resources | nindent 12 }}
+      volumes:
+        - name: promtail-config
+          configMap:
+            name: promtail-config
+        - name: pods-logs
+          hostPath:
+            path: /var/log/pods
+        - name: containers-logs
+          hostPath:
+            path: /var/lib/docker/containers
