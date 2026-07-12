@@ -32,7 +32,7 @@ export function ScheduleTable({ slots }: Props) {
 	const sorted = [...slots].sort(
 		(a, b) =>
 			dayRank(a.weekday_key) - dayRank(b.weekday_key) ||
-			compareTimeStrings(a,b),
+			compareTimeStrings(a, b),
 	);
 
 	return (

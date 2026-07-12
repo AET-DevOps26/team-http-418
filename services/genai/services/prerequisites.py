@@ -47,6 +47,8 @@ async def extract_prerequisites(request: PrerequisiteExtractRequest) -> dict:
             detail="Embedding service unavailable — could not convert previous knowledge to vector",
         ) from e
 
+    available_map = {c.course_id: c for c in request.available_courses}
+
     try:
         ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = find_similar_courses(
