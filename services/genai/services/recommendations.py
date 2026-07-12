@@ -36,20 +36,12 @@ def _build_prompt(
     )
 
     skills = request.student.skills or []
-    cv_lines = []
+    career_lines = []
     if request.student.industry_preference:
-        cv_lines.append(f"- Industry preference: {request.student.industry_preference}")
+        career_lines.append(f"- Industry preference: {request.student.industry_preference}")
     if request.student.role_preference:
-        cv_lines.append(f"- Role preference: {request.student.role_preference}")
-    if request.student.cv_data:
-        cv_skills = request.student.cv_data.get("skills", [])
-        if cv_skills:
-            cv_lines.append(f"- CV skills: {', '.join(cv_skills[:20])}")
-        work_exp = request.student.cv_data.get("workExperience", [])
-        if work_exp:
-            roles = [f"{w.get('role', '')} at {w.get('company', '')}" for w in work_exp[:3]]
-            cv_lines.append(f"- Work experience: {'; '.join(roles)}")
-    cv_context = ("\n" + "\n".join(cv_lines) + "\n") if cv_lines else ""
+        career_lines.append(f"- Role preference: {request.student.role_preference}")
+    career_context = ("\n" + "\n".join(career_lines) + "\n") if career_lines else ""
 
     return _RECOMMENDATIONS_PROMPT.format(
         limit=request.limit,
@@ -60,7 +52,7 @@ def _build_prompt(
         skills=", ".join(skills) or "not specified",
         completed_names=", ".join(completed_names) or "none",
         courses_text=courses_text,
-        cv_context=cv_context,
+        career_context=career_context,
     )
 
 

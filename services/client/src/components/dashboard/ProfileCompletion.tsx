@@ -5,7 +5,6 @@ type Props = {
 	hasStudyProgram: boolean;
 	hasTranscript: boolean;
 	hasGoalsOrInterests: boolean;
-	hasCv: boolean;
 	hasEnrolledCourses: boolean;
 };
 
@@ -20,7 +19,6 @@ export function ProfileCompletion({
 	hasStudyProgram,
 	hasTranscript,
 	hasGoalsOrInterests,
-	hasCv,
 	hasEnrolledCourses,
 }: Props) {
 	const items: ChecklistItem[] = [
@@ -43,12 +41,6 @@ export function ProfileCompletion({
 			done: hasGoalsOrInterests,
 		},
 		{
-			label: "Upload CV",
-			description: "Help AIDAN understand your background.",
-			to: "/profile",
-			done: hasCv,
-		},
-		{
 			label: "Enroll in courses",
 			description: "Add courses to your current semester.",
 			to: "/courses",
@@ -57,7 +49,7 @@ export function ProfileCompletion({
 	];
 
 	const completedCount = items.filter((i) => i.done).length;
-	const percentage = Math.round((completedCount / 5) * 100);
+	const percentage = Math.round((completedCount / 4) * 100);
 
 	if (percentage === 100) return null;
 

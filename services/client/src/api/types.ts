@@ -32,14 +32,6 @@ export type LoginRequest = {
 	password: string;
 };
 
-export type DashboardProgress = {
-	totalCreditsEarned: number;
-	totalCreditsRequired: number;
-	progressPercentage: number;
-	gpa: number;
-	currentSemester: SemesterKey;
-};
-
 export type AlertType =
 	| "PREREQUISITE_WARNING"
 	| "DEADLINE"
@@ -53,14 +45,6 @@ export type DashboardAlert = {
 	message: string;
 	relatedEntityId?: string;
 	relatedEntityType?: string;
-};
-
-export type DashboardRecommendation = {
-	courseId: string;
-	courseCode: string;
-	courseName: string;
-	relevanceScore: number;
-	reason: string;
 };
 
 export type Recommendation = {
@@ -100,21 +84,6 @@ export type UpcomingCourse = {
 	courseCode: string;
 	courseName: string;
 	nextSession: CourseSession;
-};
-
-export type DashboardRequirement = {
-	name: string;
-	earned: number;
-	total: number;
-};
-
-export type Dashboard = {
-	progress: DashboardProgress;
-	alerts: DashboardAlert[];
-	recommendations: DashboardRecommendation[];
-	upcomingCourses: UpcomingCourse[];
-	semesterCredits: number;
-	requirements?: DashboardRequirement[];
 };
 
 export type ScheduleEventType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM";
@@ -493,27 +462,6 @@ export type StudyProgramRef = {
 	nameGer: string;
 };
 
-export type WorkExperience = {
-	company: string;
-	role: string;
-	duration: string;
-	description: string;
-};
-
-export type Education = {
-	institution: string;
-	degree: string;
-	field: string;
-	years: string;
-};
-
-export type CvData = {
-	workExperience: WorkExperience[];
-	skills: string[];
-	languages: string[];
-	education: Education[];
-};
-
 export type Student = {
 	firstName?: string;
 	lastName?: string;
@@ -528,7 +476,6 @@ export type Student = {
 	expectedGraduation?: string;
 	industryPreference?: string;
 	rolePreference?: string;
-	cvData?: CvData;
 	onboardingCompleted?: boolean;
 };
 

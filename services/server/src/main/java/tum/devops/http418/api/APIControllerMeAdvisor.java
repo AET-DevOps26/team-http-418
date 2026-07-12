@@ -158,9 +158,6 @@ public class APIControllerMeAdvisor {
 									fullResponse.append(token);
 									emitter.send(SseEmitter.event().data(token));
 								} else if (json.containsKey("fullContent")) {
-									// redundant if we append tokens, but could be used to ensure full consistency
-									// fullResponse.setLength(0);
-									// fullResponse.append((String) json.get("fullContent"));
 								}
 							} catch (Exception e) {
 								log.warn("Failed to parse SSE data: {}", data);

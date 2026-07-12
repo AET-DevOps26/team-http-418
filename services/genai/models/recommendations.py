@@ -13,7 +13,6 @@ class StudentProfile(BaseModel):
     skills: list[str] = Field(default=[])
     industry_preference: str | None = Field(default=None, alias="industryPreference")
     role_preference: str | None = Field(default=None, alias="rolePreference")
-    cv_data: dict | None = Field(default=None, alias="cvData")
 
 
 class CourseRef(BaseModel):
