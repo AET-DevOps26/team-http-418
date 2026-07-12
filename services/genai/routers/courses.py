@@ -22,5 +22,5 @@ async def courses_search(
     start = time.perf_counter()
     result = await semantic_search(query=query, limit=limit)
     elapsed_ms = round((time.perf_counter() - start) * 1000)
-    logger.info("search | results=%d duration_ms=%d", len(result["results"]), elapsed_ms)
+    logger.info("search | results=%d duration_ms=%d", len(result), elapsed_ms)
     return JSONResponse(result)
