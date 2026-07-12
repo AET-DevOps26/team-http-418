@@ -145,7 +145,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_FEATURE_TOGGLES_ENABLE=logsInExplore
       - GF_LOG_CONSOLECOLORS=true
-    # entrypoint: ["sh", "-c", "/etc/grafana/provisioning/init_grafana.sh"]
+    entrypoint: ["sh", "-c", "/etc/grafana/provisioning/init_grafana.sh"]
     depends_on:
       - prometheus
       - loki
@@ -168,6 +168,7 @@ services:
       - "3100:3100"
     volumes:
       - ./infra/helm/aidan-monitoring/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
     restart: unless-stopped
 
@@ -178,6 +179,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
