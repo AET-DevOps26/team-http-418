@@ -5,7 +5,7 @@ from psycopg2 import DatabaseError, OperationalError
 
 from db import ensure_schema_initialized, get_connection
 from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
-from models.embeddings import EmbedCoursesRequest, EmbedMode, CourseItem
+from models.embeddings import CourseItem, EmbedCoursesRequest, EmbedMode
 
 logger = logging.getLogger("genai")
 
