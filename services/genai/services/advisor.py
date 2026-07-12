@@ -45,9 +45,10 @@ def _build_messages(request: AdvisorRequest) -> list:
     messages.append(HumanMessage(content=request.new_message))
     return messages
 
+
 async def do_thinking(messages):
     """
-        allows the model to do a semantic search for courses
+    allows the model to do a semantic search for courses
     """
     llm = get_llm()
     result = await llm.ainvoke(messages)
@@ -66,7 +67,7 @@ async def do_thinking(messages):
         try:
             embeddings = get_embeddings()
             query_vector = await embeddings.aembed_query(llm_query.get("query"))
-            course_ids = find_similar_courses(query_vector,[], 30)
+            course_ids = find_similar_courses(query_vector, [], 30)
             logger.info("advisor | fournd %d courses", len(course_ids))
         except Exception as e:
             logger.warning("advisor | semantic search failed: %s", e)
@@ -77,7 +78,7 @@ async def do_thinking(messages):
         + (f" | {course.description}" if course.description else "")
         for course, score in courses
     )
-    messages.append(SystemMessage(content = courses_text + "\nThis is your query response. now reply to the user prompt"))
+    messages.append(SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt"))
     logger.info("advisor | messages: %s", messages)
     return messages
 
