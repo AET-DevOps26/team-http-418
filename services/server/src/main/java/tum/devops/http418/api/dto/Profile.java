@@ -13,7 +13,7 @@ public record Profile(Student student, List<String> completedCourses, List<Strin
 						  String rolePreference, boolean onboardingCompleted) {
 
         public Student(){
-            this("", "", "invalid id", "no study program",1, List.of(), List.of(), 0, 0, 0, null, null, null, null, false);
+            this("", "", "invalid id", "no study program",1, List.of(), List.of(), 0, 0, 0, null, null, null, false);
         }
 	}
 
