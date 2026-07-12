@@ -76,19 +76,13 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
             detail="Embedding service unavailable — could not convert query to vector",
         ) from e
 
-    completed_ids = {course.course_id for course in request.completed_courses}  # TODO
-    exclude_ids = set(request.exclude_course_ids or [])
-    candidate_ids = [
-        course.course_id
-        for course in request.available_courses
-        if course.course_id not in completed_ids and course.course_id not in exclude_ids
-    ]
+    _exclude_ids = set(request.exclude_course_ids or [])
 
     try:
         ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = find_similar_courses(
             query_vector=query_vector,
-            candidate_ids=candidate_ids,
+            candidate_ids=[],
             limit=request.limit * 3,
         )
     except OperationalError as e:

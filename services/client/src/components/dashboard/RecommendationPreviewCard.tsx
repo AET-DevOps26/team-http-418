@@ -14,7 +14,7 @@ export function RecommendationPreviewCard({
 		data: course,
 		isLoading,
 		isError,
-	} = useCourse<CourseDetail>(recommendation.courseId);
+	} = useCourse<CourseDetail>(recommendation.courseId.toString());
 
 	if (isLoading) {
 		return <div className="rec-card">Loading...</div>;
@@ -32,19 +32,6 @@ export function RecommendationPreviewCard({
 		>
 			<div className="rec-card">
 				<div style={{ marginBottom: 8 }}>
-					<span
-						className="tag"
-						style={{
-							background: "var(--blue-50)",
-							color: "var(--blue-700)",
-							fontFamily: "var(--font-mono)",
-							marginBottom: 6,
-							display: "inline-flex",
-						}}
-					>
-						{course.title_en ?? course.title_ger ?? "N/A"}
-					</span>
-
 					<div
 						style={{
 							fontSize: 13,
@@ -53,7 +40,7 @@ export function RecommendationPreviewCard({
 							lineHeight: 1.3,
 						}}
 					>
-						{recommendation.courseName}
+						{course.title_en ?? course.title_ger ?? "N/A"}
 					</div>
 				</div>
 

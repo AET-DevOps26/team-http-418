@@ -12,7 +12,7 @@ const DAY_ORDER = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."];
 type Props = { slots: ScheduleSlot[] };
 
 export function ScheduleTable({ slots }: Props) {
-	if (!slots.length) {
+	if (!slots?.length) {
 		return (
 			<p style={{ fontSize: 13, color: "var(--muted)" }}>
 				No schedule available.
@@ -21,14 +21,18 @@ export function ScheduleTable({ slots }: Props) {
 	}
 
 	function dayRank(day: string) {
-		const rank = DAY_ORDER.indexOf(day.toUpperCase());
+		const rank = DAY_ORDER.indexOf(day);
 		return rank === -1 ? DAY_ORDER.length : rank;
 	}
-
+	const compareTimeStrings = (a: ScheduleSlot, b: ScheduleSlot) => {
+		if (a.time_from < b.time_from) return -1;
+		if (a.time_from > b.time_from) return 1;
+		return 0;
+	};
 	const sorted = [...slots].sort(
 		(a, b) =>
 			dayRank(a.weekday_key) - dayRank(b.weekday_key) ||
-			a.time_from < b.time_from,
+			compareTimeStrings(a,b),
 	);
 
 	return (

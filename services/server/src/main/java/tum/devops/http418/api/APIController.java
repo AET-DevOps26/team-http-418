@@ -1,6 +1,8 @@
 package tum.devops.http418.api;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ public class APIController {
 
 	private final CoursesDataDB coursesDataDB;
 	private final StudentDataDB studentDataDB;
+	private final Logger logger = LoggerFactory.getLogger(APIController.class);
 
 	@GetMapping("/hello")
 	public String sayHello() {
@@ -67,7 +70,8 @@ public class APIController {
 					return ResponseEntity.status(HttpStatus.OK).body(courses);
 				}
 			} catch (Exception e) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+				logger.error(e.getMessage());
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 			}
 		}
 		final List<SimpleCourseData> courses = coursesDataDB.getByQuery(query, department, departmentID, language,
