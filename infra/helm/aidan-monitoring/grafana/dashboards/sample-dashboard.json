@@ -1,224 +1,154 @@
 {
-  "apiVersion": "dashboard.grafana.app/v2",
-  "kind": "Dashboard",
-  "metadata": {
-    "name": "adbvt5s",
-    "namespace": "default",
-    "uid": "4fc55596-42b1-4fc3-b984-342858535c28",
-    "resourceVersion": "1783870075308998",
-    "generation": 2,
-    "creationTimestamp": "2026-07-12T15:26:29Z",
-    "labels": {
-      "grafana.app/deprecatedInternalID": "168055018823680"
-    },
-    "annotations": {
-      "grafana.app/createdBy": "user:bfrs9waklkv7ka",
-      "grafana.app/folder": "",
-      "grafana.app/saved-from-ui": "Grafana v13.0.2 (3fcdbc5a)",
-      "grafana.app/updatedBy": "user:bfrs9waklkv7ka",
-      "grafana.app/updatedTimestamp": "2026-07-12T15:27:55Z"
-    }
-  },
-  "spec": {
-    "annotations": [
+  "annotations": {
+    "list": [
       {
-        "kind": "AnnotationQuery",
-        "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "spec": {}
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "builtIn": true
-        }
-      }
-    ],
-    "cursorSync": "Off",
-    "id": null,
-    "editable": true,
-    "elements": {
-      "panel-1": {
-        "kind": "Panel",
-        "spec": {
-          "id": 1,
-          "title": "New panel",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "prometheus",
-                      "version": "v0",
-                      "datasource": {
-                        "uid": "prometheus"
-                      },
-                      "spec": {
-                        "editorMode": "builder",
-                        "expr": "container_memory_usage_bytes",
-                        "legendFormat": "__auto",
-                        "range": true
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "timeseries",
-            "version": "13.0.2",
-            "spec": {
-              "options": {
-                "annotations": {
-                  "clustering": -1,
-                  "multiLane": false
-                },
-                "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "single",
-                  "sort": "none"
-                }
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
               },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "palette-classic"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
+              {
+                "color": "red",
+                "value": 80
               }
-            }
-          }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
         }
-      }
-    },
-    "layout": {
-      "kind": "AutoGridLayout",
-      "spec": {
-        "maxColumnCount": 3,
-        "columnWidthMode": "standard",
-        "rowHeightMode": "standard",
-        "items": [
-          {
-            "kind": "AutoGridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-1"
-              }
-            }
-          }
-        ]
-      }
-    },
-    "links": [],
-    "liveNow": false,
-    "preload": false,
-    "tags": [],
-    "timeSettings": {
-      "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
-      "autoRefresh": "",
-      "autoRefreshIntervals": [
-        "5s",
-        "10s",
-        "30s",
-        "1m",
-        "5m",
-        "15m",
-        "30m",
-        "1h",
-        "2h",
-        "1d"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "container_memory_usage_bytes{}",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
       ],
-      "hideTimepicker": false,
-      "fiscalYearStartMonth": 0
-    },
-    "title": "memory usage",
-    "variables": [],
-    "preferences": {
-      "layout": {
-        "kind": "AutoGridLayout",
-        "spec": {
-          "maxColumnCount": 3,
-          "columnWidthMode": "standard",
-          "rowHeightMode": "standard",
-          "items": []
+      "title": "Panel Title",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "container_memory_usage_bytes {__name__=\"container_memory_usage_bytes\", container_label_com_docker_compose_config_hash=\"03e3181934e3a6943a7307d1edbfb2bbe8b35c71766bbc4b1a5ca993285956b2\", container_label_com_docker_compose_container_number=\"1\", container_label_com_docker_compose_image=\"sha256:3de2bd5203120b866d74a9b283b2ffb8ec382fbf9dc321814700c6ea6f44ec57\", container_label_com_docker_compose_oneoff=\"False\", container_label_com_docker_compose_project=\"team-http-418\", container_label_com_docker_compose_project_config_files=\"D:\\danie\\Intellij Projects\\team-http-418\\docker-compose.yml\", container_label_com_docker_compose_project_working_dir=\"D:\\danie\\Intellij Projects\\team-http-418\", container_label_com_docker_compose_service=\"cadvisor\", container_label_com_docker_compose_version=\"5.1.0\", container_label_desktop_docker_io_binds_0_Source=\"/\", container_label_desktop_docker_io_binds_0_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_0_Target=\"/rootfs\", container_label_desktop_docker_io_binds_1_Source=\"/var/run\", container_label_desktop_docker_io_binds_1_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_1_Target=\"/var/run\", container_label_desktop_docker_io_binds_2_Source=\"/sys\", container_label_desktop_docker_io_binds_2_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_2_Target=\"/sys\", container_label_desktop_docker_io_binds_3_Source=\"/var/lib/docker/\", container_label_desktop_docker_io_binds_3_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_3_Target=\"/var/lib/docker\", container_label_desktop_docker_io_ports_8080_tcp=\":8081\", container_label_desktop_docker_io_ports_scheme=\"v2\", id=\"/docker/01a3dc2919febd164b92169504447912252f4fc7dc1a283f945ae089f4eceb5c\", image=\"gcr.io/cadvisor/cadvisor:latest\", instance=\"cadvisor:8080\", job=\"docker\", name=\"team-http-418-cadvisor-1\"}",
+                "handlerKey": "mappings.value"
+              }
+            ]
+          }
         }
-      }
+      ],
+      "type": "timeseries"
     }
-  }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "memory usage",
+  "uid": "dfrwueh5afjswf",
+  "version": 2,
+  "weekStart": ""
 }
