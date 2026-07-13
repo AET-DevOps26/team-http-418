@@ -92,6 +92,9 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Apply namespace manifests
+        run: kubectl apply -f infra/k8s/namespace.yml
+
       - name: Create GHCR pull secret in cluster namespaces
         run: |
           for ns in aidan aidan-monitoring; do
