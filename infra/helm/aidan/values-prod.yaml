@@ -12,7 +12,6 @@ ingress:
     enabled: true
     clusterIssuer: letsencrypt-prod
     secretName: aidan-tls
-    clusterIssuer: letsencrypt-prod
 global:
   imagePullSecrets:
     - name: ghcr-pull-secret

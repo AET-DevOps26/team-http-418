@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -116,21 +116,8 @@
           "refId": "A"
         }
       ],
-      "title": "Panel Title",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "container_memory_usage_bytes {__name__=\"container_memory_usage_bytes\", container_label_com_docker_compose_config_hash=\"03e3181934e3a6943a7307d1edbfb2bbe8b35c71766bbc4b1a5ca993285956b2\", container_label_com_docker_compose_container_number=\"1\", container_label_com_docker_compose_image=\"sha256:3de2bd5203120b866d74a9b283b2ffb8ec382fbf9dc321814700c6ea6f44ec57\", container_label_com_docker_compose_oneoff=\"False\", container_label_com_docker_compose_project=\"team-http-418\", container_label_com_docker_compose_project_config_files=\"D:\\danie\\Intellij Projects\\team-http-418\\docker-compose.yml\", container_label_com_docker_compose_project_working_dir=\"D:\\danie\\Intellij Projects\\team-http-418\", container_label_com_docker_compose_service=\"cadvisor\", container_label_com_docker_compose_version=\"5.1.0\", container_label_desktop_docker_io_binds_0_Source=\"/\", container_label_desktop_docker_io_binds_0_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_0_Target=\"/rootfs\", container_label_desktop_docker_io_binds_1_Source=\"/var/run\", container_label_desktop_docker_io_binds_1_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_1_Target=\"/var/run\", container_label_desktop_docker_io_binds_2_Source=\"/sys\", container_label_desktop_docker_io_binds_2_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_2_Target=\"/sys\", container_label_desktop_docker_io_binds_3_Source=\"/var/lib/docker/\", container_label_desktop_docker_io_binds_3_SourceKind=\"hostFile\", container_label_desktop_docker_io_binds_3_Target=\"/var/lib/docker\", container_label_desktop_docker_io_ports_8080_tcp=\":8081\", container_label_desktop_docker_io_ports_scheme=\"v2\", id=\"/docker/01a3dc2919febd164b92169504447912252f4fc7dc1a283f945ae089f4eceb5c\", image=\"gcr.io/cadvisor/cadvisor:latest\", instance=\"cadvisor:8080\", job=\"docker\", name=\"team-http-418-cadvisor-1\"}",
-                "handlerKey": "mappings.value"
-              }
-            ]
-          }
-        }
-      ],
+      "title": "Memory Usage",
+      "transformations": [],
       "type": "timeseries"
     }
   ],

@@ -21,6 +21,18 @@ spec:
           image: {{ .Values.postgresExporter.image }}
           ports:
             - containerPort: {{ .Values.postgresExporter.port }}
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: { { .Values.postgresExporter.port } }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: { { .Values.postgresExporter.port } }
+            initialDelaySeconds: 10
+            periodSeconds: 10
           envFrom:
             - secretRef:
                 name: aidan-monitoring-secret

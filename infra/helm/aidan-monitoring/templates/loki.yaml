@@ -39,6 +39,18 @@ spec:
             - containerPort: {{ .Values.loki.port }}
           args:
             - -config.file=/etc/loki/loki-config.yaml
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.loki.port }}
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.loki.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
           volumeMounts:
             - name: loki-config
               mountPath: /etc/loki/loki-config.yaml

@@ -34,6 +34,9 @@ spec:
             - name: docker
               mountPath: /var/lib/docker
               readOnly: true
+            - name: containerd
+              mountPath: /var/lib/containerd
+              readOnly: true
           resources:
             {{- toYaml .Values.cadvisor.resources | nindent 12 }}
       volumes:
@@ -49,6 +52,9 @@ spec:
         - name: docker
           hostPath:
             path: /var/lib/docker
+        - name: containerd
+          hostPath:
+            path: /var/lib/containerd
 ---
 apiVersion: v1
 kind: Service
