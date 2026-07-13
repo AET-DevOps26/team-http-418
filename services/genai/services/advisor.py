@@ -79,7 +79,7 @@ async def do_thinking(messages):
         for course, score in courses
     )
     messages.append(SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt"))
-    logger.info("advisor | messages: %s", messages)
+    logger.info("advisor | messages_count=%d", len(messages))
     return messages
 
 
