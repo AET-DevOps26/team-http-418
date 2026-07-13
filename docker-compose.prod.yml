@@ -82,7 +82,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:11.5.2
     container_name: grafana
     ports:
       - "3001:3000"
@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.0.0
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./infra/helm/aidan-monitoring/promtail.yml:/etc/promtail/promtail.yml
@@ -113,7 +113,7 @@ services:
     restart: unless-stopped
 
   loki:
-    image: grafana/loki:2.9.0
+    image: grafana/loki:3.7.3
     volumes:
       - ./infra/helm/aidan-monitoring/loki-config.yaml:/etc/loki/loki-config.yaml:ro
       - loki-data:/loki
@@ -121,7 +121,7 @@ services:
     restart: unless-stopped
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter
+    image: prometheuscommunity/postgres-exporter:v0.16.0
     environment:
       DATA_SOURCE_NAME: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${COURSES_DB_NAME}?sslmode=disable"
     depends_on:
@@ -130,7 +130,7 @@ services:
     restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
