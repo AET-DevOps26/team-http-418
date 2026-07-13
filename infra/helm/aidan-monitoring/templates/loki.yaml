@@ -31,7 +31,7 @@ spec:
         app: loki
     spec:
       securityContext:
-        { { - toYaml .Values.loki.securityContext | nindent 8 } }
+        {{- toYaml .Values.loki.securityContext | nindent 8 }}
       containers:
         - name: loki
           image: {{ .Values.loki.image }}

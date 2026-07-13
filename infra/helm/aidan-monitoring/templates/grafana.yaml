@@ -31,7 +31,7 @@ spec:
         app: grafana
     spec:
       securityContext:
-        { { - toYaml .Values.grafana.securityContext | nindent 8 } }
+        {{- toYaml .Values.grafana.securityContext | nindent 8 }}
       containers:
         - name: grafana
           image: {{ .Values.grafana.image }}
