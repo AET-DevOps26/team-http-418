@@ -81,9 +81,13 @@ async def do_thinking(messages):
         for course, score in courses
     )
     if courses_text:
-        messages.append(SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt"))
+        messages.append(
+            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
+        )
     else:
-        messages.append(SystemMessage(content="No additional course data available. Proceed to answer the user's question."))
+        messages.append(
+            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
+        )
     logger.info("advisor | messages_count=%d", len(messages))
     return messages
 
