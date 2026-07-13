@@ -11,8 +11,13 @@ metadata:
   namespace: {{ .Values.namespace }}
 rules:
   - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -35,8 +40,13 @@ metadata:
   namespace: {{ .Values.appNamespace }}
 rules:
   - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
