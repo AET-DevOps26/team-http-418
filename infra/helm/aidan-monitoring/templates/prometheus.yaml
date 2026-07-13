@@ -30,6 +30,8 @@ spec:
       labels:
         app: prometheus
     spec:
+      securityContext:
+        { { - toYaml .Values.prometheus.securityContext | nindent 8 } }
       containers:
         - name: prometheus
           image: {{ .Values.prometheus.image }}

@@ -22,6 +22,10 @@ prometheus:
     limits:
       memory: "512Mi"
       cpu: "500m"
+  securityContext:
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
 
 grafana:
   image: grafana/grafana-oss:11.5.2
@@ -36,6 +40,10 @@ grafana:
     limits:
       memory: "256Mi"
       cpu: "250m"
+  securityContext:
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
 
 loki:
   image: grafana/loki:3.7.3
@@ -48,6 +56,10 @@ loki:
     limits:
       memory: "512Mi"
       cpu: "500m"
+  securityContext:
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
 
 promtail:
   image: grafana/promtail:3.0.0
