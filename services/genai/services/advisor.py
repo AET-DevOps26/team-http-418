@@ -10,6 +10,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from llm.embeddings import get_embeddings
 from llm.provider import get_llm
 from models.advisor import AdvisorRequest, MessageRole
+from models.recommendations import CourseRef
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
 
@@ -63,6 +64,7 @@ async def do_thinking(messages):
         llm_query = {}
 
     course_ids: list[tuple[int, float]] = []
+    courses: list[tuple[CourseRef, float]] = []
     if llm_query.get("isQuery") and llm_query.get("query"):
         try:
             embeddings = get_embeddings()
@@ -71,14 +73,17 @@ async def do_thinking(messages):
             logger.info("advisor | fournd %d courses", len(course_ids))
         except Exception as e:
             logger.warning("advisor | semantic search failed: %s", e)
+        courses = get_course_refs(course_ids)
 
-    courses = get_course_refs(course_ids)
     courses_text = "\n".join(
         f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
         + (f" | {course.description}" if course.description else "")
         for course, score in courses
     )
-    messages.append(SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt"))
+    if courses_text:
+        messages.append(SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt"))
+    else:
+        messages.append(SystemMessage(content="No additional course data available. Proceed to answer the user's question."))
     logger.info("advisor | messages_count=%d", len(messages))
     return messages
 
