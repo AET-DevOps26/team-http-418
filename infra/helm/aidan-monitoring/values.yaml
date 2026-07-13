@@ -1,4 +1,5 @@
 namespace: aidan-monitoring
+createNamespace: false
 appNamespace: aidan
 
 prometheus:
