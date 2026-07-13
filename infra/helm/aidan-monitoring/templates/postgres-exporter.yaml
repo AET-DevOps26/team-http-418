@@ -24,13 +24,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /metrics
-              port: { { .Values.postgresExporter.port } }
+              port: {{ .Values.postgresExporter.port }}
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /metrics
-              port: { { .Values.postgresExporter.port } }
+              port: {{ .Values.postgresExporter.port }}
             initialDelaySeconds: 10
             periodSeconds: 10
           envFrom:
