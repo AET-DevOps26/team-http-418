@@ -9,6 +9,5 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
   tls:
     enabled: true
-    clusterIssuer: letsencrypt-prod
     secretName: aidan-tls
     clusterIssuer: letsencrypt-prod
