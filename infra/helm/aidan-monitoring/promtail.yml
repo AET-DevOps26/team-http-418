@@ -18,12 +18,21 @@ scrape_configs:
           job: kubernetes-pods
           __path__: /var/log/pods/*/*/*.log
 
+    relabel_configs:
+      - source_labels: ['__path__']
+        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+        target_label: namespace
+        replacement: '$1'
+
+      - source_labels: ['__path__']
+        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+        target_label: pod
+        replacement: '$2'
+
+      - source_labels: ['__path__']
+        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+        target_label: container
+        replacement: '$4'
+
     pipeline_stages:
       - cri: {}
-      - regex:
-          expression: '/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_(?P<uid>[^/]+)/(?P<container>[^/]+)/.*'
-
-      - labels:
-          namespace:
-          pod:
-          container:
