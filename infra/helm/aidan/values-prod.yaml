@@ -12,7 +12,7 @@ ingress:
   tls:
     enabled: true
     clusterIssuer: letsencrypt-prod
-    secretName: foundflow-tls
+    secretName: aidan-tls
 
 global:
   imagePullSecrets:

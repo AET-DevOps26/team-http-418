@@ -2,6 +2,16 @@ namespace: aidan-monitoring
 createNamespace: false
 appNamespace: aidan
 
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  tls:
+    enabled: false
+    secretName: ""
+
 prometheus:
   image: prom/prometheus:v2.52.0
   port: 9090
@@ -42,6 +52,9 @@ loki:
 
 promtail:
   image: grafana/promtail:3.0.0
+  createClusterRole: false
+  clusterRoleName: ""
+  clusterRoleBindingName: ""
   resources:
     requests:
       memory: "64Mi"
