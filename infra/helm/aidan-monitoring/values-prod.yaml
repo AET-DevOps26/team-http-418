@@ -11,3 +11,4 @@ ingress:
     enabled: true
     clusterIssuer: letsencrypt-prod
     secretName: aidan-tls
+    clusterIssuer: letsencrypt-prod
