@@ -6,8 +6,7 @@ ingress:
   enabled: true
   className: nginx
   host: ""
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  annotations: {}
   tls:
     enabled: false
     secretName: ""
