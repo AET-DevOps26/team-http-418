@@ -15,6 +15,7 @@ spec:
       labels:
         app: cadvisor
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: cadvisor
           image: {{ .Values.cadvisor.image }}
