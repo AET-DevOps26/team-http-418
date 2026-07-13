@@ -15,7 +15,7 @@ groups:
       - alert: HighP95LatencySpringBoot
         expr: |
           histogram_quantile(0.95,
-            sum(rate(http_server_requests_seconds_bucket{job=~"server|user-profile-service"}[5m])) by (le, job)
+            sum(rate(http_server_requests_seconds_bucket{job=~"server|user-profile-service|pdf-parser"}[5m])) by (le, job)
           ) > 1.5
         for: 5m
         labels:
@@ -40,8 +40,8 @@ groups:
       # --- Error rate: Spring Boot services ---
       - alert: HighErrorRateSpringBoot
         expr: |
-          100 * (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service", status=~"5.."}[5m])) by (job) or (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service"}[5m])) by (job) * 0))
-          / sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service"}[5m])) by (job)
+          100 * (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser", status=~"5.."}[5m])) by (job) or (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser"}[5m])) by (job) * 0))
+          / sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser"}[5m])) by (job)
           > 5
         for: 5m
         labels:
