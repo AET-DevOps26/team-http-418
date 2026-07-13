@@ -48,6 +48,8 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
+          build-args: |
+            API_VERSION=${{ vars.API_VERSION }}
 
       - name: Build and push genai image
         uses: docker/build-push-action@v6
