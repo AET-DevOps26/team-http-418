@@ -7,3 +7,4 @@ requests==2.32.3
 psycopg2-binary==2.9.12
 pgvector==0.3.6
 pypdf==5.4.0
+prometheus-fastapi-instrumentator==7.1.0

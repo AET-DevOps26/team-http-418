@@ -5,6 +5,7 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from db import init_schema
 from llm.embeddings import get_embedding_dimensions
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AIDAN GenAI Service", lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 
 router = APIRouter(prefix="/v1")
 

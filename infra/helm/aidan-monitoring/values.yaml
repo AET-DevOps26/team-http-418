@@ -1,0 +1,98 @@
+namespace: aidan-monitoring
+createNamespace: false
+appNamespace: aidan
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: ""
+
+prometheus:
+  image: prom/prometheus:v2.52.0
+  port: 9090
+  storage: 5Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  securityContext:
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
+
+grafana:
+  image: grafana/grafana-oss:11.5.2
+  port: 3000
+  adminUser: ""
+  adminPassword: ""
+  storage: 2Gi
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+  securityContext:
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
+
+loki:
+  image: grafana/loki:3.7.3
+  port: 3100
+  storage: 5Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  securityContext:
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+
+promtail:
+  image: grafana/promtail:3.0.0
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+postgresExporter:
+  image: prometheuscommunity/postgres-exporter:v0.16.0
+  port: 9187
+  username: postgres
+  password: ""
+  database: courses-data
+  host: postgres-service
+  resources:
+    requests:
+      memory: "32Mi"
+      cpu: "25m"
+    limits:
+      memory: "64Mi"
+      cpu: "50m"
+
+cadvisor:
+  image: gcr.io/cadvisor/cadvisor:v0.49.1
+  port: 8080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"

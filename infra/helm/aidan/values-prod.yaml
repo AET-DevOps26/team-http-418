@@ -6,10 +6,12 @@ image:
 ingress:
   enabled: true
   className: nginx
-  host: "aidan.aet.cit.tum.de"
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-
+  host: "aidan.stud.k8s.aet.cit.tum.de"
+  annotations: {}
+  tls:
+    enabled: true
+    clusterIssuer: letsencrypt-prod
+    secretName: aidan-tls
 global:
   imagePullSecrets:
     - name: ghcr-pull-secret
