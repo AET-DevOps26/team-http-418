@@ -222,7 +222,7 @@ fi
 # ── client ───────────────────────────────────────────────────────────────────
 if $START_CLIENT; then
   log_cli "Starting client dev server..."
-  (cd "$SCRIPT_DIR/services/client" && pnpm install && pnpm dev) &
+  (cd "$SCRIPT_DIR/services/client" && CI=true pnpm install && pnpm dev) &
   PIDS+=($!)
 fi
 

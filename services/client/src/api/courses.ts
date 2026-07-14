@@ -33,7 +33,6 @@ function toCourseSummary(c: ServerCourse): CourseSummary {
 		courseCode: c.key ?? "",
 		name: c.title_en ?? c.title_ger ?? "",
 		department: "",
-		credits: 0,
 		language: "",
 		level: "",
 		preferredSemester: "",

@@ -399,14 +399,13 @@ function CoursesPage() {
 							</button>
 						</div>
 					)}
-
-					{search.course && (
-						<CourseDetailSheet
-							courseId={search.course}
-							onClose={() => setSearch({ course: undefined })}
-						/>
-					)}
 				</>
+			)}
+			{search.course && (
+				<CourseDetailSheet
+					courseId={search.course}
+					onClose={() => setSearch({ course: undefined })}
+				/>
 			)}
 		</div>
 	);
