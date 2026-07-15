@@ -1,15 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
-import { GenerateRoadmapModal } from "#/components/roadmap/GenerateRoadmapModal";
-import { GeneratingState } from "#/components/roadmap/GeneratingState";
-import { RoadmapTimeline } from "#/components/roadmap/RoadmapTimeline";
-import {
-	useAddCourseToSemester,
-	useGenerateRoadmap,
-	useRemoveCourseFromSemester,
-	useRoadmap,
-} from "#/hooks/useRoadmap";
+import { RoadmapCanvas } from "#/components/roadmap/RoadmapCanvas";
+import { useGenerateRoadmap, useRoadmap } from "#/hooks/useRoadmap";
 
 export const Route = createFileRoute("/_authenticated/planner")({
 	component: Planner,
@@ -57,9 +49,6 @@ function PlannerSkeleton() {
 function Planner() {
 	const { data, isLoading, isError, refetch } = useRoadmap();
 	const generateMutation = useGenerateRoadmap();
-	const addMutation = useAddCourseToSemester();
-	const removeMutation = useRemoveCourseFromSemester();
-	const [modalOpen, setModalOpen] = useState(false);
 
 	if (isLoading) return <PlannerSkeleton />;
 
@@ -121,79 +110,94 @@ function Planner() {
 					<button
 						type="button"
 						className="btn btn-primary"
-						onClick={() => setModalOpen(true)}
+						disabled={generateMutation.isPending}
+						onClick={() => generateMutation.mutate()}
 					>
 						<Sparkles size={14} strokeWidth={2} />
 						Generate Roadmap
 					</button>
-					<GenerateRoadmapModal
-						open={modalOpen}
-						onClose={() => setModalOpen(false)}
-						onSubmit={(req) => generateMutation.mutate(req)}
-					/>
 				</div>
 			</div>
 		);
 	}
 
-	return (
-		<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
-			<div
-				style={{
-					display: "flex",
-					alignItems: "flex-start",
-					justifyContent: "space-between",
-					marginBottom: 24,
-				}}
-			>
-				<div>
-					<h1
-						style={{
-							margin: 0,
-							fontSize: 24,
-							fontWeight: 700,
-							color: "var(--ink)",
-							lineHeight: 1.2,
-						}}
-					>
-						Semester Planner
-					</h1>
-					<p
-						style={{
-							margin: "4px 0 0",
-							fontSize: 14,
-							color: "var(--muted)",
-						}}
-					>
-						Est. graduation {data.estimatedGraduation} ·{" "}
-						{data.totalPlannedCredits} total credits
-					</p>
-				</div>
-				<button
-					type="button"
-					className="btn btn-primary"
-					onClick={() => setModalOpen(true)}
+	const header = (
+		<div
+			style={{
+				display: "flex",
+				alignItems: "flex-start",
+				justifyContent: "space-between",
+				marginBottom: 24,
+			}}
+		>
+			<div>
+				<h1
+					style={{
+						margin: 0,
+						fontSize: 24,
+						fontWeight: 700,
+						color: "var(--ink)",
+						lineHeight: 1.2,
+					}}
 				>
-					<Sparkles size={14} strokeWidth={2} />
-					Regenerate Roadmap
-				</button>
+					Semester Planner
+				</h1>
+				<p
+					style={{
+						margin: "4px 0 0",
+						fontSize: 14,
+						color: "var(--muted)",
+					}}
+				>
+					Est. graduation {data.estimatedGraduation} ·{" "}
+					{data.totalPlannedCredits} total credits
+				</p>
 			</div>
+			<button
+				type="button"
+				className="btn btn-primary"
+				disabled={generateMutation.isPending}
+				onClick={() => generateMutation.mutate()}
+			>
+				<Sparkles size={14} strokeWidth={2} />
+				Regenerate
+			</button>
+		</div>
+	);
 
-			<RoadmapTimeline
-				semesters={data.semesters}
-				onAddCourse={(semesterKey, courseId) =>
-					addMutation.mutate({ semesterKey, courseId })
-				}
-				onRemoveCourse={(semesterKey, courseId) =>
-					removeMutation.mutate({ semesterKey, courseId })
-				}
-			/>
+	return (
+		<div
+			className="view-fade"
+			style={{
+				flex: 1,
+				display: "flex",
+				flexDirection: "column",
+				overflow: "hidden",
+				padding: "28px 28px 0",
+			}}
+		>
+			{header}
+			<RoadmapCanvas semesters={data.semesters} />
+		</div>
+	);
+}
 
-			<GenerateRoadmapModal
-				open={modalOpen}
-				onClose={() => setModalOpen(false)}
-				onSubmit={(req) => generateMutation.mutate(req)}
-			/>
+function GeneratingState() {
+	return (
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				justifyContent: "center",
+				minHeight: 300,
+				gap: 16,
+			}}
+		>
+			<div className="spinner" />
+			<p style={{ color: "var(--muted)", fontSize: 14 }}>
+				Generating your roadmap…
+			</p>
 		</div>
 	);
 }

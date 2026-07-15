@@ -321,15 +321,6 @@ export type Roadmap = {
 	estimatedGraduation: SemesterKey;
 };
 
-export type GenerateRoadmapRequest = {
-	aims: string;
-	maxCreditsPerSemester: number;
-	interests: string[];
-};
-
-export type AddCourseRequest = {
-	courseId: string;
-};
 
 // ── Course catalog types ──
 

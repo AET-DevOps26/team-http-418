@@ -46,21 +46,11 @@ export {
 	generateRecommendations,
 	getRecommendations,
 } from "#/api/recommendations";
-export {
-	addCourseToSemester,
-	generateRoadmap,
-	getRoadmap,
-	getSemester,
-	getSemesters,
-	removeCourseFromSemester,
-	updateRoadmap,
-	updateSemester,
-} from "#/api/roadmap";
+export { generateRoadmap, getRoadmap } from "#/api/roadmap";
 export { getSchedule } from "#/api/schedule";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
-	AddCourseRequest,
 	AdvisorSSEEvent,
 	AiMatchModule,
 	AiMatchResponse,
@@ -87,7 +77,7 @@ export type {
 	EnrollCourseRequest,
 	EnrolledCourse,
 	GenerateRecommendationsBody,
-	GenerateRoadmapRequest,
+
 	ImportError,
 	ImportedCourse,
 	Instructor,

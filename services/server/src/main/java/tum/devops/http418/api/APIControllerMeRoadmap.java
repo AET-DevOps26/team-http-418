@@ -13,6 +13,8 @@ import tum.devops.http418.data.CoursesDataDB;
 import tum.devops.http418.data.StudentDataDB;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +26,8 @@ import static tum.devops.http418.Http418Application.restClient;
 @RestController
 @RequestMapping("/api/${API_VERSION}/me/roadmap")
 public class APIControllerMeRoadmap {
+
+	private static final ExecutorService GENERATOR = Executors.newVirtualThreadPerTaskExecutor();
 
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
@@ -48,6 +52,13 @@ public class APIControllerMeRoadmap {
 
 	@PostMapping("/generate")
 	public ResponseEntity<RoadmapDTO> generateRoadmap(@AuthenticationPrincipal String tumid) {
+		studentDataDB.upsertRoadmap(tumid, "[]", "GENERATING");
+		GENERATOR.submit(() -> doGenerate(tumid));
+		return ResponseEntity.accepted()
+				.body(new RoadmapDTO("GENERATING", null, null, List.of(), 0, null));
+	}
+
+	private void doGenerate(String tumid) {
 		try {
 			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
 					.body(Profile.class);
@@ -93,7 +104,7 @@ public class APIControllerMeRoadmap {
 			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 			final Set<Long> usedIds = new HashSet<>(completedIds);
 			usedIds.addAll(enrolledIds);
-			final List<Map<String, Object>> availableCourses = coursesDataDB //TODO very inefficient. do this in genai
+			final List<Map<String, Object>> availableCourses = coursesDataDB
 					.getCoursesByStudyProgramWithSws(studyProgram).stream()
 					.filter(c -> !usedIds.contains(c.id()))
 					.map(c -> {
@@ -128,11 +139,11 @@ public class APIControllerMeRoadmap {
 			student.put("semester", profileStudent != null ? profileStudent.semester() : 1);
 			student.put("careerGoals",
 					profileStudent != null && profileStudent.careerGoals() != null
-							? List.of(profileStudent.careerGoals())
+							? profileStudent.careerGoals()
 							: List.of());
 			student.put("interests",
 					profileStudent != null && profileStudent.interests() != null
-							? List.of(profileStudent.interests())
+							? profileStudent.interests()
 							: List.of());
 			student.put("preferences", preferences);
 
@@ -142,6 +153,7 @@ public class APIControllerMeRoadmap {
 			payload.put("enrolledCourses", enrolledCourses);
 			payload.put("degreeRequirements", degreeRequirements);
 			payload.put("availableCourses", availableCourses);
+			payload.put("currentSemesterKey", profile != null ? profile.semesterKey() : "26S");
 
 			final String response = restClient.post().uri(GENAI_PATH + "/me/roadmap/generate")
 					.contentType(MediaType.APPLICATION_JSON).body(payload).retrieve().body(String.class);
@@ -156,11 +168,8 @@ public class APIControllerMeRoadmap {
 			final String normalizedJson = objectMapper.writeValueAsString(normalizedSemesters);
 
 			studentDataDB.upsertRoadmap(tumid, normalizedJson, "GENERATED");
-			final StudentDataDB.RoadmapRow row = studentDataDB.getRoadmap(tumid);
-			return ResponseEntity.ok(toRoadmapDTO(row));
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-					.body(new RoadmapDTO("ERROR", null, null, List.of(), 0, null));
+			studentDataDB.upsertRoadmap(tumid, "[]", "ERROR");
 		}
 	}
 
