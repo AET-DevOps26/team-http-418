@@ -26,6 +26,7 @@ export {
 	checkPrerequisites,
 	getCourse,
 	getCoursePrerequisites,
+	getCoursePrerequisitesBatch,
 	getCourses,
 } from "#/api/courses";
 export { getProfile, updateProfile } from "#/api/profile";
@@ -77,7 +78,6 @@ export type {
 	EnrollCourseRequest,
 	EnrolledCourse,
 	GenerateRecommendationsBody,
-
 	ImportError,
 	ImportedCourse,
 	Instructor,
@@ -88,6 +88,7 @@ export type {
 	Page,
 	PlannedCourse,
 	PreferredSemester,
+	PrerequisiteBatchResponse,
 	PrerequisiteCheck,
 	PrerequisiteCheckRef,
 	PrerequisiteNode,

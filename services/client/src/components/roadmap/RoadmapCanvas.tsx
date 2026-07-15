@@ -2,10 +2,10 @@ import {
 	Background,
 	BackgroundVariant,
 	Controls,
-	MiniMap,
-	ReactFlow,
 	type EdgeTypes,
+	MiniMap,
 	type NodeTypes,
+	ReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { SemesterPlanDetail } from "#/api/types";
@@ -30,21 +30,21 @@ type Props = {
 
 export function RoadmapCanvas({ semesters }: Props) {
 	const courseIds = semesters.flatMap((s) => s.courses.map((c) => c.courseId));
-	const { trees, loaded, total, errored } = usePrerequisiteBatch(courseIds);
+	const { trees, loaded, total, errored, isLoading } =
+		usePrerequisiteBatch(courseIds);
 	const { nodes, edges } = useRoadmapGraph(semesters, trees);
-
-	const isLoading = loaded + errored < total;
 
 	return (
 		<div className="rmc-canvas-wrap">
-			{isLoading && (
+			{isLoading && total > 0 && (
 				<div className="rmc-prereq-badge">
 					Loading prerequisites ({loaded}/{total})
 				</div>
 			)}
 			{!isLoading && errored > 0 && (
 				<div className="rmc-prereq-badge rmc-prereq-badge--error">
-					Failed to load prerequisites for {errored} course{errored > 1 ? "s" : ""}
+					Failed to load prerequisites for {errored} course
+					{errored > 1 ? "s" : ""}
 				</div>
 			)}
 			<ReactFlow

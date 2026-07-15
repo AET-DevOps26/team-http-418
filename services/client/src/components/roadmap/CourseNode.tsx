@@ -1,4 +1,10 @@
-import { Handle, NodeToolbar, Position, type Node, type NodeProps } from "@xyflow/react";
+import {
+	Handle,
+	type Node,
+	type NodeProps,
+	NodeToolbar,
+	Position,
+} from "@xyflow/react";
 import { useState } from "react";
 import type { CourseStatus } from "#/api/types";
 
@@ -20,18 +26,22 @@ const statusClass: Record<CourseStatus, string> = {
 };
 
 export function CourseNode({ data }: NodeProps<CourseNodeType>) {
-	const [hovered, setHovered] = useState(false);
+	const [tooltipVisible, setTooltipVisible] = useState(false);
 	const { courseCode, courseName, credits, status } = data;
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: The React Flow node is intentionally exposed as a group around its focusable course control.
 		<div
 			className={`rmc-course-node ${statusClass[status]}`}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}
+			role="group"
+			onMouseEnter={() => setTooltipVisible(true)}
+			onMouseLeave={() => setTooltipVisible(false)}
+			onFocus={() => setTooltipVisible(true)}
+			onBlur={() => setTooltipVisible(false)}
 		>
 			<Handle type="target" position={Position.Left} className="rmc-handle" />
 			<Handle type="source" position={Position.Right} className="rmc-handle" />
-			<NodeToolbar isVisible={hovered} position={Position.Top}>
+			<NodeToolbar isVisible={tooltipVisible} position={Position.Top}>
 				<div className="rmc-tooltip">
 					<p className="rmc-tooltip__name">{courseName}</p>
 					<p className="rmc-tooltip__meta">
@@ -39,9 +49,15 @@ export function CourseNode({ data }: NodeProps<CourseNodeType>) {
 					</p>
 				</div>
 			</NodeToolbar>
-			<span className="rmc-course-node__code">{courseCode}</span>
-			<span className="rmc-course-node__name">{courseName}</span>
-			<span className="rmc-course-node__credits">{credits}cp</span>
+			<button
+				type="button"
+				className="rmc-course-node__focus-target"
+				aria-label={`${courseCode}: ${courseName}, ${credits} credits, ${status.toLowerCase()}`}
+			>
+				<span className="rmc-course-node__code">{courseCode}</span>
+				<span className="rmc-course-node__name">{courseName}</span>
+				<span className="rmc-course-node__credits">{credits}cp</span>
+			</button>
 		</div>
 	);
 }

@@ -15,7 +15,9 @@ export function SemesterGroupNode({ data }: NodeProps<SemesterGroupNodeType>) {
 			className={`rmc-semester-group${isCurrent ? " rmc-semester-group--current" : ""}`}
 		>
 			<p className="rmc-semester-group__label">{label}</p>
-			<span className="rmc-semester-group__credits">{totalCredits} credits</span>
+			<span className="rmc-semester-group__credits">
+				{totalCredits} credits
+			</span>
 		</div>
 	);
 }

@@ -9,27 +9,60 @@ import { buildLayout } from "./roadmap-layout";
 
 function collectEdges(
 	node: PrerequisiteNode,
-	targetId: string,
+	parentId: string,
 	courseIdSet: Set<string>,
 	seen: Set<string>,
 	result: Edge[],
 ) {
 	for (const prereq of node.prerequisites) {
-		if (courseIdSet.has(prereq.courseId)) {
-			const edgeId = `edge-${prereq.courseId}-${targetId}`;
+		const prerequisiteId = String(prereq.courseId);
+		if (courseIdSet.has(prerequisiteId) && courseIdSet.has(parentId)) {
+			const edgeId = `edge-${prerequisiteId}-${parentId}`;
 			if (!seen.has(edgeId)) {
 				seen.add(edgeId);
 				result.push({
 					id: edgeId,
-					source: `course-${prereq.courseId}`,
-					target: `course-${targetId}`,
+					source: `course-${prerequisiteId}`,
+					target: `course-${parentId}`,
 					type: "prereqEdge",
 					data: { type: prereq.type },
 				});
 			}
 		}
-		collectEdges(prereq, targetId, courseIdSet, seen, result);
+		collectEdges(prereq, prerequisiteId, courseIdSet, seen, result);
 	}
+}
+
+/** Builds direct prerequisite edges only; it deliberately never bridges absent parents. */
+export function buildPrerequisiteEdges(
+	semesters: SemesterPlanDetail[],
+	trees: PrerequisiteTree[],
+): Edge[] {
+	const courseIdSet = new Set(
+		semesters.flatMap((semester) =>
+			semester.courses.map((course) => String(course.courseId)),
+		),
+	);
+	const result: Edge[] = [];
+	const seen = new Set<string>();
+	for (const tree of trees) {
+		const treeCourseId = String(tree.courseId);
+		if (!courseIdSet.has(treeCourseId)) continue;
+		collectEdges(
+			{
+				courseId: treeCourseId,
+				courseCode: tree.courseCode,
+				courseName: tree.courseName,
+				type: "REQUIRED",
+				prerequisites: tree.prerequisites,
+			},
+			treeCourseId,
+			courseIdSet,
+			seen,
+			result,
+		);
+	}
+	return result;
 }
 
 export function useRoadmapGraph(
@@ -38,29 +71,10 @@ export function useRoadmapGraph(
 ) {
 	const nodes = useMemo<Node[]>(() => buildLayout(semesters), [semesters]);
 
-	const courseIdSet = useMemo(() => {
-		const set = new Set<string>();
-		for (const s of semesters) {
-			for (const c of s.courses) set.add(c.courseId);
-		}
-		return set;
-	}, [semesters]);
-
-	const edges = useMemo<Edge[]>(() => {
-		const result: Edge[] = [];
-		const seen = new Set<string>();
-		for (const tree of trees) {
-			if (!courseIdSet.has(tree.courseId)) continue;
-			collectEdges(
-				{ courseId: tree.courseId, courseCode: tree.courseCode, courseName: tree.courseName, type: "REQUIRED", prerequisites: tree.prerequisites },
-				tree.courseId,
-				courseIdSet,
-				seen,
-				result,
-			);
-		}
-		return result;
-	}, [trees, courseIdSet]);
+	const edges = useMemo<Edge[]>(
+		() => buildPrerequisiteEdges(semesters, trees),
+		[semesters, trees],
+	);
 
 	return { nodes, edges };
 }

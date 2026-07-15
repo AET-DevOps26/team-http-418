@@ -78,7 +78,9 @@ function Planner() {
 		);
 	}
 
-	if (data.status === "GENERATING") {
+	const hasPreviousRoadmap = data.semesters.length > 0;
+
+	if (data.status === "GENERATING" && !hasPreviousRoadmap) {
 		return (
 			<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
 				<GeneratingState />
@@ -121,6 +123,35 @@ function Planner() {
 		);
 	}
 
+	if (data.status === "ERROR" && !hasPreviousRoadmap) {
+		return (
+			<div
+				className="view-fade"
+				style={{
+					flex: 1,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}
+			>
+				<div style={{ textAlign: "center" }}>
+					<p style={{ color: "var(--muted)", marginBottom: 16, fontSize: 14 }}>
+						We could not generate a roadmap. Please try again.
+					</p>
+					<button
+						type="button"
+						className="btn btn-primary"
+						disabled={generateMutation.isPending}
+						onClick={() => generateMutation.mutate()}
+					>
+						<Sparkles size={14} strokeWidth={2} />
+						Retry
+					</button>
+				</div>
+			</div>
+		);
+	}
+
 	const header = (
 		<div
 			style={{
@@ -156,11 +187,11 @@ function Planner() {
 			<button
 				type="button"
 				className="btn btn-primary"
-				disabled={generateMutation.isPending}
+				disabled={generateMutation.isPending || data.status === "GENERATING"}
 				onClick={() => generateMutation.mutate()}
 			>
 				<Sparkles size={14} strokeWidth={2} />
-				Regenerate
+				{data.status === "ERROR" ? "Retry" : "Regenerate"}
 			</button>
 		</div>
 	);
@@ -177,6 +208,17 @@ function Planner() {
 			}}
 		>
 			{header}
+			{data.status === "GENERATING" && (
+				<div className="rmc-prereq-badge">
+					Generating an updated roadmap. Your current plan remains available.
+				</div>
+			)}
+			{data.status === "ERROR" && (
+				<div className="rmc-prereq-badge rmc-prereq-badge--error" role="alert">
+					Regeneration failed. Your previous roadmap is still available; retry
+					when ready.
+				</div>
+			)}
 			<RoadmapCanvas semesters={data.semesters} />
 		</div>
 	);

@@ -1,8 +1,9 @@
 package tum.devops.http418.api;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +15,9 @@ import tum.devops.http418.data.StudentDataDB;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tum.devops.http418.Http418Application.GENAI_PATH;
 import static tum.devops.http418.Http418Application.PROFILE_SERVICE;
 import static tum.devops.http418.Http418Application.restClient;
 
@@ -27,11 +26,12 @@ import static tum.devops.http418.Http418Application.restClient;
 @RequestMapping("/api/${API_VERSION}/me/roadmap")
 public class APIControllerMeRoadmap {
 
-	private static final ExecutorService GENERATOR = Executors.newVirtualThreadPerTaskExecutor();
-
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
+	private final ExternalServices externalServices;
+	private final ExecutorService roadmapGenerationExecutor;
+	private final Logger logger = LoggerFactory.getLogger(APIControllerMeRoadmap.class);
 
 	@GetMapping("")
 	public ResponseEntity<RoadmapDTO> getRoadmap(@AuthenticationPrincipal String tumid) {
@@ -45,17 +45,21 @@ public class APIControllerMeRoadmap {
 	@PutMapping("")
 	public ResponseEntity<RoadmapDTO> updateRoadmap(@AuthenticationPrincipal String tumid,
 			@RequestBody String roadmapJson) {
-		studentDataDB.upsertRoadmap(tumid, roadmapJson, "ACTIVE");
+		studentDataDB.upsertRoadmap(tumid, roadmapJson, "READY");
 		final StudentDataDB.RoadmapRow row = studentDataDB.getRoadmap(tumid);
 		return ResponseEntity.ok(toRoadmapDTO(row));
 	}
 
 	@PostMapping("/generate")
 	public ResponseEntity<RoadmapDTO> generateRoadmap(@AuthenticationPrincipal String tumid) {
-		studentDataDB.upsertRoadmap(tumid, "[]", "GENERATING");
-		GENERATOR.submit(() -> doGenerate(tumid));
-		return ResponseEntity.accepted()
-				.body(new RoadmapDTO("GENERATING", null, null, List.of(), 0, null));
+		final StudentDataDB.RoadmapRow existing = studentDataDB.getRoadmap(tumid);
+		if (existing == null) {
+			studentDataDB.upsertRoadmap(tumid, "[]", "GENERATING");
+		} else {
+			studentDataDB.updateRoadmapStatus(tumid, "GENERATING");
+		}
+		roadmapGenerationExecutor.submit(() -> doGenerate(tumid));
+		return ResponseEntity.accepted().body(toRoadmapDTO(studentDataDB.getRoadmap(tumid)));
 	}
 
 	private void doGenerate(String tumid) {
@@ -155,8 +159,8 @@ public class APIControllerMeRoadmap {
 			payload.put("availableCourses", availableCourses);
 			payload.put("currentSemesterKey", profile != null ? profile.semesterKey() : "26S");
 
-			final String response = restClient.post().uri(GENAI_PATH + "/me/roadmap/generate")
-					.contentType(MediaType.APPLICATION_JSON).body(payload).retrieve().body(String.class);
+			final String response = externalServices.callGenAiPost("/me/roadmap/generate", payload,
+					"roadmap generation for user " + tumid);
 
 			final Map<String, Object> genaiResponse = objectMapper.readValue(response,
 					new TypeReference<Map<String, Object>>() {
@@ -167,9 +171,11 @@ public class APIControllerMeRoadmap {
 			final List<SemesterPlanDetailDTO> normalizedSemesters = normalizeGenAISemesters(rawSemesters);
 			final String normalizedJson = objectMapper.writeValueAsString(normalizedSemesters);
 
-			studentDataDB.upsertRoadmap(tumid, normalizedJson, "GENERATED");
+			studentDataDB.upsertRoadmap(tumid, normalizedJson, "READY");
 		} catch (Exception e) {
-			studentDataDB.upsertRoadmap(tumid, "[]", "ERROR");
+			logger.error("roadmap generation failed for user={}: {}", tumid, e.getMessage(), e);
+			// Preserve the last successful canvas so users can retry without losing it.
+			studentDataDB.updateRoadmapStatus(tumid, "ERROR");
 		}
 	}
 
@@ -313,7 +319,7 @@ public class APIControllerMeRoadmap {
 
 	private void saveSemesters(String username, List<SemesterPlanDetailDTO> semesters) {
 		try {
-			studentDataDB.upsertRoadmap(username, objectMapper.writeValueAsString(semesters), "ACTIVE");
+			studentDataDB.upsertRoadmap(username, objectMapper.writeValueAsString(semesters), "READY");
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to save roadmap", e);
 		}
@@ -325,10 +331,18 @@ public class APIControllerMeRoadmap {
 		final String estimatedGraduation = semesters.isEmpty()
 				? null
 				: semesters.get(semesters.size() - 1).semesterKey();
-		return new RoadmapDTO(row.status(),
+		return new RoadmapDTO(canonicalStatus(row.status()),
 				row.createdAt() != null ? row.createdAt().toString() : null,
 				row.updatedAt() != null ? row.updatedAt().toString() : null,
 				semesters, totalPlannedCredits, estimatedGraduation);
+	}
+
+	private static String canonicalStatus(String status) {
+		return switch (status) {
+			case "ACTIVE", "GENERATED" -> "READY";
+			case "EMPTY", "GENERATING", "READY", "ERROR" -> status;
+			default -> "ERROR";
+		};
 	}
 
 	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters) {

@@ -392,6 +392,19 @@ public class StudentDataDB {
 		}
 	}
 
+	public void updateRoadmapStatus(String username, String status) {
+		template.update(
+				"UPDATE student_roadmaps SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE username = :username",
+				new MapSqlParameterSource()
+						.addValue("username", username)
+						.addValue("status", status));
+	}
+
+	public void markStrandedRoadmapsAsError() {
+		template.update("UPDATE student_roadmaps SET status = 'ERROR', updated_at = CURRENT_TIMESTAMP WHERE status = 'GENERATING'",
+				new MapSqlParameterSource());
+	}
+
 	// --- Progress helpers ---
 
 	public int sumCredits(String username) {

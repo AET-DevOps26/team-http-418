@@ -2,11 +2,16 @@ package tum.devops.http418;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import tum.devops.http418.data.StudentDataDB;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootApplication
 public class Http418Application {
@@ -37,5 +42,15 @@ public class Http418Application {
 	}
 	public static void main(String[] args) {
 		SpringApplication.run(Http418Application.class, args);
+	}
+
+	@Bean(destroyMethod = "close")
+	ExecutorService roadmapGenerationExecutor() {
+		return Executors.newVirtualThreadPerTaskExecutor();
+	}
+
+	@Bean
+	ApplicationRunner recoverStrandedRoadmaps(StudentDataDB studentDataDB) {
+		return args -> studentDataDB.markStrandedRoadmapsAsError();
 	}
 }

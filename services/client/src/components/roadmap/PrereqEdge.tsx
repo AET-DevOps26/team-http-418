@@ -1,8 +1,8 @@
 import {
 	BaseEdge,
-	getBezierPath,
 	type Edge,
 	type EdgeProps,
+	getBezierPath,
 } from "@xyflow/react";
 
 type PrereqEdgeData = {
