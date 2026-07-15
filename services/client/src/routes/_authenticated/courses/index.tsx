@@ -275,9 +275,7 @@ function CoursesPage() {
 					<button
 						key={key}
 						type="button"
-						onClick={() =>
-							setSearch({ view: key === "catalog" ? undefined : key })
-						}
+						onClick={() => setSearch({ view: key })}
 						style={{
 							padding: "6px 16px",
 							borderRadius: "var(--r-sm, 6px)",
@@ -401,14 +399,13 @@ function CoursesPage() {
 							</button>
 						</div>
 					)}
-
-					{search.course && (
-						<CourseDetailSheet
-							courseId={search.course}
-							onClose={() => setSearch({ course: undefined })}
-						/>
-					)}
 				</>
+			)}
+			{search.course && (
+				<CourseDetailSheet
+					courseId={search.course}
+					onClose={() => setSearch({ course: undefined })}
+				/>
 			)}
 		</div>
 	);

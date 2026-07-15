@@ -1,21 +1,18 @@
 import { CheckCircle, MinusCircle } from "lucide-react";
-import type { CvData } from "#/api/types";
 import { ImportedTable } from "#/components/progress/ImportedTable";
 import { TranscriptUploader } from "#/components/progress/TranscriptUploader";
 import { UnmatchedTable } from "#/components/progress/UnmatchedTable";
 import { useImportReducer } from "#/hooks/useImportReducer";
 import type { OnboardingStep2 } from "#/hooks/useOnboarding";
 import { useTranscriptUpload } from "#/hooks/useTranscriptUpload";
-import { CvUploader } from "./CvUploader";
 
 type Props = {
-	data: OnboardingStep2 | null;
 	onUpdate: (data: Partial<OnboardingStep2>) => void;
 	onNext: () => void;
 	onSkip: () => void;
 };
 
-export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
+export function DocumentsStep({ onUpdate, onNext, onSkip }: Props) {
 	const transcriptMutation = useTranscriptUpload();
 	const [importState, importDispatch] = useImportReducer();
 
@@ -28,10 +25,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 		});
 	}
 
-	function handleCvUploaded(cvData: CvData) {
-		onUpdate({ cvUploaded: true, cvData });
-	}
-
 	function handleNext() {
 		if (importState.phase === "review") {
 			importDispatch({ type: "FINISH_IMPORT" });
@@ -40,9 +33,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 	}
 
 	function handleSkip() {
-		if (importState.phase === "review") {
-			importDispatch({ type: "FINISH_IMPORT" });
-		}
 		onSkip();
 	}
 
@@ -51,7 +41,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 		onUpdate({ transcriptUploaded: false });
 	}
 
-	const cvDone = data?.cvUploaded ?? false;
 	const inReview = importState.phase === "review";
 	const importDone = importState.phase === "done";
 
@@ -93,11 +82,7 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 					</div>
 
 					{inReview ? (
-						<TranscriptReview
-							state={importState}
-							dispatch={importDispatch}
-							onReupload={handleReupload}
-						/>
+						<TranscriptReview state={importState} onReupload={handleReupload} />
 					) : importDone ? (
 						<TranscriptDone
 							count={importState.imported.length}
@@ -122,23 +107,6 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 							)}
 						</>
 					)}
-				</div>
-
-				<div>
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: 8,
-							marginBottom: 10,
-						}}
-					>
-						<span style={{ fontSize: 13, fontWeight: 600, color: "#0B1F33" }}>
-							CV / Résumé
-						</span>
-						{cvDone && <CheckCircle size={15} style={{ color: "#2D6FB5" }} />}
-					</div>
-					<CvUploader onUploaded={handleCvUploaded} uploaded={cvDone} />
 				</div>
 			</div>
 
@@ -192,11 +160,9 @@ export function DocumentsStep({ data, onUpdate, onNext, onSkip }: Props) {
 
 function TranscriptReview({
 	state,
-	dispatch,
 	onReupload,
 }: {
 	state: ReturnType<typeof useImportReducer>[0];
-	dispatch: ReturnType<typeof useImportReducer>[1];
 	onReupload: () => void;
 }) {
 	const activeUnmatched = state.unmatched.filter((u) => !u.skipped);
@@ -245,7 +211,7 @@ function TranscriptReview({
 					>
 						Imported Courses
 					</div>
-					<ImportedTable imported={state.imported} dispatch={dispatch} />
+					<ImportedTable imported={state.imported} />
 				</div>
 			)}
 
@@ -263,7 +229,7 @@ function TranscriptReview({
 					>
 						Unmatched Courses
 					</div>
-					<UnmatchedTable unmatched={state.unmatched} dispatch={dispatch} />
+					<UnmatchedTable unmatched={state.unmatched} />
 				</div>
 			)}
 

@@ -1,0 +1,12 @@
+namespace: aidan-monitoring
+appNamespace: aidan
+
+ingress:
+  enabled: true
+  className: nginx
+  host: "aidan-monitoring.stud.k8s.aet.cit.tum.de"
+  annotations: {}
+  tls:
+    enabled: true
+    secretName: aidan-tls
+    clusterIssuer: letsencrypt-prod

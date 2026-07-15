@@ -95,6 +95,10 @@ ingress:
   className: nginx
   host: ""
   annotations: {}
+  tls:
+    enabled: false
+    clusterIssuer: ""
+    secretName: ""
 
 jwt:
   secret: ""

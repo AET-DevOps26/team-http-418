@@ -6,9 +6,11 @@ import type { ImportAction, ImportState } from "#/hooks/useImportReducer";
 type Props = {
 	state: ImportState;
 	dispatch: Dispatch<ImportAction>;
+	title?: string;
+	subtitle?: string;
 };
 
-export function ImportOverview({ state, dispatch }: Props) {
+export function ImportOverview({ state, dispatch, title, subtitle }: Props) {
 	const [query, setQuery] = useState("");
 
 	const { imported } = state;
@@ -45,11 +47,11 @@ export function ImportOverview({ state, dispatch }: Props) {
 						lineHeight: 1.2,
 					}}
 				>
-					Import Complete
+					{title ?? "Import Complete"}
 				</h1>
 				<p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--muted)" }}>
-					{imported.length} course{imported.length !== 1 ? "s" : ""} imported
-					successfully
+					{subtitle ??
+						`${imported.length} course${imported.length !== 1 ? "s" : ""} imported successfully`}
 				</p>
 			</div>
 
@@ -150,7 +152,9 @@ export function ImportOverview({ state, dispatch }: Props) {
 							</tr>
 						) : (
 							filtered.map((c) => (
-								<tr key={c.courseId ?? `${c.moduleId}-${c.courseName}`}>
+								<tr
+									key={c.rowId ?? c.courseId ?? `${c.moduleId}-${c.courseName}`}
+								>
 									<td
 										style={{
 											fontFamily: "var(--font-mono)",

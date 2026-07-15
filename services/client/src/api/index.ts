@@ -28,10 +28,10 @@ export {
 	getCoursePrerequisites,
 	getCourses,
 } from "#/api/courses";
-export { getDashboard } from "#/api/dashboard";
 export { getProfile, updateProfile } from "#/api/profile";
 export {
 	addCompletedCourse,
+	aiMatchTranscript,
 	dropCourse,
 	enrollCourse,
 	getCompletedCourses,
@@ -62,6 +62,9 @@ export type {
 	AddCompletedCourseRequest,
 	AddCourseRequest,
 	AdvisorSSEEvent,
+	AiMatchModule,
+	AiMatchResponse,
+	AiMatchResult,
 	AlertSeverity,
 	AlertType,
 	AuthResponse,
@@ -78,11 +81,7 @@ export type {
 	CourseStatus,
 	CourseStudyProgramRef,
 	CourseSummary,
-	Dashboard,
 	DashboardAlert,
-	DashboardProgress,
-	DashboardRecommendation,
-	DashboardRequirement,
 	DegreeRequirements,
 	Department,
 	EnrollCourseRequest,

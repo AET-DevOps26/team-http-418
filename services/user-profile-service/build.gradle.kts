@@ -25,12 +25,14 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("io.micrometer:micrometer-registry-prometheus")
+
 	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 	implementation("org.postgresql:postgresql")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	testImplementation("com.h2database:h2")
-
 
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

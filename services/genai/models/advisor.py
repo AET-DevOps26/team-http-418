@@ -12,7 +12,8 @@ class MessageRole(StrEnum):
 class StudentAdvisorProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program: Annotated[str, Field(alias="studyProgram")]
+    study_program_id: Annotated[str, Field(default="invalid study id", alias="studyProgramId")]
+    study_program: Annotated[str, Field(default="no study field", alias="studyProgramName")]
     semester: int
     career_goals: Annotated[list[str], Field(default=[], alias="careerGoals")]
     interests: Annotated[list[str], Field(default=[], alias="interests")]

@@ -1,0 +1,74 @@
+groups:
+  - name: core-runtime-alerts
+    rules:
+      # --- Service downtime: fires per job (server, user-profile-service, genai, pdf-parser) ---
+      - alert: ServiceDown
+        expr: up{job=~"server|user-profile-service|genai|pdf-parser"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} is down"
+          description: "Prometheus has not been able to scrape {{ $labels.job }} (instance {{ $labels.instance }}) for at least 1 minute. The target is unreachable or failing its health check."
+
+      # --- Slow response time: Spring Boot services (server, user-profile-service) ---
+      - alert: HighP95LatencySpringBoot
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{job=~"server|user-profile-service|pdf-parser"}[5m])) by (le, job)
+          ) > 1.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on {{ $labels.job }}"
+          description: "{{ $labels.job }} p95 request latency has been above 1.5s for 5+ minutes. Requires http.server.requests percentiles-histogram to be enabled in the service's Actuator config."
+
+      # --- Slow response time: GenAI (FastAPI) ---
+      - alert: HighP95LatencyGenAI
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket{job="genai"}[5m])) by (le)
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on genai"
+          description: "GenAI service p95 request latency has been above 3s for 5+ minutes."
+
+      # --- Error rate: Spring Boot services ---
+      - alert: HighErrorRateSpringBoot
+        expr: |
+          100 * (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser", status=~"5.."}[5m])) by (job) or (sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser"}[5m])) by (job) * 0))
+          / sum(rate(http_server_requests_seconds_count{job=~"server|user-profile-service|pdf-parser"}[5m])) by (job)
+          > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} has returned 5xx responses for more than 5% of requests over the last 5 minutes."
+
+      # --- Error rate: GenAI ---
+      - alert: HighErrorRateGenAI
+        expr: |
+          100 * (sum(rate(http_requests_total{job="genai", status=~"5.."}[5m])) or (sum(rate(http_requests_total{job="genai"}[5m])) * 0))
+          / sum(rate(http_requests_total{job="genai"}[5m]))
+          > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on genai"
+          description: "The GenAI service has returned 5xx responses for more than 5% of requests over the last 5 minutes."
+
+      # --- Postgres availability (you already run postgres-exporter) ---
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Postgres is unreachable"
+          description: "postgres-exporter cannot reach the database for at least 1 minute."

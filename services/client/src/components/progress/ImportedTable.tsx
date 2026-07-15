@@ -1,25 +1,27 @@
-import type { Dispatch } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { addCompletedCourse, removeCompletedCourse } from "#/api/progress";
-import type { ImportAction, ReviewableCourse } from "#/hooks/useImportReducer";
+import { unresolveImportCourse, updateImportGrade } from "#/api/progress";
+import type { ReviewableCourse } from "#/hooks/useImportReducer";
 
 type Props = {
 	imported: ReviewableCourse[];
-	dispatch: Dispatch<ImportAction>;
 };
 
 type EditState = {
+	rowId: number;
 	courseId: string;
 	grade: string;
 };
 
-export function ImportedTable({ imported, dispatch }: Props) {
+export function ImportedTable({ imported }: Props) {
+	const queryClient = useQueryClient();
 	const [editing, setEditing] = useState<EditState | null>(null);
 	const [loadingId, setLoadingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	function startEdit(course: ReviewableCourse) {
 		setEditing({
+			rowId: course.rowId,
 			courseId: course.courseId ?? "",
 			grade: course.grade ?? "",
 		});
@@ -27,34 +29,18 @@ export function ImportedTable({ imported, dispatch }: Props) {
 	}
 
 	async function handleSave(course: ReviewableCourse) {
-		if (!editing || !course.courseId) return;
+		if (!editing) return;
 		const newGrade = parseFloat(editing.grade);
 		if (Number.isNaN(newGrade)) {
 			setError("Invalid grade value.");
 			return;
 		}
-		setLoadingId(course.courseId);
+		setLoadingId(course.courseId ?? null);
 		setError(null);
 		try {
-			await removeCompletedCourse(course.courseId);
-			try {
-				const completed = await addCompletedCourse({
-					courseId: course.courseId,
-					grade: newGrade,
-				});
-				dispatch({
-					type: "EDIT_COURSE",
-					courseId: course.courseId,
-					updates: { grade: String(completed.grade) },
-				});
-				setEditing(null);
-			} catch {
-				await addCompletedCourse({
-					courseId: course.courseId,
-					grade: parseFloat(course.grade ?? "0"),
-				}).catch(() => {});
-				setError("Save failed. Original grade restored.");
-			}
+			await updateImportGrade(course.rowId, newGrade);
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
+			setEditing(null);
 		} catch {
 			setError("Save failed. Try again.");
 		} finally {
@@ -63,14 +49,14 @@ export function ImportedTable({ imported, dispatch }: Props) {
 	}
 
 	async function handleUnmatch(course: ReviewableCourse) {
-		if (!course.courseId) return;
-		setLoadingId(course.courseId);
+		setLoadingId(course.courseId ?? null);
 		setError(null);
 		try {
-			await removeCompletedCourse(course.courseId);
-			dispatch({ type: "UNRESOLVE_COURSE", courseId: course.courseId });
+			await unresolveImportCourse(course.rowId);
+			queryClient.invalidateQueries({ queryKey: ["importState"] });
 		} catch {
 			setError("Unmatch failed. Try again.");
+		} finally {
 			setLoadingId(null);
 		}
 	}
@@ -103,8 +89,8 @@ export function ImportedTable({ imported, dispatch }: Props) {
 			<table className="progress-table">
 				<thead>
 					<tr>
-						<th>Module ID</th>
-						<th>Course Name</th>
+						<th>Transcript Subject</th>
+						<th>Matched Course</th>
 						<th>Grade</th>
 						<th>Credits</th>
 						<th>Actions</th>
@@ -112,22 +98,13 @@ export function ImportedTable({ imported, dispatch }: Props) {
 				</thead>
 				<tbody>
 					{imported.map((c) => {
-						const key = c.courseId ?? `${c.moduleId}-${c.courseName}`;
-						const hasCourseId = c.courseId != null;
-						const isEditing = hasCourseId && editing?.courseId === c.courseId;
-						const isLoading = hasCourseId && loadingId === c.courseId;
+						const key = c.rowId;
+						const isEditing = editing?.rowId === c.rowId;
+						const isLoading = loadingId === c.courseId;
 						return (
 							<tr key={key}>
-								<td
-									style={{
-										fontFamily: "var(--font-mono)",
-										fontSize: 12,
-										color: "var(--blue-700)",
-									}}
-								>
-									{c.moduleId ?? c.courseCode ?? "—"}
-								</td>
-								<td>{c.courseName ?? c.titleEn ?? "—"}</td>
+								<td>{c.titleEn ?? c.titleDe ?? c.moduleId ?? "—"}</td>
+								<td>{c.courseName ?? c.courseCode ?? "—"}</td>
 								<td>
 									{isEditing ? (
 										<input
@@ -142,13 +119,9 @@ export function ImportedTable({ imported, dispatch }: Props) {
 										(c.grade ?? "—")
 									)}
 								</td>
-								<td>{c.credits}</td>
+								<td>{c.credits ?? 0}</td>
 								<td>
-									{!hasCourseId ? (
-										<span style={{ fontSize: 11.5, color: "var(--muted)" }}>
-											Already in DB
-										</span>
-									) : isEditing ? (
+									{isEditing ? (
 										<div style={{ display: "flex", gap: 6 }}>
 											<button
 												type="button"

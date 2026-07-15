@@ -10,6 +10,7 @@ from db import ensure_schema_initialized
 from llm.embeddings import get_embedding_dimensions, get_embeddings
 from llm.provider import get_llm
 from models.recommendations import CourseRef, RecommendationsRequest
+from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
 
 _RECOMMENDATIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "recommendations.txt").read_text()
@@ -27,39 +28,31 @@ def _build_prompt(
     interests: list[str],
     candidates: list[tuple[CourseRef, float]],
 ) -> str:
-    completed_names = [course.course_name for course in request.completed_courses]
+    completed_names = request.completed_courses
     courses_text = "\n".join(
         f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
-        + (f" | {course.description[:200]}" if course.description else "")
+        + (f" | {course.description}" if course.description else "")
         for course, score in candidates
     )
 
     skills = request.student.skills or []
-    cv_lines = []
+    career_lines = []
     if request.student.industry_preference:
-        cv_lines.append(f"- Industry preference: {request.student.industry_preference}")
+        career_lines.append(f"- Industry preference: {request.student.industry_preference}")
     if request.student.role_preference:
-        cv_lines.append(f"- Role preference: {request.student.role_preference}")
-    if request.student.cv_data:
-        cv_skills = request.student.cv_data.get("skills", [])
-        if cv_skills:
-            cv_lines.append(f"- CV skills: {', '.join(cv_skills[:20])}")
-        work_exp = request.student.cv_data.get("workExperience", [])
-        if work_exp:
-            roles = [f"{w.get('role', '')} at {w.get('company', '')}" for w in work_exp[:3]]
-            cv_lines.append(f"- Work experience: {'; '.join(roles)}")
-    cv_context = ("\n" + "\n".join(cv_lines) + "\n") if cv_lines else ""
+        career_lines.append(f"- Role preference: {request.student.role_preference}")
+    career_context = ("\n" + "\n".join(career_lines) + "\n") if career_lines else ""
 
     return _RECOMMENDATIONS_PROMPT.format(
         limit=request.limit,
-        study_program=request.student.study_program_id or "not specified",
+        study_program=request.student.study_program or "not specified",
         semester=request.student.semester,
         goals=", ".join(goals) or "not specified",
         interests=", ".join(interests) or "not specified",
         skills=", ".join(skills) or "not specified",
         completed_names=", ".join(completed_names) or "none",
         courses_text=courses_text,
-        cv_context=cv_context,
+        career_context=career_context,
     )
 
 
@@ -83,20 +76,14 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
             detail="Embedding service unavailable — could not convert query to vector",
         ) from e
 
-    completed_ids = {course.course_id for course in request.completed_courses}
-    exclude_ids = set(request.exclude_course_ids or [])
-    candidate_ids = [
-        course.course_id
-        for course in request.available_courses
-        if course.course_id not in completed_ids and course.course_id not in exclude_ids
-    ]
+    _exclude_ids = set(request.exclude_course_ids or [])
 
     try:
         ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = find_similar_courses(
             query_vector=query_vector,
-            candidate_ids=candidate_ids,
-            limit=request.limit * 2,
+            candidate_ids=[],
+            limit=request.limit * 3,
         )
     except OperationalError as e:
         logger.error("recommendations | DB connection failed: %s", e)
@@ -115,11 +102,15 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         logger.warning("recommendations | no embeddings found for candidates")
         return {"recommendations": [], "generatedAt": _now()}
 
-    course_map = {course.course_id: course for course in request.available_courses}
-    candidates = [(course_map[row[0]], row[1]) for row in rows if row[0] in course_map]
+    logger.info("recommendations | found %d candidates", len(rows))
+
+    # course_map = {course.course_id: course for course in request.available_courses}
+    # candidates = [(course_map[row[0]], row[1]) for row in rows if row[0] in course_map]
+    candidates: list[tuple[CourseRef, float]] = get_course_refs(rows)
 
     prompt = _build_prompt(request, goals, interests, candidates)
 
+    # logger.info("recommendations | prompt=%s", prompt)
     try:
         llm = get_llm()
         result = await llm.ainvoke(prompt)

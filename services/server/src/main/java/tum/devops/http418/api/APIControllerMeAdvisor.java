@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -37,6 +39,10 @@ public class APIControllerMeAdvisor {
 
 	private final StudentDataDB studentDataDB;
 	private final ObjectMapper objectMapper;
+
+	public enum MessageRole {
+		USER, ASSISTANT
+	}
 
 	@GetMapping("/conversations")
 	public ResponseEntity<PageDTO<ConversationSummaryDTO>> getConversations(@AuthenticationPrincipal String tumid,
@@ -95,16 +101,19 @@ public class APIControllerMeAdvisor {
 		final List<Map<String, String>> historyPayload = history.stream()
 				.map(msg -> Map.of("role", msg.role(), "content", msg.content())).toList();
 
-		studentDataDB.insertMessage(id, "user", request.content(), List.of());
+		studentDataDB.insertMessage(id, MessageRole.USER, request.content(), List.of());
 
 		final SseEmitter emitter = new SseEmitter(60000L);
+		final SecurityContext context = SecurityContextHolder.getContext();
 
 		Thread.startVirtualThread(() -> {
+			SecurityContextHolder.setContext(context);
 			HttpURLConnection connection = null;
 			try {
 				final String genaiUrl = GENAI_PATH + "/me/advisor/conversations/%s/messages".formatted(id);
 				final Map<String, Object> studentPayload = new LinkedHashMap<>();
-				studentPayload.put("studyProgram", profile.student().studyProgramId());
+				studentPayload.put("studyProgramName", profile.student().studyProgramName());
+                studentPayload.put("studyProgramId", profile.student().studyProgramId());
 				studentPayload.put("semester", profile.student().semester());
 				studentPayload.put("careerGoals", profile.student().careerGoals());
 				studentPayload.put("interests", profile.student().interests());
@@ -141,17 +150,27 @@ public class APIControllerMeAdvisor {
 							if ("[DONE]".equals(data)) {
 								break;
 							}
-							fullResponse.append(data);
-							emitter.send(SseEmitter.event().data(data));
+
+							try {
+								final Map<String, Object> json = objectMapper.readValue(data, Map.class);
+								if (json.containsKey("token")) {
+									final String token = (String) json.get("token");
+									fullResponse.append(token);
+									emitter.send(SseEmitter.event().data(token));
+								} else if (json.containsKey("fullContent")) {
+								}
+							} catch (Exception e) {
+								log.warn("Failed to parse SSE data: {}", data);
+							}
 						}
 					}
 				}
 
-				studentDataDB.insertMessage(id, "assistant", fullResponse.toString(), List.of()); // TODO add previous list?
+				studentDataDB.insertMessage(id, MessageRole.ASSISTANT, fullResponse.toString(), List.of()); // TODO add previous list?
 				emitter.complete();
 			} catch (Exception e) {
 				log.error("Error streaming advisor response for conversation {}", id, e);
-				studentDataDB.insertMessage(id, "assistant",
+				studentDataDB.insertMessage(id, MessageRole.ASSISTANT,
 						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of()); // TODO add previous list?
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));
@@ -163,6 +182,7 @@ public class APIControllerMeAdvisor {
 				if (connection != null) {
 					connection.disconnect();
 				}
+				SecurityContextHolder.clearContext();
 			}
 		});
 

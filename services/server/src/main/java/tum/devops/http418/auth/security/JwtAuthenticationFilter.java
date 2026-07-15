@@ -49,4 +49,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		return header.substring(7);
 	}
+
+	@Override
+	protected boolean shouldNotFilterAsyncDispatch() {
+		return false;
+	}
 }

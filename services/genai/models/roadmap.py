@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 class StudentRoadmapProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program: str | None = Field(default=None, alias="studyProgram")
+    study_program: str | None = Field(default=None, alias="studyProgram")  # todo
     study_program_id: str | None = Field(default=None, alias="studyProgramId")
     semester: int
     career_goals: list[str] = Field(default=[], alias="careerGoals")
@@ -65,6 +65,7 @@ class RoadmapRequest(BaseModel):
     enrolled_courses: list[CourseRef] = Field(default=[], alias="enrolledCourses")
     degree_requirements: DegreeRequirements = Field(alias="degreeRequirements")
     available_courses: list[AvailableCourseRef] = Field(alias="availableCourses")
+    current_semester_key: str = Field(alias="currentSemesterKey")
 
 
 StudentRoadmapProfile.model_rebuild()

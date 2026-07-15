@@ -2,8 +2,10 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from db import init_schema
 from llm.embeddings import get_embedding_dimensions
@@ -12,7 +14,6 @@ from routers import (
     advisor,
     chat,
     courses,
-    cv,
     embeddings,
     plan_validate,
     prerequisites,
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AIDAN GenAI Service", lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 
 router = APIRouter(prefix="/v1")
 
@@ -53,7 +55,6 @@ app.include_router(plan_validate.router, prefix="/v1")
 app.include_router(suggestions.router, prefix="/v1")
 app.include_router(prerequisites.router, prefix="/v1")
 app.include_router(roadmap.router, prefix="/v1")
-app.include_router(cv.router, prefix="/v1")
 app.include_router(stubs.router, prefix="/v1")
 
 
@@ -71,3 +72,4 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         exc.errors(),  # This contains exactly which field failed and why
         decoded_body,
     )
+    return await request_validation_exception_handler(request, exc)

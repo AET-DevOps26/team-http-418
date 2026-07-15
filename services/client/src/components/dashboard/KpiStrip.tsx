@@ -1,9 +1,9 @@
-import type { DashboardAlert, DashboardProgress } from "#/api/types";
+import type { AcademicProgress } from "#/api/types";
 
 type Props = {
-	progress: DashboardProgress;
-	semesterCredits: number;
-	alerts: DashboardAlert[];
+	progress: AcademicProgress;
+	creditsRequired: number;
+	semesterCredits?: number;
 };
 
 type KpiCardProps = {
@@ -56,28 +56,32 @@ function KpiCard({ label, value, sub, ai }: KpiCardProps) {
 	);
 }
 
-export function KpiStrip({ progress, semesterCredits, alerts }: Props) {
-	const { totalCreditsEarned, totalCreditsRequired, gpa } = progress;
+export function KpiStrip({
+	progress,
+	creditsRequired,
+	semesterCredits,
+}: Props) {
+	const { totalCreditsEarned, gpa, enrolledCourseCount } = progress;
+	const remaining = Math.max(0, creditsRequired - totalCreditsEarned);
 
 	return (
 		<div className="grid grid-cols-4 gap-5" style={{ marginBottom: 24 }}>
 			<KpiCard
 				label="Credits Earned"
 				value={totalCreditsEarned}
-				sub={`of ${totalCreditsRequired} ECTS required`}
+				sub={`of ${creditsRequired} ECTS required`}
 			/>
 			<KpiCard
 				label="This Semester"
-				value={semesterCredits}
-				sub="ECTS enrolled"
+				value={semesterCredits ?? enrolledCourseCount}
+				sub={semesterCredits != null ? "ECTS enrolled" : "courses enrolled"}
 			/>
-			<KpiCard label="GPA" value={gpa?.toFixed(2)} sub="cumulative" />
 			<KpiCard
-				label="Active Alerts"
-				value={alerts.length}
-				sub={`${alerts.filter((a) => a.severity === "ERROR").length} critical`}
-				ai
+				label="GPA"
+				value={gpa != null ? gpa.toFixed(2) : "—"}
+				sub="cumulative"
 			/>
+			<KpiCard label="Remaining" value={remaining} sub="ECTS to complete" ai />
 		</div>
 	);
 }

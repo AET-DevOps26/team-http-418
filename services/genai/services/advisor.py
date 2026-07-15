@@ -7,8 +7,12 @@ from pathlib import Path
 from fastapi import HTTPException
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from llm.embeddings import get_embeddings
 from llm.provider import get_llm
 from models.advisor import AdvisorRequest, MessageRole
+from models.recommendations import CourseRef
+from repositories.courses import get_course_refs
+from repositories.recommendations import find_similar_courses
 
 logger = logging.getLogger("genai")
 
@@ -43,6 +47,51 @@ def _build_messages(request: AdvisorRequest) -> list:
     return messages
 
 
+async def do_thinking(messages):
+    """
+    allows the model to do a semantic search for courses
+    """
+    llm = get_llm()
+    result = await llm.ainvoke(messages)
+    messages.append(AIMessage(content=result.content))
+    logger.info("advisor | LLM response: %s", result.content)
+    try:
+        llm_query: dict = json.loads(result.content)
+        assert isinstance(llm_query, dict)
+        logger.info("advisor | LLM query: %s", llm_query)
+    except Exception as e:
+        logger.warning("advisor | LLM query failed: %s", e)
+        llm_query = {}
+
+    course_ids: list[tuple[int, float]] = []
+    courses: list[tuple[CourseRef, float]] = []
+    if llm_query.get("isQuery") and llm_query.get("query"):
+        try:
+            embeddings = get_embeddings()
+            query_vector = await embeddings.aembed_query(llm_query.get("query"))
+            course_ids = find_similar_courses(query_vector, [], 30)
+            logger.info("advisor | fournd %d courses", len(course_ids))
+        except Exception as e:
+            logger.warning("advisor | semantic search failed: %s", e)
+        courses = get_course_refs(course_ids)
+
+    courses_text = "\n".join(
+        f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
+        + (f" | {course.description}" if course.description else "")
+        for course, score in courses
+    )
+    if courses_text:
+        messages.append(
+            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
+        )
+    else:
+        messages.append(
+            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
+        )
+    logger.info("advisor | messages_count=%d", len(messages))
+    return messages
+
+
 async def stream_advisor_response(request: AdvisorRequest, conversation_id: str) -> AsyncGenerator[str]:
     try:
         llm = get_llm()
@@ -56,6 +105,7 @@ async def stream_advisor_response(request: AdvisorRequest, conversation_id: str)
 
     full_content = ""
     try:
+        messages = await do_thinking(messages)
         async for chunk in llm.astream(messages):
             token = chunk.content
             if token:
@@ -73,6 +123,7 @@ async def get_advisor_response(request: AdvisorRequest) -> dict:
     try:
         llm = get_llm()
         messages = _build_messages(request)
+        messages = await do_thinking(messages)
         result = await llm.ainvoke(messages)
         return {"content": result.content, "referencedCourses": []}
     except TimeoutError as e:

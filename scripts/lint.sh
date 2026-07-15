@@ -26,7 +26,7 @@ run() {
 # ── Client (biome) ──────────────────────────────────────────────────────────
 echo "═══ Client ═══"
 pushd "$SCRIPT_DIR/services/client" > /dev/null
-pnpm install --frozen-lockfile --silent 2>/dev/null || true
+CI=true pnpm install --frozen-lockfile --silent 2>/dev/null || true
 run "client:check" pnpm check
 popd > /dev/null
 

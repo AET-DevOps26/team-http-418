@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,25 +35,42 @@ public class DataSourceConfig {
 	private String password;
 
 	private void createCoursesDatabaseIfNotExists() {
-		final HikariDataSource adminDataSource = new HikariDataSource();
+		final int maxAttempts = 10;
+		for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+			HikariDataSource adminDataSource = null;
+			try {
+				adminDataSource = new HikariDataSource();
+				adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+				adminDataSource.setUsername(username);
+				adminDataSource.setPassword(password);
+				adminDataSource.setDriverClassName("org.postgresql.Driver");
+				adminDataSource.setMaximumPoolSize(1);
+				adminDataSource.setInitializationFailTimeout(5000);
 
-		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-		adminDataSource.setUsername(username);
-		adminDataSource.setPassword(password);
-		adminDataSource.setDriverClassName("org.postgresql.Driver");
-
-		try {
-			final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
-
-			final Boolean exists = jdbcTemplate.queryForObject(
-					"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-					Boolean.class, "courses-data");
-
-			if (Boolean.FALSE.equals(exists)) {
-				jdbcTemplate.execute("CREATE DATABASE \"courses-data\"");
+				final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+				final Boolean exists = jdbcTemplate.queryForObject(
+						"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+						Boolean.class, "courses-data");
+				if (Boolean.FALSE.equals(exists)) {
+					jdbcTemplate.execute("CREATE DATABASE \"courses-data\"");
+				}
+				return;
+			} catch (Exception e) {
+				logger.warn("DB not ready (attempt {}/{}): {}", attempt, maxAttempts, e.getMessage());
+				if (attempt == maxAttempts) {
+					throw new RuntimeException("Could not connect to database after " + maxAttempts + " attempts", e);
+				}
+				try {
+					Thread.sleep(2000L * attempt);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					throw new RuntimeException("Interrupted while waiting for database readiness", ie);
+				}
+			} finally {
+				if (adminDataSource != null) {
+					adminDataSource.close();
+				}
 			}
-		} finally {
-			adminDataSource.close();
 		}
 	}
 
@@ -61,13 +79,7 @@ public class DataSourceConfig {
 	@Profile("!test")
 	public DataSource coursesDataSource() {
 		createCoursesDatabaseIfNotExists();
-		final HikariDataSource dataSource = new HikariDataSource();
-
-		dataSource.setJdbcUrl(baseUrl + "/courses-data");
-		dataSource.setUsername(username);
-		dataSource.setPassword(password);
-		dataSource.setDriverClassName("org.postgresql.Driver");
-		dataSource.setReadOnly(true);
+		final HikariDataSource dataSource = configureDataSource("/courses-data", true);
 
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		try {
@@ -80,37 +92,70 @@ public class DataSourceConfig {
 		return dataSource;
 	}
 
+	private @NonNull HikariDataSource configureDataSource(String databaseName, boolean readOnly) {
+		final HikariDataSource dataSource = new HikariDataSource();
+
+		dataSource.setJdbcUrl(baseUrl + databaseName);
+		dataSource.setUsername(username);
+		dataSource.setPassword(password);
+		dataSource.setDriverClassName("org.postgresql.Driver");
+		dataSource.setReadOnly(readOnly);
+		dataSource.setMaximumPoolSize(10);
+		dataSource.setMinimumIdle(2);
+
+		dataSource.setConnectionTimeout(30_000);
+		dataSource.setValidationTimeout(5_000);
+		dataSource.setIdleTimeout(600_000);
+		dataSource.setMaxLifetime(1_800_000);
+		dataSource.setKeepaliveTime(300_000);
+		return dataSource;
+	}
+
 	private void createSecurityDatabaseIfNotExists() {
-		final HikariDataSource adminDataSource = new HikariDataSource();
+		final int maxAttempts = 10;
+		for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+			HikariDataSource adminDataSource = null;
+			try {
+				adminDataSource = new HikariDataSource();
+				adminDataSource.setJdbcUrl(baseUrl + "/postgres");
+				adminDataSource.setUsername(username);
+				adminDataSource.setPassword(password);
+				adminDataSource.setDriverClassName("org.postgresql.Driver");
+				adminDataSource.setMaximumPoolSize(1);
+				adminDataSource.setInitializationFailTimeout(5000);
 
-		adminDataSource.setJdbcUrl(baseUrl + "/postgres");
-		adminDataSource.setUsername(username);
-		adminDataSource.setPassword(password);
-		adminDataSource.setDriverClassName("org.postgresql.Driver");
-
-		final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
-
-		final Boolean exists = jdbcTemplate.queryForObject(
-				"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
-				Boolean.class, "security");
-
-		if (Boolean.FALSE.equals(exists)) {
-			jdbcTemplate.execute("CREATE DATABASE security");
+				final JdbcTemplate jdbcTemplate = new JdbcTemplate(adminDataSource);
+				final Boolean exists = jdbcTemplate.queryForObject(
+						"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = ?)",
+						Boolean.class, "security");
+				if (Boolean.FALSE.equals(exists)) {
+					jdbcTemplate.execute("CREATE DATABASE security");
+				}
+				return;
+			} catch (Exception e) {
+				logger.warn("DB not ready (attempt {}/{}): {}", attempt, maxAttempts, e.getMessage());
+				if (attempt == maxAttempts) {
+					throw new RuntimeException("Could not connect to database after " + maxAttempts + " attempts", e);
+				}
+				try {
+					Thread.sleep(2000L * attempt);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					throw new RuntimeException("Interrupted while waiting for database readiness", ie);
+				}
+			} finally {
+				if (adminDataSource != null) {
+					adminDataSource.close();
+				}
+			}
 		}
-
-		adminDataSource.close();
 	}
 
 	@Bean
 	@Profile("!test")
 	public DataSource securityDataSource() {
 		createSecurityDatabaseIfNotExists();
-		final HikariDataSource dataSource = new HikariDataSource();
-
-		dataSource.setJdbcUrl(baseUrl + "/security");
-		dataSource.setUsername(username);
-		dataSource.setPassword(password);
-		dataSource.setDriverClassName("org.postgresql.Driver");
+		final HikariDataSource dataSource = configureDataSource("/security", false);
 
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
@@ -120,7 +165,6 @@ public class DataSourceConfig {
 			logger.error("Could not connect to database", e);
 			throw new RuntimeException("Could not connect to database 'security'");
 		}
-
 		return dataSource;
 	}
 
@@ -131,6 +175,7 @@ public class DataSourceConfig {
 				.dataSource(dataSource)
 				.locations("classpath:db/migration/security")
 				.baselineOnMigrate(true)
+				.baselineVersion("0")
 				.load();
 		flyway.migrate();
 		return flyway;

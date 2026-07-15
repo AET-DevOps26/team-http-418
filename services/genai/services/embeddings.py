@@ -5,15 +5,27 @@ from psycopg2 import DatabaseError, OperationalError
 
 from db import ensure_schema_initialized, get_connection
 from llm.embeddings import get_active_model, get_embedding_dimensions, get_embeddings
-from models.embeddings import EmbedCoursesRequest, EmbedMode
+from models.embeddings import CourseItem, EmbedCoursesRequest, EmbedMode
 
 logger = logging.getLogger("genai")
 
 
-def _build_text(course) -> str:
-    parts = [course.course_name]
-    if course.description:
-        parts.append(course.description)
+def _build_text(course: CourseItem) -> str:
+    parts = [course.title_en]
+    if course.title_ger:
+        parts.append(course.title_ger)
+    if course.description_en:
+        parts.append(course.description_en)
+    if course.description_ger:
+        parts.append(course.description_ger)
+    if course.course_objective_en:
+        parts.append(course.course_objective_en)
+    if course.course_objective_ger:
+        parts.append(course.course_objective_ger)
+    if course.previous_knowledge_en:
+        parts.append(course.previous_knowledge_en)
+    if course.previous_knowledge_ger:
+        parts.append(course.previous_knowledge_ger)
     if course.department:
         parts.append(course.department)
     return " | ".join(parts)

@@ -104,7 +104,6 @@ function OnboardingPage() {
 				isLoading={finishMutation.isPending}
 			>
 				<DocumentsStep
-					data={state.step2}
 					onUpdate={(data) => dispatch({ type: "UPDATE_STEP2", data })}
 					onNext={() => dispatch({ type: "NEXT_STEP" })}
 					onSkip={() => dispatch({ type: "NEXT_STEP" })}

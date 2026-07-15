@@ -10,7 +10,7 @@ from repositories.courses import search_courses
 logger = logging.getLogger("genai")
 
 
-async def semantic_search(query: str, limit: int) -> dict:
+async def semantic_search(query: str, limit: int) -> list[dict]:
     model = get_active_model()
     logger.info("search | model=%s query=%r limit=%d", model, query, limit)
 
@@ -42,4 +42,4 @@ async def semantic_search(query: str, limit: int) -> dict:
 
     results = [{"courseId": row[0], "score": round(row[1], 4)} for row in rows]
     logger.info("search | model=%s results=%d", model, len(results))
-    return {"results": results}
+    return results
