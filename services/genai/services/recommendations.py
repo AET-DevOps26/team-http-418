@@ -68,7 +68,9 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
 
     try:
         embeddings = get_embeddings()
-        query_vector = await embeddings.aembed_query(query)
+        query_vector = await embeddings.aembed_query(
+            f"Instruct: Given a student's career goals, interests, and skills, retrieve relevant courses\nQuery: {query}"
+        )
     except Exception as e:
         logger.error("recommendations | embedding failed: %s", e)
         raise HTTPException(
@@ -84,6 +86,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
             query_vector=query_vector,
             candidate_ids=[],
             limit=request.limit * 3,
+            study_program_id=request.student.study_program_id,
         )
     except OperationalError as e:
         logger.error("recommendations | DB connection failed: %s", e)
