@@ -98,6 +98,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # The database seed dumps are stored in Git LFS and copied into the
+          # database image below. Without this, Docker receives LFS pointers.
           lfs: true
 
       - name: Set up Docker Buildx
