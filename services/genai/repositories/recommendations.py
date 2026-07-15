@@ -26,7 +26,7 @@ def find_similar_courses(
                     ORDER BY e.embedding <=> %(vector)s::vector
                     LIMIT %(limit)s
                     """,
-                {"vector": query_vector, "limit": limit, "study_program_id": str(study_program_id)},
+                {"vector": query_vector, "limit": limit, "study_program_id": study_program_id},
             )
             return cursor.fetchall()
 
