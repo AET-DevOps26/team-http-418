@@ -8,7 +8,7 @@ TUM students need clear, personalized guidance to navigate complex course catalo
 
 There is a critical need for an intelligent application that analyzes a student’s academic history and future aspirations to recommend the most efficient course selection. While TUM provides comprehensive course descriptions, these are currently buried within a student's specific study degree, causing students to miss out on valuable interdisciplinary options. Furthermore, existing university systems are highly fragmented, often, a central system lacks essential course information entirely, forcing students to hunt down details across individual chair websites. The app will overcome these limitations by seamlessly integrating the entire university catalog into a single, centralized platform, enabling users to search for relevant courses on any topic while intelligently mapping out prerequisite dependencies and credit requirements.
 
-The app should provide smart mapping and personalized recommendations based on career interests and individual user preferences, such as scheduling constraints, workload limits, or preferred learning formats. Acting as a bridge between academia and the professional world, this centralized system allows students to make faster, more informed decisions, preventing wasted tuition, delayed graduation, and registration errors. By offering a clear, interactive roadmap, the system optimizes credit fulfillment, bridges the skills gap, and empowers students to confidently take control of their academic journey.
+The app should provide smart mapping and personalized recommendations based on career interests and individual user preferences. Acting as a bridge between academia and the professional world, this centralized system allows students to make faster, more informed decisions, preventing wasted tuition, delayed graduation, and registration errors. By offering a clear, interactive roadmap, the system optimizes credit fulfillment, bridges the skills gap, and empowers students to confidently take control of their academic journey.
 
 ### User Stories
 
@@ -38,7 +38,7 @@ The app should provide smart mapping and personalized recommendations based on c
 
 ### Initial System Structure
 
-The application follows a modern, decoupled client-server architecture with a dedicated microservice for AI processing. This separation of concerns ensures scalability, maintainability, and optimal performance across different technological domains. The system is divided into the following four core components:
+The application follows a modern, decoupled client-server architecture with a dedicated microservice for AI processing. This separation of concerns ensures scalability, maintainability, and optimal performance across different technological domains. The system is divided into the following core components:
 
 #### Client: React (Vite + TanStack Router) Frontend
 The user interface is built as a Single Page Application (SPA) using React, providing a highly responsive and dynamic experience for students navigating complex course maps.
@@ -56,7 +56,7 @@ To isolate heavy computational tasks and leverage the best ecosystem for artific
 *   By decoupling this from the Spring Boot server, the main backend remains highly performant and avoids being bottlenecked by AI processing latency. Communication between the Spring Boot server and this microservice is handled via internal REST calls.
 
 #### User-Profile-Service: Spring Boot Microservice
-A dedicated Spring Boot microservice on port 8060 manages user profile data. It provides a cached profile store, keeping the main server focused on business logic and API orchestration.
+A dedicated Spring Boot microservice on port 8060 manages user profile data in a PostgreSQL-backed profile store, keeping the main server focused on business logic and API orchestration.
 
 #### PDF-Parser: Spring Boot Microservice
 A dedicated Spring Boot microservice on port 8070 handles PDF parsing tasks such as extracting course data from uploaded transcripts.
@@ -64,7 +64,7 @@ A dedicated Spring Boot microservice on port 8070 handles PDF parsing tasks such
 #### Database: PostgreSQL
 Data persistence is managed using PostgreSQL, a highly reliable and scalable relational database system.
 *   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances. Course embeddings for semantic search are stored using the pgvector extension within the same PostgreSQL instance.
-*   It serves as the single source of truth, securely accessed and updated exclusively by the Spring Boot server.
+*   It provides the shared persistence layer for credentials, profiles, course data, academic progress, and semantic-search embeddings.
 
 ## 📚 Project Diagrams
 
@@ -175,7 +175,7 @@ pnpm check          # check formatting + lint
 pnpm check --write  # auto-fix
 ```
 
-#### Server (`services/server/`, `services/pdf-parser/`) — Spotless + Google Java Format
+#### Spring services (`services/server/`, `services/pdf-parser/`, `services/user-profile-service/`) — Spotless + Google Java Format
 
 ```bash
 cd services/server
@@ -192,4 +192,3 @@ ruff check .           # check lint
 ruff format .          # auto-fix formatting
 ruff check --fix .     # auto-fix lint
 ```
-

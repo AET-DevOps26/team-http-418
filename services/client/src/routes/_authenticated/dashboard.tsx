@@ -161,14 +161,13 @@ function Dashboard() {
 	const {
 		profile,
 		progress,
-		schedule,
+		enrolledCourses,
 		recommendations,
 		requirements,
 		isLoading,
 		hasStudyProgram,
 		hasTranscript,
 		hasGoalsOrInterests,
-		hasScheduleData,
 		hasEnrolledCourses,
 		creditsRequired,
 		currentSemester,
@@ -245,11 +244,7 @@ function Dashboard() {
 			</div>
 
 			{progress && (
-				<KpiStrip
-					progress={progress}
-					creditsRequired={creditsRequired}
-					semesterCredits={schedule?.totalCredits}
-				/>
+				<KpiStrip progress={progress} creditsRequired={creditsRequired} />
 			)}
 
 			<div className="dash-grid">
@@ -273,10 +268,8 @@ function Dashboard() {
 
 				<div className={showProfileCompletion ? "col-span-5" : "col-span-8"}>
 					<CurrentCourses
-						events={schedule?.events}
-						enrolledCourses={profile?.enrolledCourses}
+						enrolledCourses={enrolledCourses}
 						semester={currentSemester}
-						hasScheduleData={hasScheduleData}
 					/>
 				</div>
 

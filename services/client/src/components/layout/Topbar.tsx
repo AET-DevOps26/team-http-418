@@ -8,7 +8,6 @@ const PAGE_LABELS: Record<string, string> = {
 	"/planner": "My Plan",
 	"/advisor": "AI Advisor",
 	"/profile": "Profile & Goals",
-	"/schedule": "Schedule",
 };
 
 export function Topbar() {

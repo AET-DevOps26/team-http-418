@@ -490,72 +490,25 @@ let mockEnrolledCourses = [
 		courseId: "e1",
 		courseCode: "IN2349",
 		courseName: "Advanced Deep Learning",
-		credits: 6,
 		semester: "SS2025",
-		schedule: [
-			{
-				day: "MONDAY",
-				startTime: "10:00",
-				endTime: "12:00",
-				room: "MW 0001",
-				type: "LECTURE",
-			},
-		],
 	},
 	{
 		courseId: "e2",
 		courseCode: "IN2390",
 		courseName: "Robot Learning",
-		credits: 6,
 		semester: "SS2025",
-		schedule: [
-			{
-				day: "WEDNESDAY",
-				startTime: "14:00",
-				endTime: "16:00",
-				room: "MI 01.08.021",
-				type: "LECTURE",
-			},
-		],
 	},
 	{
 		courseId: "e3",
 		courseCode: "IN2322",
 		courseName: "Advanced Algorithms",
-		credits: 8,
 		semester: "SS2025",
-		schedule: [
-			{
-				day: "TUESDAY",
-				startTime: "14:00",
-				endTime: "16:00",
-				room: "MW 2001",
-				type: "LECTURE",
-			},
-			{
-				day: "THURSDAY",
-				startTime: "10:00",
-				endTime: "12:00",
-				room: "MW 2001",
-				type: "TUTORIAL",
-			},
-		],
 	},
 	{
 		courseId: "e4",
 		courseCode: "IN0015",
 		courseName: "Distributed Systems",
-		credits: 6,
 		semester: "SS2025",
-		schedule: [
-			{
-				day: "FRIDAY",
-				startTime: "10:00",
-				endTime: "12:00",
-				room: "MI 00.08.038",
-				type: "LECTURE",
-			},
-		],
 	},
 ];
 
@@ -634,111 +587,6 @@ export const handlers = [
 	http.post(`/api/${API_VERSION}/auth/logout`, () => {
 		if (!isMocked("POST", "/auth/logout")) return passthrough();
 		return new HttpResponse(null, { status: 204 });
-	}),
-
-	http.get(`/api/${API_VERSION}/me/schedule`, ({ request }) => {
-		if (!isMocked("GET", "/me/schedule")) return passthrough();
-		const url = new URL(request.url);
-		const semester = url.searchParams.get("semester") ?? "SS2025";
-		return HttpResponse.json({
-			semester,
-			totalCredits: 30,
-			events: [
-				{
-					courseId: "in0001",
-					courseCode: "IN0001",
-					courseName: "Fundamentals of Programming",
-					type: "LECTURE",
-					day: "MONDAY",
-					startTime: "08:00",
-					endTime: "10:00",
-					room: "MI 01.06.011",
-					instructor: "Prof. Dr. Seidl",
-					color: "#3b82f6",
-				},
-				{
-					courseId: "in0001",
-					courseCode: "IN0001",
-					courseName: "Fundamentals of Programming",
-					type: "TUTORIAL",
-					day: "WEDNESDAY",
-					startTime: "14:00",
-					endTime: "16:00",
-					room: "MI 01.09.014",
-					instructor: "Anna Müller",
-					color: "#3b82f6",
-				},
-				{
-					courseId: "in2322",
-					courseCode: "IN2322",
-					courseName: "Advanced Algorithms",
-					type: "LECTURE",
-					day: "TUESDAY",
-					startTime: "14:00",
-					endTime: "16:00",
-					room: "MW 2001",
-					instructor: "Prof. Dr. Kretschmer",
-					color: "#8b5cf6",
-				},
-				{
-					courseId: "in2322",
-					courseCode: "IN2322",
-					courseName: "Advanced Algorithms",
-					type: "LAB",
-					day: "THURSDAY",
-					startTime: "14:00",
-					endTime: "16:00",
-					room: "MI 00.08.038",
-					instructor: "Prof. Dr. Kretschmer",
-					color: "#8b5cf6",
-				},
-				{
-					courseId: "in0012",
-					courseCode: "IN0012",
-					courseName: "Database Systems",
-					type: "LECTURE",
-					day: "THURSDAY",
-					startTime: "14:00",
-					endTime: "16:00",
-					room: "MI 00.08.038",
-					instructor: "Prof. Dr. Kemper",
-					color: "#10b981",
-				},
-				{
-					courseId: "in0012",
-					courseCode: "IN0012",
-					courseName: "Database Systems",
-					type: "TUTORIAL",
-					day: "FRIDAY",
-					startTime: "10:00",
-					endTime: "12:00",
-					room: "MI 01.06.011",
-					instructor: "Max Schmidt",
-					color: "#10b981",
-				},
-				{
-					courseId: "ma0901",
-					courseCode: "MA0901",
-					courseName: "Linear Algebra",
-					type: "LECTURE",
-					day: "TUESDAY",
-					startTime: "10:00",
-					endTime: "12:00",
-					room: "MW 0001",
-					instructor: "Prof. Dr. Brokate",
-					color: "#f59e0b",
-				},
-			],
-			conflicts: [
-				{
-					type: "TIME_OVERLAP",
-					severity: "WARNING",
-					message:
-						"Advanced Algorithms lab and Database Systems lecture overlap on Thursday 14:00–16:00.",
-					involvedCourses: ["IN2322", "IN0012"],
-				},
-			],
-		});
 	}),
 
 	http.get(`/api/${API_VERSION}/me/advisor/conversations`, () => {
@@ -1438,9 +1286,7 @@ export const handlers = [
 			courseId: body.courseId ?? `e${mockEnrolledCourses.length + 1}`,
 			courseCode: (body.courseId ?? "NEW001").toUpperCase(),
 			courseName: `Course ${body.courseId}`,
-			credits: 6,
 			semester: body.semester ?? "SS2025",
-			schedule: [],
 		};
 		mockEnrolledCourses = [newCourse, ...mockEnrolledCourses];
 		return HttpResponse.json(newCourse, { status: 201 });

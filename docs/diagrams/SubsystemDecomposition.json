@@ -120,7 +120,7 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 450,
+        "x": 1250,
         "y": 1490
       },
       "data": {
@@ -594,6 +594,39 @@
       "type": "ComponentRequiredInterface",
       "sourceHandle": "bottom",
       "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "48a261ec-5f1c-4d1e-90f0-5d04ec55b247",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "d1a2b3c4-user-prof-svc-0001",
+      "type": "ComponentDependency",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "8a478fd1-45bb-41fd-9e29-c5619cf5eb77",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "e2f3a4b5-pdf-parser-svc-0001",
+      "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "f50918a0-4d7c-42b4-b623-e5084512e1eb",
+      "source": "d1a2b3c4-user-prof-svc-0001",
+      "target": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
+      "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
       "data": {
         "points": []
       }

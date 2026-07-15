@@ -15,7 +15,6 @@ from routers import (
     chat,
     courses,
     embeddings,
-    plan_validate,
     prerequisites,
     recommendations,
     roadmap,
@@ -51,7 +50,6 @@ app.include_router(chat.router, prefix="/v1")
 app.include_router(courses.router, prefix="/v1")
 app.include_router(embeddings.router, prefix="/v1")
 app.include_router(recommendations.router, prefix="/v1")
-app.include_router(plan_validate.router, prefix="/v1")
 app.include_router(suggestions.router, prefix="/v1")
 app.include_router(prerequisites.router, prefix="/v1")
 app.include_router(roadmap.router, prefix="/v1")

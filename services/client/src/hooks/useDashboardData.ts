@@ -1,34 +1,38 @@
 import { useProfile } from "#/hooks/useProfile";
-import { useProgress, useRequirements } from "#/hooks/useProgress";
+import {
+	useEnrolledCourses,
+	useProgress,
+	useRequirements,
+} from "#/hooks/useProgress";
 import { useRecommendations } from "#/hooks/useRecommendations";
-import { useSchedule } from "#/hooks/useSchedule";
 
 export function useDashboardData() {
 	const profileQuery = useProfile();
 	const progressQuery = useProgress();
-	const scheduleQuery = useSchedule();
+	const enrolledCoursesQuery = useEnrolledCourses(0, 100);
 	const recommendationsQuery = useRecommendations({ limit: 3 });
 	const requirementsQuery = useRequirements();
 
 	const profile = profileQuery.data;
 	const progress = progressQuery.data;
-	const schedule = scheduleQuery.data;
+	const enrolledCourses = enrolledCoursesQuery.data?.content ?? [];
 	const recommendations = recommendationsQuery.data;
 	const requirements = requirementsQuery.data;
 
-	const isLoading = profileQuery.isLoading || progressQuery.isLoading;
+	const isLoading =
+		profileQuery.isLoading ||
+		progressQuery.isLoading ||
+		enrolledCoursesQuery.isLoading;
 
 	const hasStudyProgram = !!profile?.student?.studyProgramId;
 	const hasTranscript =
 		(progress?.totalCreditsEarned ?? 0) > 0 ||
 		(progress?.completedCourseCount ?? 0) > 0;
 	const hasEnrolledCourses =
-		(profile?.enrolledCourses?.length ?? 0) > 0 ||
-		(progress?.enrolledCourseCount ?? 0) > 0;
+		enrolledCourses.length > 0 || (progress?.enrolledCourseCount ?? 0) > 0;
 	const hasGoalsOrInterests =
 		(profile?.student?.interests?.length ?? 0) > 0 ||
 		(profile?.student?.careerGoals?.length ?? 0) > 0;
-	const hasScheduleData = (schedule?.events?.length ?? 0) > 0;
 	const hasRecommendations =
 		(recommendations?.recommendations?.length ?? 0) > 0;
 	const hasRequirements = (requirements?.categories?.length ?? 0) > 0;
@@ -52,12 +56,12 @@ export function useDashboardData() {
 	return {
 		profileQuery,
 		progressQuery,
-		scheduleQuery,
+		enrolledCoursesQuery,
 		recommendationsQuery,
 		requirementsQuery,
 		profile,
 		progress: dashboardProgress,
-		schedule,
+		enrolledCourses,
 		recommendations,
 		requirements,
 		isLoading,
@@ -65,7 +69,6 @@ export function useDashboardData() {
 		hasTranscript,
 		hasEnrolledCourses,
 		hasGoalsOrInterests,
-		hasScheduleData,
 		hasRecommendations,
 		hasRequirements,
 		creditsRequired,

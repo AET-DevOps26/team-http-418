@@ -204,7 +204,7 @@ to update fields do a full profile update using POST /me
 
 | Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
 |:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
-| [ x ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against the Vector DB instead of a keyword filter | Browsing Service + AI Service |
+| [ x ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against pgvector embeddings in PostgreSQL instead of a keyword filter | Browsing Service + AI Service |
 | [ x ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
 |  [ ]  | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
 |  [ ]  | `GET` | `/study-programs` | — | 200 | Study programs | Catalog Service |
@@ -449,8 +449,7 @@ to update fields do a full profile update using POST /me
         { "day": "MONDAY", "startTime": "10:00", "endTime": "12:00", "room": "MW 0001", "type": "LECTURE" }
       ]
     }
-  ],
-  "conflicts": []
+  ]
 }
 ```
 </details>
@@ -530,7 +529,7 @@ to update fields do a full profile update using POST /me
   },
   "alerts": [
     {
-      "type": "PREREQUISITE_WARNING | DEADLINE | WORKLOAD | CONFLICT",
+      "type": "PREREQUISITE_WARNING | DEADLINE | WORKLOAD",
       "severity": "INFO | WARNING | ERROR",
       "message": "Registration deadline for SS2025 courses is in 3 days",
       "relatedEntityId": "uuid",
@@ -654,8 +653,8 @@ to update fields do a full profile update using POST /me
 ```json
 [
   { "text": "What electives should I take next semester?", "category": "RECOMMENDATIONS" },
-  { "text": "Am I on track to graduate by SS2026?",        "category": "SCHEDULE" },
-  { "text": "Show me courses that don't clash with Mondays.", "category": "SCHEDULE" },
+  { "text": "Am I on track to graduate by SS2026?",        "category": "PROGRESS" },
+  { "text": "Which courses best match my career goals?",   "category": "RECOMMENDATIONS" },
   { "text": "What prerequisites am I still missing?",      "category": "PREREQUISITES" }
 ]
 ```
@@ -682,7 +681,6 @@ to update fields do a full profile update using POST /me
 4. Roadmap CRUD + `/generate` — AIDAN 5
 5. `GET /me/dashboard` — dashboard aggregation
 6. Advisor conversations + message send (SSE) — chat UI
-7. `GET /me/schedule` — timetable view
 
 ### Sprint 5+ — Could Have
 1. Recommendation feedback

@@ -3,7 +3,6 @@ export const mockConfig: Record<string, boolean> = {
 	"POST /auth/login": true,
 	"POST /auth/refresh": true,
 	"POST /auth/logout": true,
-	"GET /me/schedule": false,
 	"GET /me/advisor/conversations": true,
 	"POST /me/advisor/conversations": true,
 	"GET /me/advisor/conversations/:id": true,
