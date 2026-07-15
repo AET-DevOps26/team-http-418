@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Seed the bundled course catalogue without modifying an already populated one.
+set -Eeuo pipefail
+
+SEED_VERSION="2026-07-15-v1"
+STAGING_DB="courses_seed_2026_07_15_v1"
+EXPECTED_TABLES=(
+  course_appointments course_types courses curriculum_connections lectureship
+  organizations persons program_area_courses program_requirement_areas semesters
+  study_programs course_embeddings
+)
+declare -A EXPECTED_ROW_COUNTS=(
+  [course_appointments]=26118 [course_types]=19 [courses]=12788
+  [curriculum_connections]=100582 [lectureship]=32263 [organizations]=744
+  [persons]=5877 [program_area_courses]=2145 [program_requirement_areas]=40
+  [semesters]=2 [study_programs]=6 [course_embeddings]=12788
+)
+
+DB_HOST="${DB_HOST:-}"
+DB_PORT="${DB_PORT:-5432}"
+TARGET_DB="${COURSES_DB_NAME:-courses-data}"
+DB_USER="${DB_USER:-${POSTGRES_USER:-postgres}}"
+DB_PASS="${DB_PASS:-${POSTGRES_PASSWORD:-}}"
+export PGPASSWORD="$DB_PASS"
+
+PSQL_BASE=(psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -p "$DB_PORT")
+if [[ -n "$DB_HOST" ]]; then PSQL_BASE+=(-h "$DB_HOST"); fi
+
+psql_admin() { "${PSQL_BASE[@]}" -d postgres "$@"; }
+psql_db() { "${PSQL_BASE[@]}" -d "$1" "${@:2}"; }
+sql_ident() { printf '"%s"' "$(printf '%s' "$1" | sed 's/"/""/g')"; }
+sql_literal() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/''/g")"; }
+
+cleanup_staging() {
+  # A failed staging import must not affect the target or survive into a retry.
+  psql_admin -c "DROP DATABASE IF EXISTS $(sql_ident "$STAGING_DB") WITH (FORCE)" >/dev/null 2>&1 || true
+}
+trap cleanup_staging EXIT
+
+die() { echo "seed-courses: $*" >&2; exit 1; }
+
+database_exists() {
+  psql_admin -At -c "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $(sql_literal "$TARGET_DB"))"
+}
+
+user_relation_count() {
+  psql_db "$TARGET_DB" -At -c "
+    SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+      AND n.nspname NOT LIKE 'pg_toast%'
+      AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f')"
+}
+
+table_exists() {
+  local db="$1" table="$2"
+  psql_db "$db" -At -c "
+    SELECT EXISTS (
+      SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public' AND c.relname = $(sql_literal "$table") AND c.relkind IN ('r', 'p')
+    )"
+}
+
+validate_staging() {
+  local table actual expected
+  for table in "${EXPECTED_TABLES[@]}"; do
+    [[ "$(table_exists "$STAGING_DB" "$table")" == "t" ]] || die "staging validation failed: missing public.$table"
+    actual="$(psql_db "$STAGING_DB" -At -c "SELECT count(*) FROM public.$table")"
+    expected="${EXPECTED_ROW_COUNTS[$table]}"
+    [[ "$actual" == "$expected" ]] || die "staging validation failed: expected $expected rows in public.$table, found $actual"
+  done
+  [[ "$(psql_db "$STAGING_DB" -At -c "SELECT count(*) FROM pg_extension WHERE extname IN ('vector', 'pg_trgm')")" == "2" ]] || die "staging validation failed: vector and pg_trgm extensions are required"
+}
+
+is_complete() {
+  local table
+  for table in "${EXPECTED_TABLES[@]}"; do
+    [[ "$(table_exists "$TARGET_DB" "$table")" == "t" ]] || return 1
+  done
+  [[ "$(psql_db "$TARGET_DB" -At -c "SELECT count(*) FROM public.courses")" -gt 0 ]] || return 1
+  [[ "$(psql_db "$TARGET_DB" -At -c "SELECT count(*) FROM public.course_embeddings")" -gt 0 ]] || return 1
+  [[ "$(psql_db "$TARGET_DB" -At -c "SELECT count(*) FROM pg_extension WHERE extname IN ('vector', 'pg_trgm')")" == "2" ]]
+}
+
+[[ "$TARGET_DB" != "postgres" && "$TARGET_DB" != "template0" && "$TARGET_DB" != "template1" ]] || die "COURSES_DB_NAME must not be a system database"
+[[ "$TARGET_DB" != "$STAGING_DB" ]] || die "COURSES_DB_NAME conflicts with the internal staging database name"
+echo "seed-courses: connecting to PostgreSQL as $DB_USER"
+psql_admin -c 'SELECT 1' >/dev/null || die "cannot connect to PostgreSQL"
+
+if [[ "$(database_exists)" == "t" ]]; then
+  if [[ "$(user_relation_count)" != "0" ]]; then
+    if is_complete; then
+      echo "seed-courses: $TARGET_DB is already complete; leaving it unchanged"
+      exit 0
+    fi
+    die "$TARGET_DB contains partial or unrecognised course data; refusing to overwrite it"
+  fi
+  echo "seed-courses: $TARGET_DB is empty; preparing a replacement"
+else
+  echo "seed-courses: $TARGET_DB does not exist; preparing a new database"
+fi
+
+cleanup_staging
+psql_admin -c "CREATE DATABASE $(sql_ident "$STAGING_DB") TEMPLATE template0"
+echo "seed-courses: importing bundled course data into $STAGING_DB"
+gunzip -c /docker-entrypoint-initdb.d/courses-data.sql.gz.data | psql_db "$STAGING_DB"
+psql_db "$STAGING_DB" -f /docker-entrypoint-initdb.d/02-study-programs.sql.inc
+psql_db "$STAGING_DB" <<'SQL'
+CREATE TABLE public.course_embeddings (
+    course_id BIGINT PRIMARY KEY,
+    embedding VECTOR(4096),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+SQL
+gunzip -c /docker-entrypoint-initdb.d/embeddings-data.sql.gz.data | psql_db "$STAGING_DB"
+validate_staging
+
+# Recheck immediately before the only destructive step, so concurrent writes
+# are preserved instead of being silently replaced.
+if [[ "$(database_exists)" == "t" ]]; then
+  [[ "$(user_relation_count)" == "0" ]] || die "$TARGET_DB was populated while the seed was importing; refusing to replace it"
+  psql_admin -c "DROP DATABASE $(sql_ident "$TARGET_DB") WITH (FORCE)"
+fi
+psql_admin -c "ALTER DATABASE $(sql_ident "$STAGING_DB") RENAME TO $(sql_ident "$TARGET_DB")"
+psql_admin -c "COMMENT ON DATABASE $(sql_ident "$TARGET_DB") IS $(sql_literal "$SEED_VERSION")"
+echo "seed-courses: installed $SEED_VERSION into $TARGET_DB"
