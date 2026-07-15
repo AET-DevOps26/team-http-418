@@ -20,11 +20,7 @@ The app should provide smart mapping and personalized recommendations based on c
 
 **4. Prerequisite Mapping:** As a student, I want to clearly see course prerequisite dependencies and receive proactive alerts for unmet requirements, so that I understand what I need to complete beforehand and avoid registration errors.
 
-**5. Scheduling Preferences:** As a student, I want to set personal scheduling constraints (e.g., maximum ECTS per semester, no morning classes), so that the app generates schedule options tailored to my availability and manageable workload capacity.
-
-**6. Conflict Resolution:** As a student, I want to receive immediate warnings about scheduling conflicts or excessive credit workloads when building my plan, so that I can avoid stressful or unrealistic semester combinations.
-
-**7. Pathway Visualization:** As a student, I want to view my recommended course pathway as a clear, interactive semester-by-semester roadmap, so that I can confidently track my progress toward graduation.
+**5. Pathway Visualization:** As a student, I want to view my recommended course pathway as a clear, interactive semester-by-semester roadmap, so that I can confidently track my progress toward graduation.
 
 
 ### Product Backlog
@@ -37,8 +33,6 @@ The app should provide smart mapping and personalized recommendations based on c
 | **AIDAN 4** | Recommendations | `Major` | The core value proposition of the app. It synthesizes data from Academic Tracking (AIDAN 1), Centralized Search (AIDAN 2), and the Profile (AIDAN 3) to generate intelligent, personalized course suggestions. |
 | **AIDAN 5** | Pathway Visualization | `Major` | The primary UI/UX output for the user to consume the app's core value (the interactive semester-by-semester roadmap). |
 | **AIDAN 6** | Prerequisite Mapping | `Minor` | Essential for ensuring the recommendations are actually usable and prevent registration errors. |
-| **AIDAN 7** | Scheduling Preferences | `Minor` | Highly useful for personalization, but the app can still deliver its core academic pathway without time-of-day constraints initially. |
-| **AIDAN 8** | Conflict Resolution | `Minor` | A great quality-of-life feature to warn about schedule overlaps, but secondary to actually generating the core pathway. |
 
 ---
 
@@ -59,11 +53,17 @@ The core business logic, user management, and data orchestration are handled by 
 #### GenAI Service: Python & LangChain Microservice
 To isolate heavy computational tasks and leverage the best ecosystem for artificial intelligence, all AI-driven features (such as smart course recommendations and prerequisite mapping) are offloaded to a dedicated Python microservice.
 *   **LangChain** is used to orchestrate interactions with the underlying Large Language Models (LLMs), allowing the system to intelligently parse unstructured course data from chair websites and match it against student career goals.
-*   By decoupling this from the Spring Boot server, the main backend remains highly performant and avoids being bottlenecked by AI processing latency. Communication between the Spring Boot server and this microservice is handled via internal REST or gRPC calls.
+*   By decoupling this from the Spring Boot server, the main backend remains highly performant and avoids being bottlenecked by AI processing latency. Communication between the Spring Boot server and this microservice is handled via internal REST calls.
+
+#### User-Profile-Service: Spring Boot Microservice
+A dedicated Spring Boot microservice on port 8060 manages user profile data. It provides a cached profile store, keeping the main server focused on business logic and API orchestration.
+
+#### PDF-Parser: Spring Boot Microservice
+A dedicated Spring Boot microservice on port 8070 handles PDF parsing tasks such as extracting course data from uploaded transcripts.
 
 #### Database: PostgreSQL
 Data persistence is managed using PostgreSQL, a highly reliable and scalable relational database system.
-*   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances.
+*   A relational database is the ideal choice for this application due to the highly structured and interconnected nature of university data. PostgreSQL ensures ACID compliance and referential integrity, which is essential when mapping complex prerequisite chains, user credentials, and ECTS credit balances. Course embeddings for semantic search are stored using the pgvector extension within the same PostgreSQL instance.
 *   It serves as the single source of truth, securely accessed and updated exclusively by the Spring Boot server.
 
 ## 📚 Project Diagrams

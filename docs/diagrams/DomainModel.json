@@ -7,7 +7,7 @@
     {
       "id": "b2f767e1-c247-4428-80d6-960597b982b5",
       "width": 170,
-      "height": 160,
+      "height": 140,
       "type": "class",
       "position": {
         "x": 130,
@@ -28,16 +28,12 @@
           {
             "id": "8bcc5212-0a1f-4603-8dd7-e5c1c94f7409",
             "name": "prefferedWorkload"
-          },
-          {
-            "id": "8f9a9f13-5527-40d7-a038-92c6337443ef",
-            "name": "schedule"
           }
         ]
       },
       "measured": {
         "width": 170,
-        "height": 160
+        "height": 140
       }
     },
     {

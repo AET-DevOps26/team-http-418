@@ -120,12 +120,47 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 300,
-        "y": 510
+        "x": 450,
+        "y": 1490
       },
-      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
         "name": "GenAI",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "d1a2b3c4-user-prof-svc-0001",
+      "width": 220,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 100,
+        "y": 1490
+      },
+      "data": {
+        "name": "User-Profile-Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 220,
+        "height": 120
+      }
+    },
+    {
+      "id": "e2f3a4b5-pdf-parser-svc-0001",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 1550,
+        "y": 700
+      },
+      "data": {
+        "name": "PDF-Parser",
         "isComponentHeaderShown": true
       },
       "measured": {
@@ -172,39 +207,20 @@
     },
     {
       "id": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
-      "width": 180,
+      "width": 280,
       "height": 120,
       "type": "component",
       "position": {
-        "x": 40,
+        "x": 130,
         "y": 130
       },
       "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
       "data": {
-        "name": "Relational DB",
+        "name": "PostgreSQL (pgvector)",
         "isComponentHeaderShown": true
       },
       "measured": {
-        "width": 180,
-        "height": 120
-      }
-    },
-    {
-      "id": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
-      "width": 180,
-      "height": 120,
-      "type": "component",
-      "position": {
-        "x": 320,
-        "y": 130
-      },
-      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
-      "data": {
-        "name": "Vector DB",
-        "isComponentHeaderShown": true
-      },
-      "measured": {
-        "width": 180,
+        "width": 280,
         "height": 120
       }
     },
@@ -409,17 +425,6 @@
       "type": "ComponentProvidedInterface",
       "sourceHandle": "right",
       "targetHandle": "left",
-      "data": {
-        "points": []
-      }
-    },
-    {
-      "id": "99f8de0d-ab13-4e82-a85d-2efaeeaa8cc8",
-      "source": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
-      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
-      "type": "ComponentProvidedInterface",
-      "sourceHandle": "top",
-      "targetHandle": "right",
       "data": {
         "points": []
       }

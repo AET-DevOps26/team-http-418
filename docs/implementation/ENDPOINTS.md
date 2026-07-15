@@ -618,100 +618,9 @@ to update fields do a full profile update using POST /me
 
 ---
 
-### Schedule View (AIDAN 7 — view only)
-
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/schedule` | Query: `semester` | 200 | Weekly timetable of all enrolled courses for a semester | Planning Service + Student Service |
-
-<details>
-<summary>Response schema</summary>
-
-**`WeeklySchedule`**
-```json
-{
-  "semester": "SS2025",
-  "events": [
-    {
-      "courseId": "uuid",
-      "courseCode": "IN2349",
-      "courseName": "Advanced Deep Learning",
-      "type": "LECTURE | TUTORIAL | LAB | EXAM",
-      "day": "MONDAY",
-      "startTime": "10:00",
-      "endTime": "12:00",
-      "room": "MW 0001",
-      "instructor": "Prof. Niessner",
-      "color": "#4A90D9"
-    }
-  ],
-  "totalCredits": 28,
-  "conflicts": []
-}
-```
-</details>
-
----
-
 ## Could Have
 
-> Covers: **AIDAN 7** (Scheduling Preferences), **AIDAN 8** (Conflict Resolution), recommendation feedback, advisor extras
-
----
-
-### Scheduling Preferences (AIDAN 7)
-
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/preferences/scheduling` | — | 200 | Retrieve personal scheduling constraints | Student Service |
-| [ ] | `PUT` | `/me/preferences/scheduling` | Body: `SchedulingPreferences` | 200 | Replace scheduling constraints | Student Service |
-
-<details>
-<summary>Request / response schema</summary>
-
-**`SchedulingPreferences`**
-```json
-{
-  "maxCreditsPerSemester": 30,
-  "blockedTimeSlots": [
-    { "day": "MONDAY", "startTime": "08:00", "endTime": "10:00", "reason": "No morning classes" }
-  ],
-  "preferredTimeSlots": [
-    { "day": "TUESDAY", "startTime": "10:00", "endTime": "18:00" }
-  ],
-  "preferNoBackToBack": true,
-  "preferredLanguage": "EN",
-  "maxCoursesPerDay": 3
-}
-```
-</details>
-
----
-
-### Conflict Resolution (AIDAN 8)
-
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/schedule/conflicts` | Query: `semester` | 200 | All detected conflicts for the current semester plan | Planning Service |
-
-<details>
-<summary>Response schema</summary>
-
-**`ConflictList`**
-```json
-{
-  "semester": "SS2025",
-  "conflicts": [
-    {
-      "type": "TIME_OVERLAP | WORKLOAD_EXCEEDED | PREREQUISITE_UNMET",
-      "severity": "ERROR | WARNING",
-      "message": "IN2349 and IN2390 overlap on Monday 10:00–12:00",
-      "involvedCourses": ["uuid-a", "uuid-b"]
-    }
-  ]
-}
-```
-</details>
+> Covers: recommendation feedback, advisor extras
 
 ---
 
@@ -776,7 +685,5 @@ to update fields do a full profile update using POST /me
 7. `GET /me/schedule` — timetable view
 
 ### Sprint 5+ — Could Have
-1. Scheduling preferences (`GET/PUT`)
-2. Conflict detection (`GET /me/schedule/conflicts`)
-3. Recommendation feedback
-4. Advisor conversation deletion + suggestions
+1. Recommendation feedback
+2. Advisor conversation deletion + suggestions
