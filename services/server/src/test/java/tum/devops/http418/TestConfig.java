@@ -185,9 +185,9 @@ public class TestConfig {
 		jdbcTemplate.getJdbcOperations().execute(
 				"MERGE INTO study_programs (stp_id, name, degree, version, status, total_ects) KEY(stp_id) VALUES (5217, 'Informatik', 'Master', '20231', 'active', 120)");
 		jdbcTemplate.getJdbcOperations().execute(
-				"MERGE INTO program_area_courses (stp_id, area_name, course_id) KEY(stp_id, area_name, course_id) VALUES (5371, 'Required Modules', 100)");
+				"MERGE INTO program_area_courses (stp_id, area_name, course_id, ects) KEY(stp_id, area_name, course_id) VALUES (5371, 'Required Modules', 100, 6)");
 		jdbcTemplate.getJdbcOperations().execute(
-				"MERGE INTO program_area_courses (stp_id, area_name, course_id) KEY(stp_id, area_name, course_id) VALUES (5371, 'Elective Modules', 101)");
+				"MERGE INTO program_area_courses (stp_id, area_name, course_id, ects) KEY(stp_id, area_name, course_id) VALUES (5371, 'Elective Modules', 101, 5)");
 		jdbcTemplate.getJdbcOperations().execute(
 				"MERGE INTO semesters (id, semester_key, semester_type) KEY(id) VALUES (1, '25S', 'S')");
 		jdbcTemplate.getJdbcOperations()

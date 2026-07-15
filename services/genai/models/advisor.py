@@ -52,7 +52,8 @@ class AdvisorRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentAdvisorProfile
-    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
+    completed_courses: Annotated[list[CompletedCourseRef | str], Field(default=[], alias="completedCourses")]
+    enrolled_courses: Annotated[list[str], Field(default=[], alias="enrolledCourses")]
 
     conversation_history: Annotated[list[ConversationMessage], Field(default=[], alias="conversationHistory")]
 

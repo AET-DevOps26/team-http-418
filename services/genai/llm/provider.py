@@ -24,11 +24,12 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 def get_llm():
     """Factory — returns LangChain LLM client based on LLM_PROVIDER env var."""
     if LLM_PROVIDER == "local":
-        return ChatOllama(base_url=OLLAMA_BASE_URL, model=OLLAMA_MODEL)
+        return ChatOllama(base_url=OLLAMA_BASE_URL, model=OLLAMA_MODEL, temperature=0)
     return ChatOpenAI(
         openai_api_base=f"{LOGOS_BASE_URL}/{LOGOS_API_VERSION}",
         openai_api_key=LOGOS_API_KEY,
         model=LOGOS_MODEL,
+        temperature=0,
     )
 
 
