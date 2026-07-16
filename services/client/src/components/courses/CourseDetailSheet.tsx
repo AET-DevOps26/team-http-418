@@ -179,7 +179,9 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									whiteSpace: "pre-line",
 								}}
 							>
-								{course.description_en ?? course.description_ger ?? "no description in TUMOnline"}
+								{course.description_en ??
+									course.description_ger ??
+									"no description in TUMOnline"}
 							</p>
 						</section>
 
