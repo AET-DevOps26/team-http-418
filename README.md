@@ -78,12 +78,15 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ![Analysis Object Model (Domain Model)](./docs/diagrams/DomainModel.png)
 
 ### Database Schemas
+#### courses-data
 ![courses-data](./docs/diagrams/courses-data-schema.png)
 
+#### profiles
 ![profiles](./docs/diagrams/profiles-schema.png)
 
+#### security
 ![security](./docs/diagrams/security-schema.png)
-
+(The right side should be in profiles. We didnt manage to move it because of time constraints)
 
 ### deployment urls
 
