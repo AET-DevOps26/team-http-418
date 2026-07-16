@@ -102,15 +102,16 @@ public class APIControllerMe {
 
 			for (final ParsedModule module : modules) {
 				final CoursesDataDB.CourseMatchResult course = coursesDataDB.findCourseMatchByTitle(
-						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgramId,
-						module.moduleId());
+						normalizeTitle(module.titleEn()), normalizeTitle(module.titleDe()), studyProgramId);
 				if (course == null) {
 					unmatchedModules.add(module);
 					continue;
 				}
 				final BigDecimal grade = new BigDecimal(String.valueOf(module.grade()))
 						.setScale(1, RoundingMode.HALF_UP);
-				final String category = course.subjectType() != null ? course.subjectType() : "Uncategorized";
+				// Prefer category from PDF parser (more specific); fall back to DB subject_type
+				final String category = module.category() != null ? module.category()
+						: (course.subjectType() != null ? course.subjectType() : "Uncategorized");
 				final String moduleTitle = module.titleEn() != null ? module.titleEn() : module.titleDe();
 				final StudentDataDB.CompletedCourseRow inserted = studentDataDB.insertCompletedCourse(
 						tumid, Long.parseLong(course.id()), grade, module.credits(), null, category,

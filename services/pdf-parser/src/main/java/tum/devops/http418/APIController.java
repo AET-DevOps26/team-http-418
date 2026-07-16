@@ -37,6 +37,17 @@ public class APIController {
 		return ResponseEntity.status(HttpStatus.OK).body(objectMapper.writeValueAsString(res.get()));
 	}
 
+	@PostMapping("/parse-pdf/metadata")
+	public ResponseEntity<String> parseMetadata(@RequestBody byte[] fileContent) {
+		try {
+			final PDFParser.TranscriptMetadata metadata = PDFParser.extractMetadata(fileContent);
+			return ResponseEntity.status(HttpStatus.OK).body(objectMapper.writeValueAsString(metadata));
+		} catch (Exception e) {
+			logger.error("Error extracting metadata", e);
+			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body("Could not extract metadata");
+		}
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<String> handleException(@NonNull Exception ex) {
 		logger.error("Error parsing PDF", ex);

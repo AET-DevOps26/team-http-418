@@ -153,11 +153,7 @@ public class CoursesDataDB {
 	}
 
 	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
-			String studyProgram, String moduleId) {
-		String modulePattern = null;
-		if (moduleId != null && !moduleId.isBlank()) {
-			modulePattern = "%" + moduleId.replace("%", "\\%").replace("_", "\\_") + "%";
-		}
+			String studyProgram) {
 		int studyProgramInt = 0;
 		try {
 			studyProgramInt = Integer.parseInt(studyProgram);
@@ -171,7 +167,6 @@ public class CoursesDataDB {
 				LEFT JOIN program_area_courses pac ON pac.course_id = c.id AND pac.stp_id = :studyProgramInt
 				WHERE LOWER(TRIM(c.title_en)) = :titleEn
 				   OR LOWER(TRIM(c.title_ger)) = :titleDe
-				   OR (:modulePattern IS NOT NULL AND ct."key" ILIKE :modulePattern)
 				ORDER BY
 				    CASE WHEN pac.stp_id IS NOT NULL THEN 0 ELSE 1 END,
 				    c.id ASC
@@ -180,8 +175,7 @@ public class CoursesDataDB {
 		final MapSqlParameterSource params = new MapSqlParameterSource()
 				.addValue("titleEn", normalizedTitleEn)
 				.addValue("titleDe", normalizedTitleDe)
-				.addValue("studyProgramInt", studyProgramInt)
-				.addValue("modulePattern", modulePattern);
+				.addValue("studyProgramInt", studyProgramInt);
 		final List<CourseMatchResult> results = template.query(query, params,
 				new DataClassRowMapper<>(CourseMatchResult.class));
 		return results.isEmpty() ? null : results.getFirst();
