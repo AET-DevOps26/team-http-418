@@ -7,7 +7,12 @@
     ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') }}"
     image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
     ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') | default('aet-devops26', true) }}"
+    app_jwt_secret: "{{ lookup('env', 'APP_JWT_SECRET') }}"
+    logos_api_key: "{{ lookup('env', 'LOGOS_API_KEY') }}"
+    gf_admin_user: "{{ lookup('env', 'GF_SECURITY_ADMIN_USER') | default('admin', true) }}"
+    gf_admin_password: "{{ lookup('env', 'GF_SECURITY_ADMIN_PASSWORD') }}"
 
   roles:
     - docker
     - app
+

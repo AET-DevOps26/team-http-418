@@ -1,4 +1,3 @@
----
 - name: Create app directory
   file:
     path: /opt/aidan
@@ -6,6 +5,27 @@
     owner: azureuser
     group: azureuser
     mode: '0755'
+
+- name: Copy monitoring configuration files
+  copy:
+    src: "{{ playbook_dir }}/../../infra/helm/aidan-monitoring/{{ item }}"
+    dest: "/opt/aidan/monitoring/{{ item }}"
+    owner: azureuser
+    group: azureuser
+    mode: '0644'
+  loop:
+    - prometheus.yml
+    - prometheus-rules.yml
+    - loki-config.yaml
+    - promtail.yml
+
+- name: Copy Grafana provisioning directory
+  copy:
+    src: "{{ playbook_dir }}/../../infra/helm/aidan-monitoring/grafana/"
+    dest: "/opt/aidan/monitoring/grafana/"
+    owner: azureuser
+    group: azureuser
+    mode: '0644'
 
 - name: Login to GHCR
   shell: echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
@@ -35,7 +55,7 @@
   become_user: azureuser
 
 - name: Stop application services for course migration
-  shell: docker compose stop server client user-profile-service pdf-parser || true
+  shell: docker compose stop server client user-profile-service pdf-parser genai || true
   args:
     chdir: /opt/aidan
   become_user: azureuser
