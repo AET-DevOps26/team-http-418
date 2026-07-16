@@ -114,5 +114,9 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          LOGOS_API_KEY: ${{ secrets.LOGOS_API_KEY }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+          GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
         run: |
           ansible-playbook infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure

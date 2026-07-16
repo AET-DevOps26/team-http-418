@@ -224,7 +224,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Preview deployed from commit \`${context.sha.substring(0, 7)}\`\n\n- Client: https://aidan.aet.cit.tum.de/\n- Server health: https://aidan.aet.cit.tum.de/api/health\n\n⚠️ This replaced the current deployment. Merging to \`main\` will redeploy from main.`
+              body: `🚀 Preview deployed from commit \`${context.sha.substring(0, 7)}\`\n\n- Client: https://aidan.stud.k8s.aet.cit.tum.de\n- Server health: https://aidan.stud.k8s.aet.cit.tum.de/api/health\n\n⚠️ This replaced the current deployment. Merging to \`main\` will redeploy from main.`
             })
 
       - name: Debug on failure
