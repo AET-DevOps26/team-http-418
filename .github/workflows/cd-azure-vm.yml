@@ -71,6 +71,15 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/pdf-parser:latest
             ${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.sha }}
 
+      - name: Build and push genai image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/genai
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/genai:latest
+            ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
+
       - name: Build and push db image
         uses: docker/build-push-action@v6
         with:

@@ -18,12 +18,7 @@ services:
     image: ghcr.io/aet-devops26/team-http-418/db:${IMAGE_TAG:-latest}
     command: ["seed-courses"]
     profiles: ["maintenance"]
-    environment:
-      DB_HOST: db
-      DB_PORT: "5432"
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      COURSES_DB_NAME: ${COURSES_DB_NAME}
+    env_file: .env
     depends_on:
       db:
         condition: service_healthy

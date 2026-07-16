@@ -17,10 +17,10 @@ declare -A EXPECTED_ROW_COUNTS=(
 )
 
 DB_HOST="${DB_HOST:-}"
-DB_PORT="${DB_PORT:-5432}"
-TARGET_DB="${COURSES_DB_NAME:-courses-data}"
-DB_USER="${DB_USER:-${POSTGRES_USER:-postgres}}"
-DB_PASS="${DB_PASS:-${POSTGRES_PASSWORD:-}}"
+DB_PORT="${DB_PORT:?seed-courses: DB_PORT is required (e.g. 5432)}"
+TARGET_DB="${COURSES_DB_NAME:?seed-courses: COURSES_DB_NAME is required (e.g. courses-data)}"
+DB_USER="${DB_USER:?seed-courses: DB_USER is required (e.g. postgres)}"
+DB_PASS="${DB_PASS:?seed-courses: DB_PASS is required}"
 export PGPASSWORD="$DB_PASS"
 
 PSQL_BASE=(psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -p "$DB_PORT")
