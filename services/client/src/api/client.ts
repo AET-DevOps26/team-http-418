@@ -56,6 +56,7 @@ async function doFetch<T>(
 		if (res.status === NO_CONTENT) return undefined as T;
 		if (options?.responseType === "text") return res.text() as Promise<T>;
 		const text = await res.text();
+		if (!text) return undefined as T;
 		try {
 			return JSON.parse(text) as T;
 		} catch {

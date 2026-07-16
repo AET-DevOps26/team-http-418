@@ -101,6 +101,14 @@ describe("apiFetch", () => {
 		expect(result).toBeUndefined();
 	});
 
+	it("returns undefined for 200 OK with empty body", async () => {
+		vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+
+		const result = await apiFetch<void>("/items/1", { method: "PUT" });
+
+		expect(result).toBeUndefined();
+	});
+
 	it("returns text when responseType is 'text'", async () => {
 		vi.mocked(fetch).mockResolvedValue(textResponse("hello world"));
 
