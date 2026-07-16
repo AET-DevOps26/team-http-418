@@ -17,5 +17,8 @@ data:
   LOGOS_BASE_URL: {{ .Values.genai.logosBaseUrl | quote }}
   LOGOS_API_VERSION: {{ .Values.genai.logosApiVersion | quote }}
   LOGOS_MODEL: {{ .Values.genai.logosModel | quote }}
+  GENAI_SERVICE_URL: {{ printf "http://genai:%d/v1" (.Values.genai.port | int) | quote }}
+  PROFILE_SERVICE_URL: {{ printf "http://user-profile-service:%d/v1" (.Values.userProfile.port | int) | quote }}
+  PDF_PARSER_SERVICE_URL: {{ printf "http://pdf-parser:%d/v1" (.Values.pdfParser.port | int) | quote }}
   SPRING_DATASOURCE_URL: {{ printf "jdbc:postgresql://postgres-service:%d" (.Values.postgres.port | int) }}
   SPRING_DATASOURCE_USERNAME: {{ .Values.postgres.username | quote }}
