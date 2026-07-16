@@ -69,7 +69,7 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ## 📚 Project Diagrams
 
 ### 🏗️ Subsystem Decomposition Diagramm
-![Subsystem Decomposition Diagramm](./docs/diagrams/SubsystemDecomposition.png)
+<img src="./docs/diagrams/SubsystemDecomposition.png" style="background-color: white;">
 
 ### ⚙️ Use Case Diagram
 ![Use Case Diagram](./docs/diagrams/UseCaseDiagramm.png)
@@ -87,8 +87,9 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 ### deployment urls
 
-    https://aidan.stud.k8s.aet.cit.tum.de/dashboard
-    https://aidan-monitoring.stud.k8s.aet.cit.tum.de
+https://aidan.stud.k8s.aet.cit.tum.de/dashboard
+
+https://aidan-monitoring.stud.k8s.aet.cit.tum.de
 
 ### Test User
 
