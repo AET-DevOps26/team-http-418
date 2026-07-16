@@ -1,5 +1,26 @@
 # team-http-418
 
+### initial codeowners
+
+@quarz12 ge64tap 03745866
+
+@kirillinoz TODO
+
+/services/client/    @kirillinoz
+
+/services/server/    @quarz12
+
+/services/genai/     @khinevich
+
+/services/scraper/   @quarz12
+
+/services/pdf-parser/ @quarz12
+
+/services/user-profile-service/ @quarz12
+
+#### since integration (~30.06.) everyone works everywhere, @khinevich dropped out
+
+
 ## AI-Driven Academic Navigator (AIDAN)
 
 ### Problem Statement
