@@ -9,6 +9,20 @@ env:
   IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
 
 jobs:
+  genai-quality-impact:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        uses: ./.github/actions/genai-quality-filter
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
   build-and-deploy:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'deployment-preview')
@@ -18,6 +32,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -138,6 +154,43 @@ jobs:
             kubectl delete pod "$pod" -n aidan-monitoring --force --grace-period=0 || true
           done
 
+      - name: Quiesce applications and expand PostgreSQL storage
+        id: postgres-preflight
+        run: |
+          set -Eeuo pipefail
+          replicas=""
+          for deployment in server client genai user-profile-service pdf-parser; do
+            if kubectl get deployment "$deployment" -n aidan >/dev/null 2>&1; then
+              count=$(kubectl get deployment "$deployment" -n aidan -o jsonpath='{.spec.replicas}')
+              replicas+="${deployment}=${count},"
+            fi
+          done
+          echo "replicas=${replicas}" >> "$GITHUB_OUTPUT"
+
+          if ! kubectl get pvc postgres-pvc -n aidan >/dev/null 2>&1; then
+            echo "No existing PostgreSQL PVC; this is a fresh install."
+            exit 0
+          fi
+          storage_class=$(kubectl get pvc postgres-pvc -n aidan -o jsonpath='{.spec.storageClassName}')
+          [ -n "$storage_class" ] || { echo "postgres-pvc has no storage class" >&2; exit 1; }
+          [ "$(kubectl get storageclass "$storage_class" -o jsonpath='{.allowVolumeExpansion}')" = "true" ] || {
+            echo "StorageClass $storage_class does not allow volume expansion" >&2; exit 1;
+          }
+
+          for deployment in server client genai user-profile-service pdf-parser; do
+            kubectl get deployment "$deployment" -n aidan >/dev/null 2>&1 && kubectl scale deployment "$deployment" -n aidan --replicas=0
+          done
+          kubectl patch pvc postgres-pvc -n aidan --type merge -p '{"spec":{"resources":{"requests":{"storage":"5Gi"}}}}'
+          kubectl wait --for=jsonpath='{.status.capacity.storage}'=5Gi pvc/postgres-pvc -n aidan --timeout=10m
+
+          if kubectl get pvc postgres-pvc -n aidan -o jsonpath='{range .status.conditions[?(@.type=="FileSystemResizePending")]}{.status}{end}' | grep -q True; then
+            postgres_replicas=$(kubectl get deployment postgres -n aidan -o jsonpath='{.spec.replicas}')
+            kubectl scale deployment postgres -n aidan --replicas=0
+            kubectl wait --for=delete pod -l app=postgres -n aidan --timeout=5m || true
+            kubectl scale deployment postgres -n aidan --replicas="$postgres_replicas"
+            kubectl rollout status deployment/postgres -n aidan --timeout=10m
+          fi
+
       - name: Deploy via Helm
         run: |
           helm upgrade --install aidan ./infra/helm/aidan \
@@ -149,7 +202,7 @@ jobs:
             --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
             --namespace aidan \
             --wait \
-            --timeout 7m
+            --timeout 25m
 
       - name: Deploy monitoring via Helm
         run: |
@@ -171,7 +224,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Preview deployed from commit \`${context.sha.substring(0, 7)}\`\n\n- Client: https://aidan.aet.cit.tum.de/\n- Server health: https://aidan.aet.cit.tum.de/api/health\n\n⚠️ This replaced the current deployment. Merging to \`main\` will redeploy from main.`
+              body: `🚀 Preview deployed from commit \`${context.sha.substring(0, 7)}\`\n\n- Client: https://aidan.stud.k8s.aet.cit.tum.de\n- Server health: https://aidan.stud.k8s.aet.cit.tum.de/api/health\n\n⚠️ This replaced the current deployment. Merging to \`main\` will redeploy from main.`
             })
 
       - name: Debug on failure
@@ -187,6 +240,104 @@ jobs:
           kubectl logs -l app=genai -n aidan --tail=50 || true
           kubectl logs -l app=user-profile-service -n aidan --tail=50 || true
           kubectl logs -l app=pdf-parser -n aidan --tail=50 || true
+          kubectl logs -n aidan job/aidan-courses-seed --tail=200 || true
           kubectl get pods -n aidan-monitoring
           kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp'
           kubectl describe pods -n aidan-monitoring
+
+      - name: Restore application replicas on failure
+        if: failure()
+        run: |
+          IFS=',' read -ra saved <<< "${{ steps.postgres-preflight.outputs.replicas }}"
+          for item in "${saved[@]}"; do
+            [ -n "$item" ] || continue
+            deployment=${item%%=*}
+            replicas=${item#*=}
+            kubectl scale deployment "$deployment" -n aidan --replicas="$replicas" || true
+          done
+
+  genai-golden-evaluation:
+    needs: [build-and-deploy, genai-quality-impact]
+    if: needs.build-and-deploy.result == 'success' && needs.genai-quality-impact.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Run isolated LOGOS evaluation Job
+        id: eval
+        run: |
+          job="genai-eval-pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+          job="${job:0:63}"
+          kubectl delete job "$job" -n aidan --ignore-not-found
+          kubectl apply -n aidan -f - <<EOF
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: $job
+            labels:
+              app: genai-evaluation
+          spec:
+            backoffLimit: 0
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                restartPolicy: Never
+                imagePullSecrets:
+                  - name: ghcr-pull-secret
+                containers:
+                  - name: evaluator
+                    image: ${{ env.IMAGE_PREFIX }}/genai:pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+                    command: ["python", "-m", "evals.run", "--output-dir", "/tmp/eval", "--emit-candidate-baseline"]
+                    envFrom:
+                      - configMapRef: {name: aidan-config}
+                      - secretRef: {name: aidan-secret}
+                    env:
+                      - name: DB_PASS
+                        valueFrom: {secretKeyRef: {name: aidan-secret, key: DB_PASS}}
+                      - name: DATABASE_URL
+                        value: postgresql://postgres:\$(DB_PASS)@postgres-service:5432/courses-data
+          EOF
+          kubectl wait --for=condition=complete "job/$job" -n aidan --timeout=12m || true
+          pod=$(kubectl get pods -n aidan -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
+          mkdir -p genai-eval-report
+          kubectl logs -n aidan "$pod" || true
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/results.json > genai-eval-report/results.json
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/summary.md > genai-eval-report/summary.md
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/candidate-baseline.json > genai-eval-report/candidate-baseline.json || true
+          kubectl get job "$job" -n aidan -o jsonpath='{.status.failed}' | grep -q '^1$' && exit 1 || true
+      - name: Publish evaluation summary
+        if: always()
+        run: cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genai-golden-evaluation-pr-${{ github.event.pull_request.number }}
+          path: genai-eval-report
+          retention-days: 30
+      - name: Upsert evaluation PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- genai-golden-eval -->';
+            const fs = require('fs');
+            const summary = fs.existsSync('genai-eval-report/summary.md')
+              ? fs.readFileSync('genai-eval-report/summary.md', 'utf8') : 'Evaluation report could not be collected.';
+            const body = `${marker}\n${summary}`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number
+            });
+            const existing = comments.find(comment => comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body});
+            } else {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body});
+            }

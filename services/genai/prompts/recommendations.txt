@@ -4,20 +4,31 @@ Given a student profile and candidate courses pre-ranked by semantic similarity,
 Student profile:
 - Study program: {study_program}
 - Semester: {semester}
+- Current semester: {current_semester_key}
 - Career goals: {goals}
 - Interests: {interests}
 - Skills: {skills}
 - Completed courses: {completed_names}
+- Currently enrolled: {enrolled_names}
 {career_context}
 Candidate courses (sorted by relevance score):
 {courses_text}
+
+Constraints:
+- Do NOT recommend courses the student has already completed or is currently enrolled in.
+- Do NOT recommend courses clearly outside the student's program unless they explicitly align with stated career goals.
+- Prefer courses appropriate for the student's current semester level — avoid recommending introductory courses to advanced students or advanced courses to beginners without prerequisites.
+- Consider semester availability: if the current semester is Winter (W), prioritize courses offered in winter.
 
 Return ONLY a valid JSON array. No explanation, no markdown, just JSON:
 [
   {{
     "courseId": <int>,
     "relevanceScore": <float 0-1>,
-    "reason": "<1-2 sentence explanation why this course fits the student>",
+    "reason": "<1-2 sentence explanation why this course fits the student, referencing their specific goals or interests>",
     "tags": ["<tag1>", "<tag2>"]
   }}
 ]
+
+Example of a good reason: "Builds on your completed Linear Algebra course and directly supports your machine learning career goal by covering neural network fundamentals."
+Example of a bad reason: "This is a good course that many students find interesting."

@@ -1,19 +1,21 @@
 import json
 import logging
+from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import HTTPException
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from llm.provider import get_llm
-from models.roadmap import RoadmapRequest
+from models.roadmap import RoadmapGeneration, RoadmapRequest
 
 _ROADMAP_PROMPT = (Path(__file__).parent.parent / "prompts" / "roadmap.txt").read_text()
 
 logger = logging.getLogger("genai")
 
 
-def _build_prompt(request: RoadmapRequest) -> str:
+def _build_messages(request: RoadmapRequest) -> list:
     student = request.student
     prefs = student.preferences
     max_credits = prefs.max_credits_per_semester if prefs else 30
@@ -27,7 +29,11 @@ def _build_prompt(request: RoadmapRequest) -> str:
     )
 
     completed_text = (
-        "\n".join(f"  - {c.course_code} ({c.credits} credits)" for c in request.completed_courses) or "  none"
+        "\n".join(
+            f"  - {c.course_code} | {c.course_name or c.course_code} ({c.credits} credits)"
+            for c in request.completed_courses
+        )
+        or "  none"
     )
 
     enrolled_text = (
@@ -38,16 +44,26 @@ def _build_prompt(request: RoadmapRequest) -> str:
         or "  none"
     )
 
-    available_text = (
-        "\n".join(
-            f"  - courseId={c.course_id} | {c.course_code} | {c.course_name} | {c.credits} credits"
-            + (f" | preferred: {c.preferred_semester}" if c.preferred_semester else "")
-            for c in request.available_courses
-        )
-        or "  none"
-    )
+    courses_by_category: dict[str, list] = defaultdict(list)
+    for c in request.available_courses:
+        category = c.category if hasattr(c, "category") and c.category else "Uncategorized"
+        line = f"  - courseId={c.course_id} | {c.course_code} | {c.course_name} | {c.credits} ECTS"
+        if c.preferred_semester:
+            line += f" | offered: {c.preferred_semester}"
+        if c.has_prerequisites:
+            line += " | has prerequisites"
+        courses_by_category[category].append(line)
 
-    return _ROADMAP_PROMPT.format(
+    if courses_by_category:
+        available_parts = []
+        for category, courses in courses_by_category.items():
+            available_parts.append(f"\n  [{category}]")
+            available_parts.extend(courses)
+        available_text = "\n".join(available_parts)
+    else:
+        available_text = "  none"
+
+    system_content = _ROADMAP_PROMPT.format(
         study_program=student.study_program or "not specified",
         current_semester=request.current_semester_key,
         career_goals=", ".join(student.career_goals) or "not specified",
@@ -62,16 +78,19 @@ def _build_prompt(request: RoadmapRequest) -> str:
         available_courses_text=available_text,
     )
 
+    return [
+        SystemMessage(content=system_content),
+        HumanMessage(content="Generate my semester-by-semester course plan."),
+    ]
+
 
 async def generate_roadmap(request: RoadmapRequest) -> dict:
-    prompt = _build_prompt(request)
+    messages = _build_messages(request)
 
     try:
         llm = get_llm()
-        result = await llm.ainvoke(prompt)
-        parsed = json.loads(result.content)
-        if "semesters" not in parsed or not isinstance(parsed["semesters"], list):
-            raise ValueError("missing or invalid 'semesters' key")
+        result = await llm.ainvoke(messages)
+        parsed = RoadmapGeneration.model_validate(json.loads(result.content)).model_dump(by_alias=True)
     except (json.JSONDecodeError, ValueError) as e:
         logger.error("roadmap | LLM response invalid: %s", e)
         raise HTTPException(

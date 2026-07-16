@@ -18,6 +18,8 @@ jobs:
       image_tag: ${{ steps.meta.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -46,6 +48,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/client
+          build-args: |
+            API_VERSION=${{ vars.API_VERSION }}
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/client:latest
@@ -68,6 +72,24 @@ jobs:
           tags: |
             ${{ env.IMAGE_PREFIX }}/pdf-parser:latest
             ${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.sha }}
+
+      - name: Build and push genai image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/genai
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/genai:latest
+            ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
+
+      - name: Build and push db image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./infra/db
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/db:latest
+            ${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -94,5 +116,9 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          LOGOS_API_KEY: ${{ secrets.LOGOS_API_KEY }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+          GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
         run: |
           ansible-playbook infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure

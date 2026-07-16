@@ -1,9 +1,10 @@
 services:
   db:
-    image: postgres:17
+    image: ghcr.io/aet-devops26/team-http-418/db:{{ image_tag }}
     environment:
       POSTGRES_PASSWORD: "{{ db_password }}"
       POSTGRES_USER: "postgres"
+      COURSES_DB_NAME: "courses-data"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -13,6 +14,20 @@ services:
       retries: 5
     restart: unless-stopped
 
+  db-seed:
+    image: ghcr.io/aet-devops26/team-http-418/db:{{ image_tag }}
+    command: ["seed-courses"]
+    profiles: ["maintenance"]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASS: "{{ db_password }}"
+      COURSES_DB_NAME: "courses-data"
+    depends_on:
+      db:
+        condition: service_healthy
+
   server:
     image: ghcr.io/aet-devops26/team-http-418/server:{{ image_tag }}
     env_file: .env
@@ -20,6 +35,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://localhost:8080/health 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   client:
     image: ghcr.io/aet-devops26/team-http-418/client:{{ image_tag }}
@@ -55,5 +75,91 @@ services:
       retries: 5
     restart: unless-stopped
 
+  genai:
+    image: ghcr.io/aet-devops26/team-http-418/genai:{{ image_tag }}
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus-rules.yml:/etc/prometheus/prometheus-rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:11.5.2
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    environment:
+      GF_SECURITY_ADMIN_USER: "{{ gf_admin_user }}"
+      GF_SECURITY_ADMIN_PASSWORD: "{{ gf_admin_password }}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "logsInExplore"
+      GF_LOG_CONSOLECOLORS: "true"
+    entrypoint: ["sh", "-c", "/etc/grafana/provisioning/init_grafana.sh"]
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail.yml:/etc/promtail/promtail.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/promtail.yml
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.7.3
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    restart: unless-stopped
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:{{ db_password }}@db:5432/courses-data?sslmode=disable"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  prometheus_data:
+  grafana-storage:
+  loki-data:

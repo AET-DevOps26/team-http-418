@@ -1,8 +1,9 @@
 package tum.devops.http418.api;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +14,10 @@ import tum.devops.http418.data.CoursesDataDB;
 import tum.devops.http418.data.StudentDataDB;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static tum.devops.http418.Http418Application.GENAI_PATH;
 import static tum.devops.http418.Http418Application.PROFILE_SERVICE;
 import static tum.devops.http418.Http418Application.restClient;
 
@@ -28,6 +29,9 @@ public class APIControllerMeRoadmap {
 	private final StudentDataDB studentDataDB;
 	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
+	private final ExternalServices externalServices;
+	private final ExecutorService roadmapGenerationExecutor;
+	private final Logger logger = LoggerFactory.getLogger(APIControllerMeRoadmap.class);
 
 	@GetMapping("")
 	public ResponseEntity<RoadmapDTO> getRoadmap(@AuthenticationPrincipal String tumid) {
@@ -41,13 +45,24 @@ public class APIControllerMeRoadmap {
 	@PutMapping("")
 	public ResponseEntity<RoadmapDTO> updateRoadmap(@AuthenticationPrincipal String tumid,
 			@RequestBody String roadmapJson) {
-		studentDataDB.upsertRoadmap(tumid, roadmapJson, "ACTIVE");
+		studentDataDB.upsertRoadmap(tumid, roadmapJson, "READY");
 		final StudentDataDB.RoadmapRow row = studentDataDB.getRoadmap(tumid);
 		return ResponseEntity.ok(toRoadmapDTO(row));
 	}
 
 	@PostMapping("/generate")
 	public ResponseEntity<RoadmapDTO> generateRoadmap(@AuthenticationPrincipal String tumid) {
+		final StudentDataDB.RoadmapRow existing = studentDataDB.getRoadmap(tumid);
+		if (existing == null) {
+			studentDataDB.upsertRoadmap(tumid, "[]", "GENERATING");
+		} else {
+			studentDataDB.updateRoadmapStatus(tumid, "GENERATING");
+		}
+		roadmapGenerationExecutor.submit(() -> doGenerate(tumid));
+		return ResponseEntity.accepted().body(toRoadmapDTO(studentDataDB.getRoadmap(tumid)));
+	}
+
+	private void doGenerate(String tumid) {
 		try {
 			final Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve()
 					.body(Profile.class);
@@ -66,11 +81,14 @@ public class APIControllerMeRoadmap {
 				final Map<String, Object> m = new HashMap<>();
 				m.put("courseId", row.courseId());
 				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+				m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : String.valueOf(row.courseId()));
 				m.put("credits", row.credits());
 				m.put("category", row.category());
 				m.put("semester", row.semesterKey());
 				return m;
 			}).toList();
+
+			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 
 			final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0,
 					1000);
@@ -80,41 +98,67 @@ public class APIControllerMeRoadmap {
 					.getCourseDataForIds(enrolledIds).stream()
 					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
 
+			final Map<Long, Integer> enrolledEcts = coursesDataDB.getEctsForCourses(studyProgram, enrolledIds);
 			final List<Map<String, Object>> enrolledCourses = enrolledRows.stream().map(row -> {
 				final CoursesDataDB.CourseDataRow cd = enrolledCourseData.get(row.courseId());
+				final int sws = cd != null ? cd.sws() : 0;
+				final int credits = enrolledEcts.getOrDefault(row.courseId(), (int) Math.round(sws * 1.5));
 				final Map<String, Object> m = new HashMap<>();
 				m.put("courseId", row.courseId());
 				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
-				m.put("credits", cd != null ? cd.sws() : 0);
+				m.put("credits", credits);
 				m.put("semester", row.semesterKey());
 				return m;
 			}).toList();
-
-			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 			final Set<Long> usedIds = new HashSet<>(completedIds);
 			usedIds.addAll(enrolledIds);
-			final List<Map<String, Object>> availableCourses = coursesDataDB //TODO very inefficient. do this in genai
-					.getCoursesByStudyProgramWithSws(studyProgram).stream()
+			final List<Map<String, Object>> availableCourses = coursesDataDB
+					.getCoursesByStudyProgramRich(studyProgram).stream()
 					.filter(c -> !usedIds.contains(c.id()))
 					.map(c -> {
+						final int credits = c.ects() != null ? c.ects() : (int) Math.round(c.sws() * 1.5);
 						final Map<String, Object> m = new HashMap<>();
 						m.put("courseId", c.id());
 						m.put("courseCode", c.key());
-						m.put("courseName", c.title_en() != null ? c.title_en() : String.valueOf(c.id()));
-						m.put("credits", c.sws());
+						m.put("courseName", c.titleEn() != null ? c.titleEn() : String.valueOf(c.id()));
+						m.put("credits", credits);
+						m.put("category", c.areaName());
+						m.put("preferredSemester", c.semesterKey() != null && c.semesterKey().length() >= 3
+								? String.valueOf(Character.toUpperCase(c.semesterKey().charAt(c.semesterKey().length() - 1)))
+								: null);
+						m.put("hasPrerequisites", c.hasPrerequisites());
 						return m;
 					}).toList();
 
 			final int totalCreditsEarned = studentDataDB.sumCredits(tumid);
-			final int totalCreditsRequired = 180;
-			final int remainingSemesters = Math.max(1, (totalCreditsRequired - totalCreditsEarned + 29) / 30);
-			final List<Map<String, Object>> categories = studentDataDB.creditsByCategory(tumid).stream().map(row -> {
-				final Map<String, Object> m = new HashMap<>();
-				m.put("name", row.category());
-				m.put("creditsRequired", 60);
-				m.put("creditsEarned", row.totalCredits());
-				return m;
-			}).toList();
+			final Integer programTotalEcts = coursesDataDB.getStudyProgramTotalEcts(studyProgram);
+			final int totalCreditsRequired = programTotalEcts != null ? programTotalEcts : 180;
+			final int maxCredits = profileStudent != null ? profileStudent.preferredWorkload() : 30;
+			final int remainingSemesters = Math.max(1, (totalCreditsRequired - totalCreditsEarned + maxCredits - 1) / maxCredits);
+
+			final Map<String, Integer> earnedByCategory = new HashMap<>();
+			for (StudentDataDB.CreditsByCategoryRow row : studentDataDB.creditsByCategory(tumid)) {
+				earnedByCategory.put(row.category(), row.totalCredits());
+			}
+			final List<CoursesDataDB.ProgramRequirementRow> requirementAreas = coursesDataDB.getProgramRequirementAreas(studyProgram);
+			final List<Map<String, Object>> categories;
+			if (!requirementAreas.isEmpty()) {
+				categories = requirementAreas.stream().map(area -> {
+					final Map<String, Object> m = new HashMap<>();
+					m.put("name", area.areaName());
+					m.put("creditsRequired", area.ects() != null ? area.ects() : 0);
+					m.put("creditsEarned", earnedByCategory.getOrDefault(area.areaName(), 0));
+					return m;
+				}).toList();
+			} else {
+				categories = earnedByCategory.entrySet().stream().map(entry -> {
+					final Map<String, Object> m = new HashMap<>();
+					m.put("name", entry.getKey());
+					m.put("creditsRequired", 60);
+					m.put("creditsEarned", entry.getValue());
+					return m;
+				}).toList();
+			}
 			final Map<String, Object> degreeRequirements = new HashMap<>();
 			degreeRequirements.put("totalCreditsRequired", totalCreditsRequired);
 			degreeRequirements.put("totalCreditsEarned", totalCreditsEarned);
@@ -128,11 +172,11 @@ public class APIControllerMeRoadmap {
 			student.put("semester", profileStudent != null ? profileStudent.semester() : 1);
 			student.put("careerGoals",
 					profileStudent != null && profileStudent.careerGoals() != null
-							? List.of(profileStudent.careerGoals())
+							? profileStudent.careerGoals()
 							: List.of());
 			student.put("interests",
 					profileStudent != null && profileStudent.interests() != null
-							? List.of(profileStudent.interests())
+							? profileStudent.interests()
 							: List.of());
 			student.put("preferences", preferences);
 
@@ -142,9 +186,10 @@ public class APIControllerMeRoadmap {
 			payload.put("enrolledCourses", enrolledCourses);
 			payload.put("degreeRequirements", degreeRequirements);
 			payload.put("availableCourses", availableCourses);
+			payload.put("currentSemesterKey", profile != null ? profile.semesterKey() : "26S");
 
-			final String response = restClient.post().uri(GENAI_PATH + "/me/roadmap/generate")
-					.contentType(MediaType.APPLICATION_JSON).body(payload).retrieve().body(String.class);
+			final String response = externalServices.callGenAiPost("/me/roadmap/generate", payload,
+					"roadmap generation for user " + tumid);
 
 			final Map<String, Object> genaiResponse = objectMapper.readValue(response,
 					new TypeReference<Map<String, Object>>() {
@@ -152,15 +197,14 @@ public class APIControllerMeRoadmap {
 
 			@SuppressWarnings("unchecked")
 			final List<Map<String, Object>> rawSemesters = (List<Map<String, Object>>) genaiResponse.get("semesters");
-			final List<SemesterPlanDetailDTO> normalizedSemesters = normalizeGenAISemesters(rawSemesters);
+			final List<SemesterPlanDetailDTO> normalizedSemesters = normalizeGenAISemesters(rawSemesters, studyProgram);
 			final String normalizedJson = objectMapper.writeValueAsString(normalizedSemesters);
 
-			studentDataDB.upsertRoadmap(tumid, normalizedJson, "GENERATED");
-			final StudentDataDB.RoadmapRow row = studentDataDB.getRoadmap(tumid);
-			return ResponseEntity.ok(toRoadmapDTO(row));
+			studentDataDB.upsertRoadmap(tumid, normalizedJson, "READY");
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-					.body(new RoadmapDTO("ERROR", null, null, List.of(), 0, null));
+			logger.error("roadmap generation failed for user={}: {}", tumid, e.getMessage(), e);
+			// Preserve the last successful canvas so users can retry without losing it.
+			studentDataDB.updateRoadmapStatus(tumid, "ERROR");
 		}
 	}
 
@@ -227,10 +271,12 @@ public class APIControllerMeRoadmap {
 			if (key.equals(semesters.get(i).semesterKey())) {
 				final SemesterPlanDetailDTO sem = semesters.get(i);
 				final List<PlannedCourseDTO> courses = new ArrayList<>(sem.courses());
+				final Map<Long, Integer> ects = coursesDataDB.getEctsForCourses(null, List.of(request.courseId()));
+				final int credits = ects.getOrDefault(request.courseId(), (int) Math.round(cd.sws() * 1.5));
 				final PlannedCourseDTO newCourse = new PlannedCourseDTO(
 						request.courseId(), cd.key(),
 						cd.title_en() != null ? cd.title_en() : String.valueOf(cd.id()),
-						cd.sws(), "PLANNED");
+						credits, "PLANNED");
 				courses.add(newCourse);
 				final int newTotalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
 				final SemesterPlanDetailDTO updated = new SemesterPlanDetailDTO(
@@ -304,7 +350,7 @@ public class APIControllerMeRoadmap {
 
 	private void saveSemesters(String username, List<SemesterPlanDetailDTO> semesters) {
 		try {
-			studentDataDB.upsertRoadmap(username, objectMapper.writeValueAsString(semesters), "ACTIVE");
+			studentDataDB.upsertRoadmap(username, objectMapper.writeValueAsString(semesters), "READY");
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to save roadmap", e);
 		}
@@ -316,13 +362,22 @@ public class APIControllerMeRoadmap {
 		final String estimatedGraduation = semesters.isEmpty()
 				? null
 				: semesters.get(semesters.size() - 1).semesterKey();
-		return new RoadmapDTO(row.status(),
+		return new RoadmapDTO(canonicalStatus(row.status()),
 				row.createdAt() != null ? row.createdAt().toString() : null,
 				row.updatedAt() != null ? row.updatedAt().toString() : null,
 				semesters, totalPlannedCredits, estimatedGraduation);
 	}
 
-	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters) {
+	private static String canonicalStatus(String status) {
+		return switch (status) {
+			case "ACTIVE", "GENERATED" -> "READY";
+			case "EMPTY", "GENERATING", "READY", "ERROR" -> status;
+			default -> "ERROR";
+		};
+	}
+
+	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters,
+			String studyProgram) {
 		if (rawSemesters == null)
 			return List.of();
 
@@ -339,6 +394,7 @@ public class APIControllerMeRoadmap {
 		final Map<Long, CoursesDataDB.CourseDataRow> courseMap = coursesDataDB
 				.getCourseDataForIds(allCourseIds).stream()
 				.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+		final Map<Long, Integer> ectsMap = coursesDataDB.getEctsForCourses(studyProgram, allCourseIds);
 
 		return rawSemesters.stream().map(s -> {
 			final String semKey = (String) s.get("semesterKey");
@@ -361,16 +417,12 @@ public class APIControllerMeRoadmap {
 				final String courseName = cd != null && cd.title_en() != null
 						? cd.title_en()
 						: String.valueOf(courseId);
-				final int credits = cd != null ? cd.sws() : 0;
+				final int sws = cd != null ? cd.sws() : 0;
+				final int credits = ectsMap.getOrDefault(courseId, (int) Math.round(sws * 1.5));
 				return new PlannedCourseDTO(courseId, courseCode, courseName, credits, "PLANNED");
 			}).toList();
 
-			int totalCredits;
-			if (s.get("totalCredits") instanceof Number) {
-				totalCredits = ((Number) s.get("totalCredits")).intValue();
-			} else {
-				totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
-			}
+			final int totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
 
 			return new SemesterPlanDetailDTO(semKey, deriveLabel(semKey), totalCredits, courses, false);
 		}).toList();

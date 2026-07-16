@@ -1,0 +1,505 @@
+{
+  "seed": 418,
+  "courses": [
+    {
+      "id": 950873421,
+      "title": "(SOT86114) Ethics for Engineers: Foundations, Theories, and Applications",
+      "stratum": "("
+    },
+    {
+      "id": 950877768,
+      "title": "-",
+      "stratum": "-"
+    },
+    {
+      "id": 950881300,
+      "title": ".",
+      "stratum": "."
+    },
+    {
+      "id": 950975297,
+      "title": "12SWS FO Tesearch Internship Biochemistry 2 (CH0555) (Food Chemistry)",
+      "stratum": "1"
+    },
+    {
+      "id": 950842406,
+      "title": "2D Materials and Applications in Electronics",
+      "stratum": "2"
+    },
+    {
+      "id": 950840043,
+      "title": "3D Scanning & Motion Capture (IN2354)",
+      "stratum": "3"
+    },
+    {
+      "id": 950883203,
+      "title": "5G New Radio Communications: Physical Layer Channels and Procedures",
+      "stratum": "5"
+    },
+    {
+      "id": 950840299,
+      "title": "Advanced Electrochemistry",
+      "stratum": "A"
+    },
+    {
+      "id": 950877910,
+      "title": "Basic Sociology I (Introduction)",
+      "stratum": "B"
+    },
+    {
+      "id": 950887886,
+      "title": "Chair Colloquium (CIT Chair of Software Engineering & AI)",
+      "stratum": "C"
+    },
+    {
+      "id": 950878535,
+      "title": "Doctoral Seminar - Robotics (IN2137)",
+      "stratum": "D"
+    },
+    {
+      "id": 950842297,
+      "title": "Ethics of AI: Current research approaches (MGT001390)",
+      "stratum": "E"
+    },
+    {
+      "id": 950880425,
+      "title": "FOPRA Experiment 37: Symmetries in Exfoliated 2D Quantum Materials (AEP, KM, QST-EX)",
+      "stratum": "F"
+    },
+    {
+      "id": 950881662,
+      "title": "Geoinformatics",
+      "stratum": "G"
+    },
+    {
+      "id": 950837599,
+      "title": "High Performance Leadership (WI000996, German) (Limited places)",
+      "stratum": "H"
+    },
+    {
+      "id": 950836434,
+      "title": "Industrial Plants",
+      "stratum": "I"
+    },
+    {
+      "id": 950878398,
+      "title": "Joining Technologies",
+      "stratum": "J"
+    },
+    {
+      "id": 950837453,
+      "title": "Kompensatorische Bewegungsformen",
+      "stratum": "K"
+    },
+    {
+      "id": 950840643,
+      "title": "Linear Algebra 1 [MA0004]",
+      "stratum": "L"
+    },
+    {
+      "id": 950883644,
+      "title": "Master-Seminar - Current Topics in Medical Machine Learning and Computational Pathology (IN2107, IN4514)",
+      "stratum": "M"
+    },
+    {
+      "id": 950883111,
+      "title": "Nutritional Medicine II",
+      "stratum": "N"
+    },
+    {
+      "id": 950880696,
+      "title": "Organic Chemistry (Lecture)",
+      "stratum": "O"
+    },
+    {
+      "id": 950841329,
+      "title": "Project week: Future Mobility Camp",
+      "stratum": "P"
+    },
+    {
+      "id": 950883669,
+      "title": "Quantum Error Correction and Fault Tolerance for Computing and Communication",
+      "stratum": "Q"
+    },
+    {
+      "id": 950837630,
+      "title": "Research Internship Nature Genetics for teaching post Biology",
+      "stratum": "R"
+    },
+    {
+      "id": 950883743,
+      "title": "Student Assembly - School of Life Sciences (Ern\u00e4hrungswissenschaften)",
+      "stratum": "S"
+    },
+    {
+      "id": 950948411,
+      "title": "Table-Top Precision Experiments in Fundamental Physics",
+      "stratum": "T"
+    },
+    {
+      "id": 950873471,
+      "title": "User Research Methods in Software Engineering (IN0014, IN2107, IN45137)",
+      "stratum": "U"
+    },
+    {
+      "id": 950881542,
+      "title": "Visualization Techniques in Computational Mechanics Practical Course (MW2382)",
+      "stratum": "V"
+    },
+    {
+      "id": 950879371,
+      "title": "Writing Laboratory Landscape Architecture  - LAT",
+      "stratum": "W"
+    },
+    {
+      "id": 950881444,
+      "title": "Youth sports",
+      "stratum": "Y"
+    },
+    {
+      "id": 950881536,
+      "title": "Zoological and Botanical field exercise",
+      "stratum": "Z"
+    },
+    {
+      "id": 950882100,
+      "title": "\u00d6konomie f\u00fcr Life Science Engineering (LS30038, German)",
+      "stratum": "\u00d6"
+    },
+    {
+      "id": 950839302,
+      "title": "\u00dcbungen zu Analysis 1 LG [MA1100]",
+      "stratum": "\u00dc"
+    },
+    {
+      "id": 950879583,
+      "title": "(POL10900) International Relations - Fundamentals - Exercise",
+      "stratum": "("
+    },
+    {
+      "id": 950877932,
+      "title": "-",
+      "stratum": "-"
+    },
+    {
+      "id": 950839430,
+      "title": "...",
+      "stratum": "."
+    },
+    {
+      "id": 950938192,
+      "title": "1.000+ Project week",
+      "stratum": "1"
+    },
+    {
+      "id": 950888421,
+      "title": "3SWS Praktische Arbeit f\u00fcr Bachelorstudierende der Bioinformatik (Computational Mass Spectrometry)",
+      "stratum": "3"
+    },
+    {
+      "id": 950883712,
+      "title": "5G New Radio Communications: Physical Layer Channels and Procedures",
+      "stratum": "5"
+    },
+    {
+      "id": 950948057,
+      "title": "Aspects of Philosophy in Physics",
+      "stratum": "A"
+    },
+    {
+      "id": 950879272,
+      "title": "Biophysics of Microtubule-Dependent Processes",
+      "stratum": "B"
+    },
+    {
+      "id": 950939378,
+      "title": "Communication of Science and Technology",
+      "stratum": "C"
+    },
+    {
+      "id": 950882265,
+      "title": "Doctoral Seminar - IH07 Information Systems (IN2137)",
+      "stratum": "D"
+    },
+    {
+      "id": 950880831,
+      "title": "Evidence-informed Practice Lecture",
+      "stratum": "E"
+    },
+    {
+      "id": 950887525,
+      "title": "FOPRA Experiment 112: Computational Tight-Binding Modeling of Energy Materials (KM, AEP)",
+      "stratum": "F"
+    },
+    {
+      "id": 950880041,
+      "title": "Gymnastik / Tanz I",
+      "stratum": "G"
+    },
+    {
+      "id": 950875630,
+      "title": "HDL Chip Design Laboratory",
+      "stratum": "H"
+    },
+    {
+      "id": 950878729,
+      "title": "Innovations in Science Education (Chemistry)",
+      "stratum": "I"
+    },
+    {
+      "id": 950881498,
+      "title": "Japanese A2.2",
+      "stratum": "J"
+    },
+    {
+      "id": 950939741,
+      "title": "Klausurtraining Wirtschaftsprivatrecht 2",
+      "stratum": "K"
+    },
+    {
+      "id": 950876417,
+      "title": "Linear Algebraic Groups (Exercise Session) [CIT4130018]",
+      "stratum": "L"
+    },
+    {
+      "id": 950837710,
+      "title": "Molecular Cell Biology of Tumorigenesis",
+      "stratum": "M"
+    },
+    {
+      "id": 950839142,
+      "title": "Nano- and Microrobotics",
+      "stratum": "N"
+    },
+    {
+      "id": 950935214,
+      "title": "Oberseminar  - Computer Aided Medical Procedures (IN2122)",
+      "stratum": "O"
+    },
+    {
+      "id": 950874762,
+      "title": "Project - Art in Architecture",
+      "stratum": "P"
+    },
+    {
+      "id": 950836329,
+      "title": "QS Clinical Pathological Conference",
+      "stratum": "Q"
+    },
+    {
+      "id": 950840489,
+      "title": "Research Seminar",
+      "stratum": "R"
+    },
+    {
+      "id": 950839724,
+      "title": "Seminar for scientic working for students and Ph.D. students (Prof Blombach)",
+      "stratum": "S"
+    },
+    {
+      "id": 950938446,
+      "title": "Teaching and Learning with Generative AI",
+      "stratum": "T"
+    },
+    {
+      "id": 950881156,
+      "title": "Unsteady Aerodynamics II",
+      "stratum": "U"
+    },
+    {
+      "id": 950935773,
+      "title": "Value Creation with AI at Scale: Strategy, Tech, People and Governance (MGT001485, English)",
+      "stratum": "V"
+    },
+    {
+      "id": 950883110,
+      "title": "Workshop: Faciliation II - Skills and Tools Faciliation the Product Development Process (MSc)",
+      "stratum": "W"
+    },
+    {
+      "id": 950841033,
+      "title": "Zentral\u00fcbung zu Analysis 3 f\u00fcr LB [CIT5139003]",
+      "stratum": "Z"
+    },
+    {
+      "id": 950836872,
+      "title": "\u00d6kologie und Evolution von pathogenen Bakterien",
+      "stratum": "\u00d6"
+    },
+    {
+      "id": 950838333,
+      "title": "\u00dcbungen zum Vorkurs Mathematik/Physik",
+      "stratum": "\u00dc"
+    },
+    {
+      "id": 950883004,
+      "title": "(SOT82801, SOT86884) Seminar on Politics and Religion",
+      "stratum": "("
+    },
+    {
+      "id": 950880843,
+      "title": "-",
+      "stratum": "-"
+    },
+    {
+      "id": 950839230,
+      "title": "...",
+      "stratum": "."
+    },
+    {
+      "id": 950875487,
+      "title": "1.000+ Project week",
+      "stratum": "1"
+    },
+    {
+      "id": 950880538,
+      "title": "310 K",
+      "stratum": "3"
+    },
+    {
+      "id": 950882482,
+      "title": "Aerodynamic Design of Turbomachinery \u2013 TUM Asia",
+      "stratum": "A"
+    },
+    {
+      "id": 950840969,
+      "title": "Bachelor Seminar Algorithm Engineering (INHN015, INHN4014)",
+      "stratum": "B"
+    },
+    {
+      "id": 950879916,
+      "title": "Control Theory",
+      "stratum": "C"
+    },
+    {
+      "id": 950836074,
+      "title": "Danish A2",
+      "stratum": "D"
+    },
+    {
+      "id": 950836992,
+      "title": "Embedded Networked Systems (BSc. Engineering Science) (IN8014)",
+      "stratum": "E"
+    },
+    {
+      "id": 950881027,
+      "title": "FOPRA Experiment 86: Measurement of the Fermi Energy by the Angular Correlation of Gamma-Radiation from Annihilation of Electron-Positron Pairs (AEP, KM, KTA)",
+      "stratum": "F"
+    },
+    {
+      "id": 950935575,
+      "title": "Global Change Impact on Underwater Ecosystems - Excursion",
+      "stratum": "G"
+    },
+    {
+      "id": 950883497,
+      "title": "H\u00f6here Mathematik II",
+      "stratum": "H"
+    },
+    {
+      "id": 950889780,
+      "title": "Intensive Course Cantonese A1.1",
+      "stratum": "I"
+    },
+    {
+      "id": 950879278,
+      "title": "Japanese A1.2",
+      "stratum": "J"
+    },
+    {
+      "id": 950881220,
+      "title": "Korean A1.1",
+      "stratum": "K"
+    },
+    {
+      "id": 950880282,
+      "title": "Lernbegleitung im Praktikum I",
+      "stratum": "L"
+    },
+    {
+      "id": 950839509,
+      "title": "Master-Seminar - Deep Learning for Medical Applications (IN2107, IN4860)",
+      "stratum": "M"
+    },
+    {
+      "id": 950837476,
+      "title": "Neuropathology consulting hour",
+      "stratum": "N"
+    },
+    {
+      "id": 950888957,
+      "title": "Operations and Supply Chain Management (BMDS) - Lecture",
+      "stratum": "O"
+    },
+    {
+      "id": 950841906,
+      "title": "Preparing for the digital transformation",
+      "stratum": "P"
+    },
+    {
+      "id": 950841379,
+      "title": "Q&A Sessions - Machine Learning for Business Applications",
+      "stratum": "Q"
+    },
+    {
+      "id": 950934860,
+      "title": "Research Seminar Remote Sensing Applications",
+      "stratum": "R"
+    },
+    {
+      "id": 950839904,
+      "title": "Simulation Cropping Systems",
+      "stratum": "S"
+    },
+    {
+      "id": 950839837,
+      "title": "Trademarks & Brands (MGT001322, German)",
+      "stratum": "T"
+    },
+    {
+      "id": 950880599,
+      "title": "Umwelt, Nachhaltigkeit und Bewegung",
+      "stratum": "U"
+    },
+    {
+      "id": 950840828,
+      "title": "Vorkurs Mathematik/Physik",
+      "stratum": "V"
+    },
+    {
+      "id": 950883849,
+      "title": "WMI Theory Seminar",
+      "stratum": "W"
+    },
+    {
+      "id": 950878011,
+      "title": "Zoning and Land Use Regulation",
+      "stratum": "Z"
+    },
+    {
+      "id": 950836642,
+      "title": "\u00dcbung zu Navigation und Datenfusion",
+      "stratum": "\u00dc"
+    },
+    {
+      "id": 950878557,
+      "title": "(POL70012, POL70075) Introduction to Political Science and the Political System",
+      "stratum": "("
+    },
+    {
+      "id": 950837516,
+      "title": "-",
+      "stratum": "-"
+    },
+    {
+      "id": 950878745,
+      "title": ".",
+      "stratum": "."
+    },
+    {
+      "id": 950936908,
+      "title": "3SWS Praktische Arbeit f\u00fcr Bachelorstudierende der Bioinformatik (Computational Mass Spectrometry)",
+      "stratum": "3"
+    }
+  ]
+}

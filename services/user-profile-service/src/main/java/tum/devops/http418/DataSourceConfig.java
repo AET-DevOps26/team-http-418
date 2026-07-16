@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
@@ -46,18 +47,6 @@ public class DataSourceConfig {
 			throw new RuntimeException("Could not connect to database 'profiles'");
 		}
 
-		jdbcTemplate.execute("""
-				    CREATE TABLE IF NOT EXISTS profiles (
-				                              id TEXT PRIMARY KEY,
-				                              student TEXT NOT NULL,
-				                              completed_courses TEXT NOT NULL,
-				                              enrolled_courses TEXT NOT NULL,
-				                              available_courses TEXT NOT NULL,
-				                              "limit" INT NOT NULL,
-				                              category TEXT,
-				                              semester TEXT
-				                          );
-				""");
 		return dataSource;
 	}
 
@@ -77,6 +66,19 @@ public class DataSourceConfig {
 		dataSource.setMaxLifetime(1_800_000);
 		dataSource.setKeepaliveTime(300_000);
 		return dataSource;
+	}
+
+	@Bean
+	@Profile("!test")
+	public Flyway profilesFlyway(@Qualifier("profileDataSource") DataSource dataSource) {
+		final Flyway flyway = Flyway.configure()
+				.dataSource(dataSource)
+				.locations("classpath:db/migration/profiles")
+				.baselineOnMigrate(true)
+				.baselineVersion("0")
+				.load();
+		flyway.migrate();
+		return flyway;
 	}
 
 	private void createProfilesDatabaseIfNotExists() {

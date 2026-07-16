@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import tools.jackson.databind.ObjectMapper;
 import tum.devops.http418.api.dto.*;
+import tum.devops.http418.data.CoursesDataDB;
 import tum.devops.http418.data.StudentDataDB;
 
 import java.io.BufferedReader;
@@ -38,6 +39,7 @@ import static tum.devops.http418.Http418Application.*;
 public class APIControllerMeAdvisor {
 
 	private final StudentDataDB studentDataDB;
+	private final CoursesDataDB coursesDataDB;
 	private final ObjectMapper objectMapper;
 
 	public enum MessageRole {
@@ -121,11 +123,32 @@ public class APIControllerMeAdvisor {
 				studentPayload.put("totalCreditsRequired", profile.student().creditsRequired());
 				studentPayload.put("preferredWorkload", profile.student().preferredWorkload());
 
-				final List<String> completedCoursesPayload = profile.completedCourses();
+				final List<StudentDataDB.CompletedCourseRow> completedRows = studentDataDB.getCompletedCourses(tumid, 0, 1000);
+				final List<Long> completedIds = completedRows.stream().map(StudentDataDB.CompletedCourseRow::courseId).filter(cid -> cid != null).toList();
+				final Map<Long, CoursesDataDB.CourseDataRow> completedCourseData = coursesDataDB
+						.getCourseDataForIds(completedIds).stream()
+						.collect(java.util.stream.Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+				final List<Map<String, Object>> completedCoursesPayload = completedRows.stream()
+						.filter(row -> row.courseId() != null)
+						.map(row -> {
+							final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+							final Map<String, Object> m = new LinkedHashMap<>();
+							m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+							m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+							m.put("credits", row.credits());
+							return m;
+						}).toList();
+
+				final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 100);
+				final List<String> enrolledNames = enrolledRows.stream()
+						.map(row -> coursesDataDB.getCourseTitleEn(row.courseId()))
+						.filter(name -> name != null)
+						.toList();
 
 				final Map<String, Object> requestBody = new LinkedHashMap<>();
 				requestBody.put("student", studentPayload);
 				requestBody.put("completedCourses", completedCoursesPayload);
+				requestBody.put("enrolledCourses", enrolledNames);
 				requestBody.put("conversationHistory", historyPayload);
 				requestBody.put("newMessage", request.content()); // the current user turn, as a plain String
 

@@ -53,7 +53,6 @@ public class PDFParser {
 						// only process rows with 5 cells where the first 4 are not empty and all
 						// columns are Cells
 						final Optional<Module> module = parseRow(cells, pageNumber);
-						module.orElseThrow();
 						module.ifPresent(result::add);
 					}
 				}

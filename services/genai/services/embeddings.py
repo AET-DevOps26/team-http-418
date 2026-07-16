@@ -10,24 +10,43 @@ from models.embeddings import CourseItem, EmbedCoursesRequest, EmbedMode
 logger = logging.getLogger("genai")
 
 
+def _is_duplicate(en: str | None, ger: str | None) -> bool:
+    if not en or not ger:
+        return False
+    return en.strip().lower() == ger.strip().lower()
+
+
 def _build_text(course: CourseItem) -> str:
-    parts = [course.title_en]
-    if course.title_ger:
-        parts.append(course.title_ger)
-    if course.description_en:
-        parts.append(course.description_en)
-    if course.description_ger:
-        parts.append(course.description_ger)
-    if course.course_objective_en:
-        parts.append(course.course_objective_en)
-    if course.course_objective_ger:
-        parts.append(course.course_objective_ger)
-    if course.previous_knowledge_en:
-        parts.append(course.previous_knowledge_en)
-    if course.previous_knowledge_ger:
-        parts.append(course.previous_knowledge_ger)
+    parts = [f"Title: {course.title_en}"]
+
+    if course.title_ger and not _is_duplicate(course.title_en, course.title_ger):
+        parts.append(f"Title (DE): {course.title_ger}")
+
+    if course.description_en and not _is_duplicate(course.description_en, course.description_ger):
+        parts.append(f"Description: {course.description_en}")
+    elif course.description_ger:
+        parts.append(f"Description [German]: {course.description_ger}")
+
+    if (
+        course.description_ger
+        and course.description_en
+        and not _is_duplicate(course.description_en, course.description_ger)
+    ):
+        parts.append(f"Description (DE): {course.description_ger}")
+
+    if course.course_objective_en and not _is_duplicate(course.course_objective_en, course.course_objective_ger):
+        parts.append(f"Objectives: {course.course_objective_en}")
+    elif course.course_objective_ger:
+        parts.append(f"Objectives [German]: {course.course_objective_ger}")
+
+    if course.previous_knowledge_en and not _is_duplicate(course.previous_knowledge_en, course.previous_knowledge_ger):
+        parts.append(f"Prerequisites: {course.previous_knowledge_en}")
+    elif course.previous_knowledge_ger:
+        parts.append(f"Prerequisites [German]: {course.previous_knowledge_ger}")
+
     if course.department:
-        parts.append(course.department)
+        parts.append(f"Department: {course.department}")
+
     return " | ".join(parts)
 
 

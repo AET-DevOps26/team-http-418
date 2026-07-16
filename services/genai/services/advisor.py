@@ -9,7 +9,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from llm.embeddings import get_embeddings
 from llm.provider import get_llm
-from models.advisor import AdvisorRequest, MessageRole
+from models.advisor import AdvisorRequest, CompletedCourseRef, MessageRole
 from models.recommendations import CourseRef
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
@@ -20,7 +20,22 @@ ADVISOR_CONTEXT_WINDOW = int(os.getenv("ADVISOR_CONTEXT_WINDOW", "10"))
 _ADVISOR_PROMPT = (Path(__file__).parent.parent / "prompts" / "advisor.txt").read_text()
 
 
+def _format_completed_courses(courses: list) -> str:
+    if not courses:
+        return "none"
+    parts = []
+    for c in courses:
+        if isinstance(c, CompletedCourseRef):
+            parts.append(f"{c.course_name} ({c.course_code}, {c.credits} ECTS)")
+        else:
+            parts.append(str(c))
+    return ", ".join(parts)
+
+
 def _build_messages(request: AdvisorRequest) -> list:
+    completed_text = _format_completed_courses(request.completed_courses)
+    enrolled_text = ", ".join(request.enrolled_courses) if request.enrolled_courses else "none"
+
     system_prompt = _ADVISOR_PROMPT.format(
         study_program=request.student.study_program or "not specified",
         semester=request.student.semester or "not specified",
@@ -32,7 +47,8 @@ def _build_messages(request: AdvisorRequest) -> list:
         credits_required=request.student.total_credits_required
         if request.student.total_credits_required is not None
         else "not specified",
-        completed_courses=request.completed_courses or "none",
+        completed_courses=completed_text,
+        enrolled_courses=enrolled_text,
     )
 
     messages: list = [SystemMessage(content=system_prompt)]
@@ -44,6 +60,24 @@ def _build_messages(request: AdvisorRequest) -> list:
             messages.append(AIMessage(content=msg.content))
 
     messages.append(HumanMessage(content=request.new_message))
+    return messages
+
+
+def _append_course_context(messages: list, courses: list[tuple[CourseRef, float]]) -> list:
+    """Attach retrieval results in one place so production and golden evals share it."""
+    courses_text = "\n".join(
+        f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
+        + (f" | {course.description}" if course.description else "")
+        for course, score in courses
+    )
+    if courses_text:
+        messages.append(
+            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
+        )
+    else:
+        messages.append(
+            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
+        )
     return messages
 
 
@@ -75,19 +109,7 @@ async def do_thinking(messages, study_program_id: int):
             logger.warning("advisor | semantic search failed: %s", e)
         courses = get_course_refs(course_ids)
 
-    courses_text = "\n".join(
-        f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
-        + (f" | {course.description}" if course.description else "")
-        for course, score in courses
-    )
-    if courses_text:
-        messages.append(
-            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
-        )
-    else:
-        messages.append(
-            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
-        )
+    _append_course_context(messages, courses)
     logger.info("advisor | messages_count=%d", len(messages))
     return messages
 
