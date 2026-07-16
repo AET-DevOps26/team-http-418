@@ -77,6 +77,14 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ### 🧩 Analysis Object Model (Domain Model)
 ![Analysis Object Model (Domain Model)](./docs/diagrams/DomainModel.png)
 
+### Database Schemas
+![courses-data](./docs/diagrams/courses-data-schema.png)
+
+![profiles](./docs/diagrams/profiles-schema.png)
+
+![security](./docs/diagrams/security-schema.png)
+
+
 ### deployment urls
 
     https://aidan.stud.k8s.aet.cit.tum.de/dashboard
