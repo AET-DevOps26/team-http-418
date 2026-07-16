@@ -210,6 +210,63 @@ docker compose --profile local up --build
 # then pull the model (first run only):
 docker compose exec ollama ollama pull llama3.2
 ```
+## CI/CD
+
+This repository uses GitHub Actions to enforce code quality, run tests, and deploy the application.
+
+- `/.github/workflows/lint-format.yml` runs formatting and lint checks for changed services on pull requests.
+- `/.github/workflows/ci.yml` runs the client and server test suites and validates Docker image builds.
+- `/.github/workflows/cd-k8s.yml` builds and pushes container images to GHCR, then deploys the app and monitoring stack to Kubernetes using Helm.
+- `/.github/workflows/cd-k8s-preview.yml` can deploy PR preview environments when a pull request is labeled `deployment-preview`.
+- `/.github/workflows/cd-azure-vm.yml` builds images and deploys to an Azure VM using Ansible.
+
+The Kubernetes CD pipeline installs the main app release `aidan` from `infra/helm/aidan` and the monitoring release `aidan-monitoring` from `infra/helm/aidan-monitoring`.
+
+## Monitoring
+
+Production observability is managed through the Helm-based monitoring stack in `infra/helm/aidan-monitoring`.
+
+It includes:
+- Prometheus for metrics scraping
+- Grafana for dashboards
+- Loki and Promtail for logs
+- PostgreSQL exporter and cAdvisor for infrastructure metrics
+
+The deployed monitoring environment is available at:
+
+- `https://aidan-monitoring.stud.k8s.aet.cit.tum.de`
+
+Grafana login:
+
+    username: admin
+    password: admin
+
+The app uses the `aidan-monitoring` namespace in Kubernetes and keeps metrics/logging separate from the application release.
+
+## Testing
+
+Run service-level tests with the following commands:
+
+```bash
+cd services/client && pnpm test
+cd services/server && ./gradlew test
+cd services/user-profile-service && ./gradlew test
+cd services/pdf-parser && ./gradlew test
+cd services/genai && pytest
+```
+
+Recommended lint and formatting checks:
+
+```bash
+cd services/client && pnpm lint
+cd services/client && pnpm check
+cd services/server && ./gradlew spotlessCheck
+cd services/user-profile-service && ./gradlew spotlessCheck
+cd services/pdf-parser && ./gradlew spotlessCheck
+cd services/genai && ruff format --check . && ruff check .
+```
+
+The repo CI pipelines already run these validations for pull requests and main branch changes.
 ### Code Quality
 
 Formatting and linting is enforced across all sub-projects.
