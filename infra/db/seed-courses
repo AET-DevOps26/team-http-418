@@ -86,15 +86,18 @@ is_complete() {
 echo "seed-courses: connecting to PostgreSQL as $DB_USER"
 psql_admin -c 'SELECT 1' >/dev/null || die "cannot connect to PostgreSQL"
 
+REPLACE_INCOMPLETE=false
 if [[ "$(database_exists)" == "t" ]]; then
   if [[ "$(user_relation_count)" != "0" ]]; then
     if is_complete; then
       echo "seed-courses: $TARGET_DB is already complete; leaving it unchanged"
       exit 0
     fi
-    die "$TARGET_DB contains partial or unrecognised course data; refusing to overwrite it"
+    echo "seed-courses: $TARGET_DB has incomplete data; will drop and reseed"
+    REPLACE_INCOMPLETE=true
+  else
+    echo "seed-courses: $TARGET_DB is empty; preparing a replacement"
   fi
-  echo "seed-courses: $TARGET_DB is empty; preparing a replacement"
 else
   echo "seed-courses: $TARGET_DB does not exist; preparing a new database"
 fi
@@ -114,10 +117,10 @@ SQL
 gunzip -c /docker-entrypoint-initdb.d/embeddings-data.sql.gz.data | psql_db "$STAGING_DB"
 validate_staging
 
-# Recheck immediately before the only destructive step, so concurrent writes
-# are preserved instead of being silently replaced.
 if [[ "$(database_exists)" == "t" ]]; then
-  [[ "$(user_relation_count)" == "0" ]] || die "$TARGET_DB was populated while the seed was importing; refusing to replace it"
+  if [[ "$REPLACE_INCOMPLETE" != "true" ]]; then
+    [[ "$(user_relation_count)" == "0" ]] || die "$TARGET_DB was populated while the seed was importing; refusing to replace it"
+  fi
   psql_admin -c "DROP DATABASE $(sql_ident "$TARGET_DB") WITH (FORCE)"
 fi
 psql_admin -c "ALTER DATABASE $(sql_ident "$STAGING_DB") RENAME TO $(sql_ident "$TARGET_DB")"
