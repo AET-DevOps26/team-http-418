@@ -71,17 +71,23 @@ public class APIControllerMeRoadmap {
 			final List<StudentDataDB.CompletedCourseRow> completedRows = studentDataDB.getCompletedCourses(tumid, 0,
 					1000);
 			final List<Long> completedIds = completedRows.stream().map(StudentDataDB.CompletedCourseRow::courseId)
-					.toList();
+					.filter(id -> id != null).toList();
 			final Map<Long, CoursesDataDB.CourseDataRow> completedCourseData = coursesDataDB
 					.getCourseDataForIds(completedIds).stream()
 					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
 
 			final List<Map<String, Object>> completedCourses = completedRows.stream().map(row -> {
-				final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
 				final Map<String, Object> m = new HashMap<>();
-				m.put("courseId", row.courseId());
-				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
-				m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : String.valueOf(row.courseId()));
+				if (row.courseId() != null) {
+					final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+					m.put("courseId", row.courseId());
+					m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+					m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : String.valueOf(row.courseId()));
+				} else {
+					m.put("courseId", null);
+					m.put("courseCode", row.moduleId() != null ? row.moduleId() : "—");
+					m.put("courseName", row.moduleTitle() != null ? row.moduleTitle() : "Unknown");
+				}
 				m.put("credits", row.credits());
 				m.put("category", row.category());
 				m.put("semester", row.semesterKey());

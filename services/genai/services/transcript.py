@@ -15,7 +15,8 @@ def match_transcript_modules(request: TranscriptMatchRequest) -> TranscriptMatch
     unmatched = []
 
     for module in request.modules:
-        query = module.title_en or module.title_de or module.module_id
+        title = module.title_en or module.title_de
+        query = f"{module.module_id}: {title}" if module.module_id and title else (title or module.module_id)
         if not query:
             unmatched.append(module.module_id)
             continue

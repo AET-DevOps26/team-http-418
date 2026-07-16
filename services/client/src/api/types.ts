@@ -62,11 +62,6 @@ export type RecommendationList = {
 	generatedAt: IsoDateString;
 };
 
-export type GenerateRecommendationsBody = {
-	goals?: string;
-	interests?: string;
-};
-
 export type RecommendationParams = {
 	limit?: number;
 	category?: string;
@@ -227,7 +222,7 @@ export type AcademicProgress = {
 };
 
 export type CompletedCourse = {
-	courseId: string;
+	courseId: string | null;
 	courseCode: string;
 	courseName: string;
 	credits: number;

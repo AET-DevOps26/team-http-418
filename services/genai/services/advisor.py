@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from collections.abc import AsyncGenerator
-from pathlib import Path
 
 from fastapi import HTTPException
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -11,13 +10,13 @@ from llm.embeddings import get_embeddings
 from llm.provider import get_llm
 from models.advisor import AdvisorRequest, CompletedCourseRef, MessageRole
 from models.recommendations import CourseRef
+from prompt_config import get_spec
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
 
 logger = logging.getLogger("genai")
 
 ADVISOR_CONTEXT_WINDOW = int(os.getenv("ADVISOR_CONTEXT_WINDOW", "10"))
-_ADVISOR_PROMPT = (Path(__file__).parent.parent / "prompts" / "advisor.txt").read_text()
 
 
 def _format_completed_courses(courses: list) -> str:
@@ -36,7 +35,7 @@ def _build_messages(request: AdvisorRequest) -> list:
     completed_text = _format_completed_courses(request.completed_courses)
     enrolled_text = ", ".join(request.enrolled_courses) if request.enrolled_courses else "none"
 
-    system_prompt = _ADVISOR_PROMPT.format(
+    system_prompt = get_spec("advisor").render(
         study_program=request.student.study_program or "not specified",
         semester=request.student.semester or "not specified",
         career_goals=", ".join(request.student.career_goals) or "not specified",
@@ -71,13 +70,9 @@ def _append_course_context(messages: list, courses: list[tuple[CourseRef, float]
         for course, score in courses
     )
     if courses_text:
-        messages.append(
-            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
-        )
+        messages.append(SystemMessage(content=get_spec("advisor_rag_has_data").render(courses_text=courses_text)))
     else:
-        messages.append(
-            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
-        )
+        messages.append(SystemMessage(content=get_spec("advisor_rag_no_data").render()))
     return messages
 
 

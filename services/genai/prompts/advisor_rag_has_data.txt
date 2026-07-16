@@ -1,0 +1,2 @@
+{courses_text}
+This is your query response. now reply to the user prompt

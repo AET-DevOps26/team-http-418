@@ -10,15 +10,15 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { logout } from "#/api";
+import { useProfile } from "#/hooks/useProfile";
 
 const mainNav = [
 	{ label: "Home", icon: Home, href: "/dashboard" },
 	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 	{ label: "Courses", icon: BookOpen, href: "/courses" },
 	{ label: "My Plan", icon: MapIcon, href: "/planner" },
+	{ label: "Advisor", icon: MessageCircle, href: "/advisor" },
 ];
-
-const aiNav = [{ label: "Advisor", icon: MessageCircle, href: "/advisor" }];
 
 type Props = {
 	collapsed: boolean;
@@ -28,6 +28,8 @@ type Props = {
 export function Sidebar({ collapsed, onToggle }: Props) {
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const { data: profile } = useProfile();
+	const firstName = profile?.student?.firstName;
 
 	async function handleLogout() {
 		await logout();
@@ -57,27 +59,19 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 						{!collapsed && label}
 					</Link>
 				))}
-
-				{!collapsed && <span className="sidebar-section-label">AI</span>}
-
-				{aiNav.map(({ label, icon: Icon, href }) => (
-					<Link
-						key={href}
-						to={href}
-						title={label}
-						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
-					>
-						<Icon size={16} strokeWidth={1.75} />
-						{!collapsed && label}
-					</Link>
-				))}
 			</nav>
 
-			<div className="sidebar-footer">
+			<div
+				className={`sidebar-footer${isActive("/profile") ? " sidebar-footer--active" : ""}`}
+			>
 				<Link to="/profile" className="sidebar-avatar" title="Profile">
-					TU
+					{firstName ? firstName.charAt(0).toUpperCase() : "TU"}
 				</Link>
-				{!collapsed && <span className="sidebar-user-name">TUM Student</span>}
+				{!collapsed && (
+					<span className="sidebar-user-name">
+						{firstName || "TUM Student"}
+					</span>
+				)}
 				<button
 					type="button"
 					className="sidebar-logout-btn"

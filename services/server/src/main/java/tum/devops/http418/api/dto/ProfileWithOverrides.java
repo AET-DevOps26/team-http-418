@@ -8,8 +8,6 @@ import java.util.List;
 @Getter
 public class ProfileWithOverrides {
 	private final Profile.Student student;
-	private final List<String> overrideGoals;
-	private final List<String> overrideInterests;
 	private final List<String> excludeCourseIds;
 	private final List<String> completedCourses;
 	private final List<String> availableCourses;
@@ -25,8 +23,6 @@ public class ProfileWithOverrides {
 		semesterKey = profile.semesterKey();
 		limit = profile.limit();
 		category = profile.category();
-		overrideGoals = prompt.goals();
-		overrideInterests = prompt.interests();
 		excludeCourseIds = prompt.excludeCourseIds();
 	}
 }

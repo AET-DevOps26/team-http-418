@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -11,10 +10,9 @@ from db import ensure_schema_initialized
 from llm.embeddings import get_embedding_dimensions, get_embeddings
 from llm.provider import get_llm
 from models.recommendations import CourseRef, RecommendationSelection, RecommendationsRequest
+from prompt_config import get_spec
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
-
-_RECOMMENDATIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "recommendations.txt").read_text()
 
 logger = logging.getLogger("genai")
 
@@ -56,7 +54,7 @@ def _build_prompt(
     career_context = ("\n" + "\n".join(career_lines) + "\n") if career_lines else ""
     enrolled_names = request.enrolled_courses or []
 
-    return _RECOMMENDATIONS_PROMPT.format(
+    return get_spec("recommendations").render(
         limit=request.limit,
         study_program=request.student.study_program or "not specified",
         semester=request.student.semester,
@@ -108,8 +106,8 @@ def _parse_selections(payload: object, allowed_ids: set[int]) -> list[dict]:
 
 
 async def generate_recommendations(request: RecommendationsRequest) -> dict:
-    goals = request.override_goals or request.student.career_goals
-    interests = request.override_interests or request.student.interests
+    goals = request.student.career_goals
+    interests = request.student.interests
 
     skills = request.student.skills or []
     query = _build_query(
@@ -172,7 +170,7 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         llm = get_llm()
         messages = [
             SystemMessage(content=prompt),
-            HumanMessage(content="Select the best courses for this student and return the JSON array."),
+            HumanMessage(content=get_spec("recommendations_user").render()),
         ]
         result = await llm.ainvoke(messages)
         recommendations = _parse_selections(json.loads(result.content), {c.course_id for c, _ in candidates})
