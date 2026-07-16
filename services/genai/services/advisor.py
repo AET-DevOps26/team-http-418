@@ -81,7 +81,7 @@ def _append_course_context(messages: list, courses: list[tuple[CourseRef, float]
     return messages
 
 
-async def do_thinking(messages):
+async def do_thinking(messages, study_program_id: int):
     """
     allows the model to do a semantic search for courses
     """
@@ -103,7 +103,7 @@ async def do_thinking(messages):
         try:
             embeddings = get_embeddings()
             query_vector = await embeddings.aembed_query(llm_query.get("query"))
-            course_ids = find_similar_courses(query_vector, [], 30)
+            course_ids = find_similar_courses(query_vector, [], 30, study_program_id)
             logger.info("advisor | fournd %d courses", len(course_ids))
         except Exception as e:
             logger.warning("advisor | semantic search failed: %s", e)
@@ -127,7 +127,7 @@ async def stream_advisor_response(request: AdvisorRequest, conversation_id: str)
 
     full_content = ""
     try:
-        messages = await do_thinking(messages)
+        messages = await do_thinking(messages, request.student.study_program_id)
         async for chunk in llm.astream(messages):
             token = chunk.content
             if token:
@@ -145,7 +145,7 @@ async def get_advisor_response(request: AdvisorRequest) -> dict:
     try:
         llm = get_llm()
         messages = _build_messages(request)
-        messages = await do_thinking(messages)
+        messages = await do_thinking(messages, request.student.study_program_id)
         result = await llm.ainvoke(messages)
         return {"content": result.content, "referencedCourses": []}
     except TimeoutError as e:
