@@ -1,6 +1,6 @@
 {
   "id": "f769472f-e6a3-449a-8f1c-338f7a576332",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "title": "Component Diagram",
   "type": "ComponentDiagram",
   "nodes": [
@@ -10,8 +10,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 920,
-        "y": 370
+        "x": 795,
+        "y": 375
       },
       "data": {
         "name": "Client",
@@ -63,8 +63,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 710,
-        "y": 90
+        "x": 715,
+        "y": 85
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -82,12 +82,12 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 130,
-        "y": 70
+        "x": 125,
+        "y": 85
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "Student Service",
+        "name": "User Profile Service",
         "isComponentHeaderShown": true
       },
       "measured": {
@@ -101,8 +101,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 130,
-        "y": 220
+        "x": 305,
+        "y": 245
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -120,47 +120,12 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 1250,
-        "y": 1490
+        "x": 305,
+        "y": 550
       },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
         "name": "GenAI",
-        "isComponentHeaderShown": true
-      },
-      "measured": {
-        "width": 180,
-        "height": 120
-      }
-    },
-    {
-      "id": "d1a2b3c4-user-prof-svc-0001",
-      "width": 220,
-      "height": 120,
-      "type": "component",
-      "position": {
-        "x": 100,
-        "y": 1490
-      },
-      "data": {
-        "name": "User-Profile-Service",
-        "isComponentHeaderShown": true
-      },
-      "measured": {
-        "width": 220,
-        "height": 120
-      }
-    },
-    {
-      "id": "e2f3a4b5-pdf-parser-svc-0001",
-      "width": 180,
-      "height": 120,
-      "type": "component",
-      "position": {
-        "x": 1550,
-        "y": 700
-      },
-      "data": {
-        "name": "PDF-Parser",
         "isComponentHeaderShown": true
       },
       "measured": {
@@ -174,8 +139,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 630,
-        "y": 550
+        "x": 775,
+        "y": 625
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -207,20 +172,39 @@
     },
     {
       "id": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
-      "width": 280,
+      "width": 180,
       "height": 120,
       "type": "component",
       "position": {
-        "x": 130,
+        "x": 40,
         "y": 130
       },
       "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
       "data": {
-        "name": "PostgreSQL (pgvector)",
+        "name": "Relational DB",
         "isComponentHeaderShown": true
       },
       "measured": {
-        "width": 280,
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 320,
+        "y": 130
+      },
+      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
+      "data": {
+        "name": "Vector DB",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
         "height": 120
       }
     },
@@ -230,12 +214,12 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 470,
+        "x": 380,
         "y": 130
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "Internal Student API"
+        "name": "Internal Profile API"
       },
       "measured": {
         "width": 30,
@@ -248,7 +232,7 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 480,
+        "x": 580,
         "y": 290
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
@@ -266,8 +250,8 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 220,
-        "y": 420
+        "x": 380,
+        "y": 470
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -284,29 +268,11 @@
       "height": 120,
       "type": "componentSubsystem",
       "position": {
-        "x": 1550,
-        "y": 970
+        "x": 1585,
+        "y": 1140
       },
       "data": {
         "name": "TUMonline",
-        "isComponentSubsystemHeaderShown": true
-      },
-      "measured": {
-        "width": 180,
-        "height": 120
-      }
-    },
-    {
-      "id": "a98892b1-d2e4-435f-8637-b16c5ca078e2",
-      "width": 180,
-      "height": 120,
-      "type": "componentSubsystem",
-      "position": {
-        "x": 1550,
-        "y": 1230
-      },
-      "data": {
-        "name": "Chair Website",
         "isComponentSubsystemHeaderShown": true
       },
       "measured": {
@@ -348,6 +314,43 @@
       "measured": {
         "width": 180,
         "height": 120
+      }
+    },
+    {
+      "id": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 775,
+        "y": 495
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Pdf-Parser Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 630,
+        "y": 510
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Data Extraction API"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
       }
     }
   ],
@@ -430,6 +433,17 @@
       }
     },
     {
+      "id": "99f8de0d-ab13-4e82-a85d-2efaeeaa8cc8",
+      "source": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
+      "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "top",
+      "targetHandle": "right",
+      "data": {
+        "points": []
+      }
+    },
+    {
       "id": "2bf79678-86c7-4b9a-ad79-da0dfd9ca346",
       "source": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
       "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
@@ -472,20 +486,20 @@
       "data": {
         "points": [
           {
-            "x": 579,
-            "y": 710
+            "x": 574,
+            "y": 725
           },
           {
-            "x": 549,
-            "y": 710
+            "x": 544,
+            "y": 725
           },
           {
-            "x": 549,
-            "y": 1313.83203125
+            "x": 544,
+            "y": 1314
           },
           {
             "x": 845,
-            "y": 1313.83203125
+            "y": 1314
           },
           {
             "x": 845,
@@ -504,20 +518,20 @@
       "data": {
         "points": [
           {
-            "x": 579,
-            "y": 860
+            "x": 754,
+            "y": 885
           },
           {
-            "x": 549,
-            "y": 860
+            "x": 724,
+            "y": 885
           },
           {
-            "x": 549,
-            "y": 1312.55859375
+            "x": 724,
+            "y": 1315
           },
           {
             "x": 845,
-            "y": 1312.55859375
+            "y": 1315
           },
           {
             "x": 845,
@@ -542,27 +556,35 @@
       "source": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
       "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
       "type": "ComponentRequiredInterface",
-      "sourceHandle": "bottom",
+      "sourceHandle": "left",
       "targetHandle": "top",
       "data": {
         "points": [
           {
-            "x": 1170,
-            "y": 1251
+            "x": 1225,
+            "y": 1270
           },
           {
-            "x": 1170,
-            "y": 1313.62890625
+            "x": 1195,
+            "y": 1270
+          },
+          {
+            "x": 1195,
+            "y": 1315
           },
           {
             "x": 845,
-            "y": 1313.62890625
+            "y": 1315
           },
           {
             "x": 845,
             "y": 1415
           }
-        ]
+        ],
+        "sourceAnchor": {
+          "side": "left",
+          "ratio": 0.5416666666666666
+        }
       }
     },
     {
@@ -599,36 +621,96 @@
       }
     },
     {
-      "id": "48a261ec-5f1c-4d1e-90f0-5d04ec55b247",
-      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
-      "target": "d1a2b3c4-user-prof-svc-0001",
+      "id": "fd0bfce3-1640-4bcb-a03a-1d83d726cdfa",
+      "source": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "target": "653f1935-e71a-4e16-9bb1-f1124632846b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "top",
+      "targetHandle": "bottom",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "0406b639-fa94-478a-9860-f7587838612c",
+      "source": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "target": "c23aa4ef-f171-4404-b5cb-c94dc9b00424",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": [
+          {
+            "x": 1165,
+            "y": 765
+          },
+          {
+            "x": 990,
+            "y": 765
+          },
+          {
+            "x": 990,
+            "y": 1065
+          },
+          {
+            "x": 865,
+            "y": 1065
+          }
+        ],
+        "sourceAnchor": {
+          "side": "left",
+          "ratio": 0.8333333333333334
+        }
+      }
+    },
+    {
+      "id": "d6888053-c522-4c1f-90aa-9f2a2e609361",
+      "source": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "target": "eb9057e5-00bf-44d4-b74a-0c16a661773f",
       "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "99d6334c-c8b9-4028-b52a-23f3f3653ef8",
+      "source": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "target": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "right",
+      "targetHandle": "left-between-mid-bottom-center",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "5e92a18c-7982-4c47-ab56-8ea66307417d",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "type": "ComponentRequiredInterface",
       "sourceHandle": "bottom",
-      "targetHandle": "top",
-      "data": {
-        "points": []
-      }
-    },
-    {
-      "id": "8a478fd1-45bb-41fd-9e29-c5619cf5eb77",
-      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
-      "target": "e2f3a4b5-pdf-parser-svc-0001",
-      "type": "ComponentDependency",
-      "sourceHandle": "right",
       "targetHandle": "left",
       "data": {
-        "points": []
-      }
-    },
-    {
-      "id": "f50918a0-4d7c-42b4-b623-e5084512e1eb",
-      "source": "d1a2b3c4-user-prof-svc-0001",
-      "target": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
-      "type": "ComponentDependency",
-      "sourceHandle": "right",
-      "targetHandle": "left",
-      "data": {
-        "points": []
+        "targetAnchor": {
+          "side": "left",
+          "ratio": 0.5
+        },
+        "points": [
+          {
+            "x": 665,
+            "y": 786
+          },
+          {
+            "x": 665,
+            "y": 1105
+          },
+          {
+            "x": 1080,
+            "y": 1105
+          }
+        ]
       }
     }
   ],

@@ -56,10 +56,10 @@ To isolate heavy computational tasks and leverage the best ecosystem for artific
 *   By decoupling this from the Spring Boot server, the main backend remains highly performant and avoids being bottlenecked by AI processing latency. Communication between the Spring Boot server and this microservice is handled via internal REST calls.
 
 #### User-Profile-Service: Spring Boot Microservice
-A dedicated Spring Boot microservice on port 8060 manages user profile data in a PostgreSQL-backed profile store, keeping the main server focused on business logic and API orchestration.
+A dedicated Spring Boot microservice manages user profile data in a PostgreSQL-backed profile store, keeping the main server focused on business logic and API orchestration.
 
 #### PDF-Parser: Spring Boot Microservice
-A dedicated Spring Boot microservice on port 8070 handles PDF parsing tasks such as extracting course data from uploaded transcripts.
+A dedicated Spring Boot microservice handles PDF parsing tasks such as extracting course data from uploaded transcripts.
 
 #### Database: PostgreSQL
 Data persistence is managed using PostgreSQL, a highly reliable and scalable relational database system.
@@ -77,11 +77,21 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ### 🧩 Analysis Object Model (Domain Model)
 ![Analysis Object Model (Domain Model)](./docs/diagrams/DomainModel.png)
 
+### deployment urls
+
+    https://aidan.stud.k8s.aet.cit.tum.de/dashboard
+    https://aidan-monitoring.stud.k8s.aet.cit.tum.de
+
 ### Test User
 
     username: admin
 
     password: test
+
+### Grafana Login
+
+    username: admin
+    password: admin
 
 ### Build Instructions
 
