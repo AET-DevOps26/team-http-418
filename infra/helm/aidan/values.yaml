@@ -42,7 +42,7 @@ postgres:
   database: aidan
   username: postgres
   password: changeme
-  storage: 2Gi
+  storage: 5Gi
   coursesDbName: courses-data
   resources:
     requests:

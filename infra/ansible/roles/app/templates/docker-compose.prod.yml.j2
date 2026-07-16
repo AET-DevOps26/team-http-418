@@ -1,9 +1,10 @@
 services:
   db:
-    image: postgres:17
+    image: ghcr.io/aet-devops26/team-http-418/db:{{ image_tag }}
     environment:
       POSTGRES_PASSWORD: "{{ db_password }}"
       POSTGRES_USER: "postgres"
+      COURSES_DB_NAME: "courses-data"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -12,6 +13,20 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  db-seed:
+    image: ghcr.io/aet-devops26/team-http-418/db:{{ image_tag }}
+    command: ["seed-courses"]
+    profiles: ["maintenance"]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASS: "{{ db_password }}"
+      COURSES_DB_NAME: "courses-data"
+    depends_on:
+      db:
+        condition: service_healthy
 
   server:
     image: ghcr.io/aet-devops26/team-http-418/server:{{ image_tag }}
