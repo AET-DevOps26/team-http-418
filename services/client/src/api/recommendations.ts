@@ -1,9 +1,5 @@
 import { apiFetch } from "#/api/client";
-import type {
-	GenerateRecommendationsBody,
-	RecommendationList,
-	RecommendationParams,
-} from "#/api/types";
+import type { RecommendationList, RecommendationParams } from "#/api/types";
 
 export function getRecommendations(
 	params?: RecommendationParams,
@@ -18,11 +14,9 @@ export function getRecommendations(
 	);
 }
 
-export function generateRecommendations(
-	body: GenerateRecommendationsBody,
-): Promise<RecommendationList> {
+export function generateRecommendations(): Promise<RecommendationList> {
 	return apiFetch<RecommendationList>("/me/recommendations", {
 		method: "POST",
-		body: JSON.stringify(body),
+		body: JSON.stringify({}),
 	});
 }

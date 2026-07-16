@@ -73,3 +73,7 @@ cd services/client && pnpm tsc --noEmit       # TypeScript typecheck
 ```
 
 Pre-existing type errors in `advisor.ts` and `CoursePill.tsx` — not from this branch.
+
+## Data Architecture
+
+See `docs/implementation/DATA_SOURCES.md` for the three data categories (scraped, user-input, user-analyzed), ownership rules, and per-AI-feature data matrix.

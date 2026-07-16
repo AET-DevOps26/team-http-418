@@ -61,8 +61,6 @@ class RecommendationsRequest(BaseModel):
     enrolled_courses: list[str] = Field(default=[], alias="enrolledCourses")
     available_courses: list[str] = Field(default=[], alias="availableCourses")
     limit: int = 10
-    override_goals: list[str] | None = Field(default=None, alias="overrideGoals")
-    override_interests: list[str] | None = Field(default=None, alias="overrideInterests")
     exclude_course_ids: list[int] | None = Field(default=None, alias="excludeCourseIds")
     category: str | None = None
     current_semester_key: str | None = None

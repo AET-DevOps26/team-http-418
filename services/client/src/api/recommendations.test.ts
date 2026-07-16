@@ -43,24 +43,18 @@ describe("recommendations API", () => {
 		);
 	});
 
-	it("posts recommendation generation context", async () => {
+	it("posts recommendation generation request", async () => {
 		const { apiFetch } = await import("#/api/client");
 		vi.mocked(apiFetch).mockResolvedValue({
 			generatedAt: "2026-06-28T10:05:00Z",
 			recommendations: [],
 		});
 
-		await generateRecommendations({
-			goals: "machine learning",
-			interests: "distributed systems",
-		});
+		await generateRecommendations();
 
 		expect(apiFetch).toHaveBeenCalledWith("/me/recommendations", {
 			method: "POST",
-			body: JSON.stringify({
-				goals: "machine learning",
-				interests: "distributed systems",
-			}),
+			body: JSON.stringify({}),
 		});
 	});
 });

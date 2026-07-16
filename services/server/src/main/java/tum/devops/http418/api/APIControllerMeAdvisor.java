@@ -215,10 +215,50 @@ public class APIControllerMeAdvisor {
 	@GetMapping("/suggestions")
 	public ResponseEntity<String> getSuggestions(@AuthenticationPrincipal String tumid) {
 		try {
-			final String response = restClient.get().uri(GENAI_PATH + "/me/advisor/suggestions").retrieve()
+			Profile profile = restClient.get().uri(PROFILE_SERVICE + "/get/" + tumid).retrieve().body(Profile.class);
+			if (profile == null || profile.student() == null) {
+				return ResponseEntity.ok("[]");
+			}
+
+			final Map<String, Object> studentPayload = new LinkedHashMap<>();
+			studentPayload.put("studyProgramName", profile.student().studyProgramName());
+			studentPayload.put("studyProgramId", profile.student().studyProgramId());
+			studentPayload.put("semester", profile.student().semester());
+			studentPayload.put("careerGoals", profile.student().careerGoals());
+			studentPayload.put("interests", profile.student().interests());
+			studentPayload.put("totalCreditsEarned", profile.student().creditsEarned());
+			studentPayload.put("totalCreditsRequired", profile.student().creditsRequired());
+
+			final List<StudentDataDB.CompletedCourseRow> completedRows = studentDataDB.getCompletedCourses(tumid, 0, 1000);
+			final List<Long> completedIds = completedRows.stream().map(StudentDataDB.CompletedCourseRow::courseId).filter(cid -> cid != null).toList();
+			final Map<Long, CoursesDataDB.CourseDataRow> completedCourseData = coursesDataDB
+					.getCourseDataForIds(completedIds).stream()
+					.collect(java.util.stream.Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+			final List<Map<String, Object>> completedCoursesPayload = completedRows.stream()
+					.filter(row -> row.courseId() != null)
+					.map(row -> {
+						final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+						final Map<String, Object> m = new LinkedHashMap<>();
+						m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+						m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+						m.put("credits", row.credits());
+						return m;
+					}).toList();
+
+			final Map<String, Object> requestBody = new LinkedHashMap<>();
+			requestBody.put("student", studentPayload);
+			requestBody.put("completedCourses", completedCoursesPayload);
+			requestBody.put("currentSemester", profile.semesterKey());
+
+			final String response = restClient.post()
+					.uri(GENAI_PATH + "/me/advisor/suggestions")
+					.contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+					.body(requestBody)
+					.retrieve()
 					.body(String.class);
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
+			log.warn("Failed to fetch advisor suggestions for user {}: {}", tumid, e.getMessage());
 			return ResponseEntity.ok("[]");
 		}
 	}

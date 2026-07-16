@@ -62,11 +62,6 @@ export type RecommendationList = {
 	generatedAt: IsoDateString;
 };
 
-export type GenerateRecommendationsBody = {
-	goals?: string;
-	interests?: string;
-};
-
 export type RecommendationParams = {
 	limit?: number;
 	category?: string;

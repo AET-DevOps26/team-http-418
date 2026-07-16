@@ -3,10 +3,7 @@ import {
 	generateRecommendations,
 	getRecommendations,
 } from "#/api/recommendations";
-import type {
-	GenerateRecommendationsBody,
-	RecommendationParams,
-} from "#/api/types";
+import type { RecommendationParams } from "#/api/types";
 
 export function useRecommendations(params?: RecommendationParams) {
 	return useQuery({
@@ -19,8 +16,7 @@ export function useRecommendations(params?: RecommendationParams) {
 export function useGenerateRecommendations() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (body: GenerateRecommendationsBody) =>
-			generateRecommendations(body),
+		mutationFn: () => generateRecommendations(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["recommendations"] });
 		},

@@ -108,8 +108,8 @@ def _parse_selections(payload: object, allowed_ids: set[int]) -> list[dict]:
 
 
 async def generate_recommendations(request: RecommendationsRequest) -> dict:
-    goals = request.override_goals or request.student.career_goals
-    interests = request.override_interests or request.student.interests
+    goals = request.student.career_goals
+    interests = request.student.interests
 
     skills = request.student.skills or []
     query = _build_query(

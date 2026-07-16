@@ -43,10 +43,7 @@ export {
 	uploadTranscript,
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
-export {
-	generateRecommendations,
-	getRecommendations,
-} from "#/api/recommendations";
+export { getRecommendations } from "#/api/recommendations";
 export { generateRoadmap, getRoadmap } from "#/api/roadmap";
 export { getSchedule } from "#/api/schedule";
 export type {
@@ -77,7 +74,6 @@ export type {
 	Department,
 	EnrollCourseRequest,
 	EnrolledCourse,
-	GenerateRecommendationsBody,
 	ImportError,
 	ImportedCourse,
 	Instructor,

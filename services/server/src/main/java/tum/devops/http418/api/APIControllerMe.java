@@ -291,7 +291,7 @@ public class APIControllerMe {
 
 	@GetMapping("/recommendations")
 	public ResponseEntity<String> getRecommendations(@AuthenticationPrincipal String tumid) {
-		return getRecommendations(tumid, new PostRecommendationsBody(List.of(), List.of(), List.of()));
+		return getRecommendations(tumid, new PostRecommendationsBody(List.of()));
 	}
 
 	@PostMapping("/recommendations")
