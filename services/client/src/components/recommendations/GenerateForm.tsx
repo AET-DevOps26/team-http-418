@@ -13,8 +13,8 @@ export function GenerateForm({ mutation }: Props) {
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		mutation.mutate({
-			goals: goals || undefined,
-			interests: interests || undefined,
+			goals: goals.split(",") || [],
+			interests: interests.split(",") || [],
 		});
 	}
 
