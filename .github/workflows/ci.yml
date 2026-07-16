@@ -5,6 +5,50 @@ on:
     branches: [main]
 
 jobs:
+  genai-quality-impact:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        uses: ./.github/actions/genai-quality-filter
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+  genai-deterministic:
+    needs: genai-quality-impact
+    runs-on: ubuntu-latest
+    # A skipped step keeps this required job successful for unrelated changes.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install GenAI test dependencies
+        if: needs.genai-quality-impact.outputs.changed == 'true'
+        working-directory: ./services/genai
+        run: pip install -r requirements.txt
+      - name: Run GenAI data-contract and prompt checks
+        if: needs.genai-quality-impact.outputs.changed == 'true'
+        working-directory: ./services/genai
+        run: pytest -q tests
+      - name: Audit committed course catalog
+        if: needs.genai-quality-impact.outputs.changed == 'true'
+        run: python3 scripts/audit_genai_catalog.py --sample-output genai-catalog-inspection-sample.json
+      - name: Upload catalog inspection sample
+        if: needs.genai-quality-impact.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: genai-catalog-inspection-sample
+          path: genai-catalog-inspection-sample.json
+          retention-days: 30
+
   test-client:
     runs-on: ubuntu-latest
     defaults:
@@ -50,9 +94,11 @@ jobs:
 
   build-images:
     runs-on: ubuntu-latest
-    needs: [test-client, test-server]
+    needs: [test-client, test-server, genai-deterministic]
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

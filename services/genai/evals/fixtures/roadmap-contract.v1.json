@@ -1,0 +1,13 @@
+{
+  "student": {"studyProgram": "Informatics", "semester": 3},
+  "completedCourses": [{"courseId": 1, "courseCode": "IN0001", "courseName": "Introduction", "credits": 6}],
+  "enrolledCourses": [],
+  "degreeRequirements": {
+    "totalCreditsRequired": 180,
+    "totalCreditsEarned": 30,
+    "remainingSemesters": 5,
+    "categories": [{"name": "Foundations", "creditsRequired": 30, "creditsEarned": 12}]
+  },
+  "availableCourses": [{"courseId": 2, "courseCode": "IN0002", "courseName": "Databases", "credits": 6, "category": "Data", "preferredSemester": "W", "hasPrerequisites": false}],
+  "currentSemesterKey": "26S"
+}

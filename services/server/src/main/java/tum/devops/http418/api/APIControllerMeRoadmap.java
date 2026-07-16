@@ -81,11 +81,14 @@ public class APIControllerMeRoadmap {
 				final Map<String, Object> m = new HashMap<>();
 				m.put("courseId", row.courseId());
 				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+				m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : String.valueOf(row.courseId()));
 				m.put("credits", row.credits());
 				m.put("category", row.category());
 				m.put("semester", row.semesterKey());
 				return m;
 			}).toList();
+
+			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 
 			final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0,
 					1000);
@@ -95,41 +98,67 @@ public class APIControllerMeRoadmap {
 					.getCourseDataForIds(enrolledIds).stream()
 					.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
 
+			final Map<Long, Integer> enrolledEcts = coursesDataDB.getEctsForCourses(studyProgram, enrolledIds);
 			final List<Map<String, Object>> enrolledCourses = enrolledRows.stream().map(row -> {
 				final CoursesDataDB.CourseDataRow cd = enrolledCourseData.get(row.courseId());
+				final int sws = cd != null ? cd.sws() : 0;
+				final int credits = enrolledEcts.getOrDefault(row.courseId(), (int) Math.round(sws * 1.5));
 				final Map<String, Object> m = new HashMap<>();
 				m.put("courseId", row.courseId());
 				m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
-				m.put("credits", cd != null ? cd.sws() : 0);
+				m.put("credits", credits);
 				m.put("semester", row.semesterKey());
 				return m;
 			}).toList();
-
-			final String studyProgram = profileStudent != null ? profileStudent.studyProgramId() : "";
 			final Set<Long> usedIds = new HashSet<>(completedIds);
 			usedIds.addAll(enrolledIds);
 			final List<Map<String, Object>> availableCourses = coursesDataDB
-					.getCoursesByStudyProgramWithSws(studyProgram).stream()
+					.getCoursesByStudyProgramRich(studyProgram).stream()
 					.filter(c -> !usedIds.contains(c.id()))
 					.map(c -> {
+						final int credits = c.ects() != null ? c.ects() : (int) Math.round(c.sws() * 1.5);
 						final Map<String, Object> m = new HashMap<>();
 						m.put("courseId", c.id());
 						m.put("courseCode", c.key());
-						m.put("courseName", c.title_en() != null ? c.title_en() : String.valueOf(c.id()));
-						m.put("credits", c.sws());
+						m.put("courseName", c.titleEn() != null ? c.titleEn() : String.valueOf(c.id()));
+						m.put("credits", credits);
+						m.put("category", c.areaName());
+						m.put("preferredSemester", c.semesterKey() != null && c.semesterKey().length() >= 3
+								? String.valueOf(Character.toUpperCase(c.semesterKey().charAt(c.semesterKey().length() - 1)))
+								: null);
+						m.put("hasPrerequisites", c.hasPrerequisites());
 						return m;
 					}).toList();
 
 			final int totalCreditsEarned = studentDataDB.sumCredits(tumid);
-			final int totalCreditsRequired = 180;
-			final int remainingSemesters = Math.max(1, (totalCreditsRequired - totalCreditsEarned + 29) / 30);
-			final List<Map<String, Object>> categories = studentDataDB.creditsByCategory(tumid).stream().map(row -> {
-				final Map<String, Object> m = new HashMap<>();
-				m.put("name", row.category());
-				m.put("creditsRequired", 60);
-				m.put("creditsEarned", row.totalCredits());
-				return m;
-			}).toList();
+			final Integer programTotalEcts = coursesDataDB.getStudyProgramTotalEcts(studyProgram);
+			final int totalCreditsRequired = programTotalEcts != null ? programTotalEcts : 180;
+			final int maxCredits = profileStudent != null ? profileStudent.preferredWorkload() : 30;
+			final int remainingSemesters = Math.max(1, (totalCreditsRequired - totalCreditsEarned + maxCredits - 1) / maxCredits);
+
+			final Map<String, Integer> earnedByCategory = new HashMap<>();
+			for (StudentDataDB.CreditsByCategoryRow row : studentDataDB.creditsByCategory(tumid)) {
+				earnedByCategory.put(row.category(), row.totalCredits());
+			}
+			final List<CoursesDataDB.ProgramRequirementRow> requirementAreas = coursesDataDB.getProgramRequirementAreas(studyProgram);
+			final List<Map<String, Object>> categories;
+			if (!requirementAreas.isEmpty()) {
+				categories = requirementAreas.stream().map(area -> {
+					final Map<String, Object> m = new HashMap<>();
+					m.put("name", area.areaName());
+					m.put("creditsRequired", area.ects() != null ? area.ects() : 0);
+					m.put("creditsEarned", earnedByCategory.getOrDefault(area.areaName(), 0));
+					return m;
+				}).toList();
+			} else {
+				categories = earnedByCategory.entrySet().stream().map(entry -> {
+					final Map<String, Object> m = new HashMap<>();
+					m.put("name", entry.getKey());
+					m.put("creditsRequired", 60);
+					m.put("creditsEarned", entry.getValue());
+					return m;
+				}).toList();
+			}
 			final Map<String, Object> degreeRequirements = new HashMap<>();
 			degreeRequirements.put("totalCreditsRequired", totalCreditsRequired);
 			degreeRequirements.put("totalCreditsEarned", totalCreditsEarned);
@@ -168,7 +197,7 @@ public class APIControllerMeRoadmap {
 
 			@SuppressWarnings("unchecked")
 			final List<Map<String, Object>> rawSemesters = (List<Map<String, Object>>) genaiResponse.get("semesters");
-			final List<SemesterPlanDetailDTO> normalizedSemesters = normalizeGenAISemesters(rawSemesters);
+			final List<SemesterPlanDetailDTO> normalizedSemesters = normalizeGenAISemesters(rawSemesters, studyProgram);
 			final String normalizedJson = objectMapper.writeValueAsString(normalizedSemesters);
 
 			studentDataDB.upsertRoadmap(tumid, normalizedJson, "READY");
@@ -242,10 +271,12 @@ public class APIControllerMeRoadmap {
 			if (key.equals(semesters.get(i).semesterKey())) {
 				final SemesterPlanDetailDTO sem = semesters.get(i);
 				final List<PlannedCourseDTO> courses = new ArrayList<>(sem.courses());
+				final Map<Long, Integer> ects = coursesDataDB.getEctsForCourses(null, List.of(request.courseId()));
+				final int credits = ects.getOrDefault(request.courseId(), (int) Math.round(cd.sws() * 1.5));
 				final PlannedCourseDTO newCourse = new PlannedCourseDTO(
 						request.courseId(), cd.key(),
 						cd.title_en() != null ? cd.title_en() : String.valueOf(cd.id()),
-						cd.sws(), "PLANNED");
+						credits, "PLANNED");
 				courses.add(newCourse);
 				final int newTotalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
 				final SemesterPlanDetailDTO updated = new SemesterPlanDetailDTO(
@@ -345,7 +376,8 @@ public class APIControllerMeRoadmap {
 		};
 	}
 
-	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters) {
+	private List<SemesterPlanDetailDTO> normalizeGenAISemesters(List<Map<String, Object>> rawSemesters,
+			String studyProgram) {
 		if (rawSemesters == null)
 			return List.of();
 
@@ -362,6 +394,7 @@ public class APIControllerMeRoadmap {
 		final Map<Long, CoursesDataDB.CourseDataRow> courseMap = coursesDataDB
 				.getCourseDataForIds(allCourseIds).stream()
 				.collect(Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
+		final Map<Long, Integer> ectsMap = coursesDataDB.getEctsForCourses(studyProgram, allCourseIds);
 
 		return rawSemesters.stream().map(s -> {
 			final String semKey = (String) s.get("semesterKey");
@@ -384,16 +417,12 @@ public class APIControllerMeRoadmap {
 				final String courseName = cd != null && cd.title_en() != null
 						? cd.title_en()
 						: String.valueOf(courseId);
-				final int credits = cd != null ? cd.sws() : 0;
+				final int sws = cd != null ? cd.sws() : 0;
+				final int credits = ectsMap.getOrDefault(courseId, (int) Math.round(sws * 1.5));
 				return new PlannedCourseDTO(courseId, courseCode, courseName, credits, "PLANNED");
 			}).toList();
 
-			int totalCredits;
-			if (s.get("totalCredits") instanceof Number) {
-				totalCredits = ((Number) s.get("totalCredits")).intValue();
-			} else {
-				totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
-			}
+			final int totalCredits = courses.stream().mapToInt(PlannedCourseDTO::credits).sum();
 
 			return new SemesterPlanDetailDTO(semKey, deriveLabel(semKey), totalCredits, courses, false);
 		}).toList();

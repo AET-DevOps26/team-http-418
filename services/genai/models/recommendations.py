@@ -23,6 +23,7 @@ class CourseRef(BaseModel):
     course_name: str = Field(alias="courseName")
     credits: int
     description: str | None = None
+    category: str | None = None
 
 
 class RecommendationItem(BaseModel):
@@ -39,6 +40,17 @@ class RecommendationsResponse(BaseModel):
 
     recommendations: list[RecommendationItem]
     generated_at: str = Field(alias="generatedAt")
+
+
+class RecommendationSelection(BaseModel):
+    """The strict contract expected from the recommendation model."""
+
+    model_config = {"populate_by_name": True, "extra": "forbid"}
+
+    course_id: int = Field(alias="courseId")
+    relevance_score: float = Field(alias="relevanceScore", ge=0, le=1)
+    reason: str = Field(min_length=1)
+    tags: list[str] = Field(default=[])
 
 
 class RecommendationsRequest(BaseModel):

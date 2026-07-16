@@ -109,9 +109,9 @@ class RoadmapEndpointsTest extends BaseTest {
 				.andExpect(jsonPath("$.courses[0].courseId").value(100))
 				.andExpect(jsonPath("$.courses[0].courseCode").isNotEmpty())
 				.andExpect(jsonPath("$.courses[0].courseName").value("Introduction to Computer Science"))
-				.andExpect(jsonPath("$.courses[0].credits").value(4))
+				.andExpect(jsonPath("$.courses[0].credits").value(6))
 				.andExpect(jsonPath("$.courses[0].status").value("PLANNED"))
-				.andExpect(jsonPath("$.totalCredits").value(4));
+				.andExpect(jsonPath("$.totalCredits").value(6));
 
 		mockMvc.perform(delete("/api/" + API_VERSION + "/me/roadmap/semesters/25S/courses/100")
 				.header("Authorization", "Bearer " + token)).andExpect(status().isNoContent());
