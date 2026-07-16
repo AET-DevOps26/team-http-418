@@ -10,12 +10,15 @@ Potential candidate courses from catalog:
 {available_courses_text}
 
 Instructions:
-- Match prerequisites mentioned in the text to courses from the available catalog
+- Extract ALL prerequisites explicitly mentioned in the text by name or course code
+- Match prerequisites to courses from the available catalog
 - Use courseId values exactly as given in the catalog
 - Classify each prerequisite as "REQUIRED" (mandatory/must have) or "RECOMMENDED" (helpful/beneficial) based on language tone
+- A general skill or knowledge is not a requirement, but a recommendation
 - Words like "must", "required", "mandatory", "prerequisite", "knowledge of" → REQUIRED
 - Words like "recommended", "helpful", "beneficial", "familiarity with", "ideally" → RECOMMENDED
-- Only include courses that are clearly mentioned or closely match a course in the catalog
+- Only include courses that are explicitly mentioned in the text or appear as course descriptions in the text
+- Do not include courses based on semantic inference alone
 - Do not invent courseIds that are not in the catalog
 
 Return ONLY a valid JSON array. No explanation, no markdown, just JSON:
