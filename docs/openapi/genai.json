@@ -1,0 +1,1552 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AIDAN GenAI Service",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/metrics": {
+      "get": {
+        "summary": "Metrics",
+        "description": "Endpoint that serves Prometheus metrics.",
+        "operationId": "metrics_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/advisor/conversations/{conversation_id}/messages": {
+      "post": {
+        "summary": "Advisor Chat",
+        "operationId": "advisor_chat_v1_me_advisor_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "accept",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "*/*",
+              "title": "Accept"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvisorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/chat": {
+      "post": {
+        "summary": "Chat Endpoint",
+        "operationId": "chat_endpoint_v1_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/courses": {
+      "get": {
+        "summary": "Courses Search",
+        "operationId": "courses_search_v1_courses_get",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Natural language search query",
+              "title": "Query"
+            },
+            "description": "Natural language search query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/embeddings/courses": {
+      "post": {
+        "summary": "Embeddings Courses",
+        "operationId": "embeddings_courses_v1_embeddings_courses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmbedCoursesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/recommendations": {
+      "post": {
+        "summary": "Recommendations",
+        "operationId": "recommendations_v1_me_recommendations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/advisor/suggestions": {
+      "post": {
+        "summary": "Advisor Suggestions",
+        "operationId": "advisor_suggestions_v1_me_advisor_suggestions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvisorPromptSuggestionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PromptSuggestionChip"
+                  },
+                  "type": "array",
+                  "title": "Response Advisor Suggestions V1 Me Advisor Suggestions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/prerequisites/extract": {
+      "post": {
+        "summary": "Prerequisites Extract",
+        "operationId": "prerequisites_extract_v1_prerequisites_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrerequisiteExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrerequisiteExtractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/roadmap/generate": {
+      "post": {
+        "summary": "Roadmap Generate",
+        "operationId": "roadmap_generate_v1_me_roadmap_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoadmapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transcript/match": {
+      "post": {
+        "summary": "Transcript Match",
+        "operationId": "transcript_match_v1_transcript_match_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptMatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdvisorPromptSuggestionsRequest": {
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/StudentAdvisorProfile"
+          },
+          "completedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseRef"
+            },
+            "type": "array",
+            "title": "Completedcourses",
+            "default": []
+          },
+          "currentSemester": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentsemester"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student"
+        ],
+        "title": "AdvisorPromptSuggestionsRequest"
+      },
+      "AdvisorRequest": {
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/StudentAdvisorProfile"
+          },
+          "completedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseRef"
+            },
+            "type": "array",
+            "title": "Completedcourses",
+            "default": []
+          },
+          "conversationHistory": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessage"
+            },
+            "type": "array",
+            "title": "Conversationhistory",
+            "default": []
+          },
+          "newMessage": {
+            "type": "string",
+            "title": "Newmessage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student",
+          "newMessage"
+        ],
+        "title": "AdvisorRequest"
+      },
+      "AvailableCourse": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseName"
+        ],
+        "title": "AvailableCourse"
+      },
+      "AvailableCourseRef": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseCode": {
+            "type": "string",
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          },
+          "credits": {
+            "type": "integer",
+            "title": "Credits"
+          },
+          "preferredSemester": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferredsemester"
+          },
+          "hasPrerequisites": {
+            "type": "boolean",
+            "title": "Hasprerequisites",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseCode",
+          "courseName",
+          "credits"
+        ],
+        "title": "AvailableCourseRef"
+      },
+      "CategoryRequirement": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "creditsRequired": {
+            "type": "integer",
+            "title": "Creditsrequired"
+          },
+          "creditsEarned": {
+            "type": "integer",
+            "title": "Creditsearned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "creditsRequired",
+          "creditsEarned"
+        ],
+        "title": "CategoryRequirement"
+      },
+      "ChatRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "response": {
+            "type": "string",
+            "title": "Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "response"
+        ],
+        "title": "ChatResponse"
+      },
+      "CompletedCourseRef": {
+        "properties": {
+          "courseCode": {
+            "type": "string",
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          },
+          "credits": {
+            "type": "integer",
+            "title": "Credits"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseCode",
+          "courseName",
+          "credits"
+        ],
+        "title": "CompletedCourseRef"
+      },
+      "ConversationMessage": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MessageRole"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ConversationMessage"
+      },
+      "CourseItem": {
+        "properties": {
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "title_en": {
+            "type": "string",
+            "title": "Title En"
+          },
+          "title_ger": {
+            "type": "string",
+            "title": "Title Ger"
+          },
+          "description_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description En"
+          },
+          "description_ger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Ger"
+          },
+          "previous_knowledge_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Knowledge En"
+          },
+          "previous_knowledge_ger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Knowledge Ger"
+          },
+          "course_objective_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Objective En"
+          },
+          "course_objective_ger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Objective Ger"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_id",
+          "title_en",
+          "title_ger"
+        ],
+        "title": "CourseItem"
+      },
+      "CourseRef": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseCode": {
+            "type": "string",
+            "title": "Coursecode"
+          },
+          "credits": {
+            "type": "integer",
+            "title": "Credits"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseCode",
+          "credits"
+        ],
+        "title": "CourseRef"
+      },
+      "DegreeRequirements": {
+        "properties": {
+          "totalCreditsRequired": {
+            "type": "integer",
+            "title": "Totalcreditsrequired"
+          },
+          "totalCreditsEarned": {
+            "type": "integer",
+            "title": "Totalcreditsearned"
+          },
+          "remainingSemesters": {
+            "type": "integer",
+            "title": "Remainingsemesters"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryRequirement"
+            },
+            "type": "array",
+            "title": "Categories",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "totalCreditsRequired",
+          "totalCreditsEarned",
+          "remainingSemesters"
+        ],
+        "title": "DegreeRequirements"
+      },
+      "EmbedCoursesRequest": {
+        "properties": {
+          "courses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseItem"
+            },
+            "type": "array",
+            "title": "Courses"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EmbedMode",
+            "default": "UPSERT"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courses"
+        ],
+        "title": "EmbedCoursesRequest"
+      },
+      "EmbedMode": {
+        "type": "string",
+        "enum": [
+          "UPSERT",
+          "FULL_REBUILD"
+        ],
+        "title": "EmbedMode"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MessageRole": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "ASSISTANT"
+        ],
+        "title": "MessageRole"
+      },
+      "PrerequisiteExtractRequest": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          },
+          "previousKnowledgeText": {
+            "type": "string",
+            "title": "Previousknowledgetext"
+          },
+          "availableCourses": {
+            "items": {
+              "$ref": "#/components/schemas/AvailableCourse"
+            },
+            "type": "array",
+            "title": "Availablecourses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseName",
+          "previousKnowledgeText",
+          "availableCourses"
+        ],
+        "title": "PrerequisiteExtractRequest"
+      },
+      "PrerequisiteExtractResponse": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseCode": {
+            "type": "string",
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          },
+          "prerequisites": {
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteNodeResponse"
+            },
+            "type": "array",
+            "title": "Prerequisites",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseCode",
+          "courseName"
+        ],
+        "title": "PrerequisiteExtractResponse"
+      },
+      "PrerequisiteNodeResponse": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "courseCode": {
+            "type": "string",
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "type": "string",
+            "title": "Coursename"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "prerequisites": {
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteNodeResponse"
+            },
+            "type": "array",
+            "title": "Prerequisites",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "courseCode",
+          "courseName",
+          "type"
+        ],
+        "title": "PrerequisiteNodeResponse"
+      },
+      "PromptSuggestionChip": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "category"
+        ],
+        "title": "PromptSuggestionChip"
+      },
+      "RecommendationItem": {
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "title": "Courseid"
+          },
+          "relevanceScore": {
+            "type": "number",
+            "title": "Relevancescore"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "courseId",
+          "relevanceScore",
+          "reason"
+        ],
+        "title": "RecommendationItem"
+      },
+      "RecommendationsRequest": {
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/StudentProfile"
+          },
+          "completedCourses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Completedcourses",
+            "default": []
+          },
+          "enrolledCourses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Enrolledcourses",
+            "default": []
+          },
+          "availableCourses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Availablecourses",
+            "default": []
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "default": 10
+          },
+          "overrideGoals": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overridegoals"
+          },
+          "overrideInterests": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overrideinterests"
+          },
+          "excludeCourseIds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excludecourseids"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "current_semester_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Semester Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student"
+        ],
+        "title": "RecommendationsRequest"
+      },
+      "RecommendationsResponse": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationItem"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "generatedAt": {
+            "type": "string",
+            "title": "Generatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendations",
+          "generatedAt"
+        ],
+        "title": "RecommendationsResponse"
+      },
+      "RoadmapPreferences": {
+        "properties": {
+          "maxCreditsPerSemester": {
+            "type": "integer",
+            "title": "Maxcreditspersemester",
+            "default": 30
+          },
+          "preferredLanguage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferredlanguage"
+          }
+        },
+        "type": "object",
+        "title": "RoadmapPreferences"
+      },
+      "RoadmapRequest": {
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/StudentRoadmapProfile"
+          },
+          "completedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseRef"
+            },
+            "type": "array",
+            "title": "Completedcourses",
+            "default": []
+          },
+          "enrolledCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseRef"
+            },
+            "type": "array",
+            "title": "Enrolledcourses",
+            "default": []
+          },
+          "degreeRequirements": {
+            "$ref": "#/components/schemas/DegreeRequirements"
+          },
+          "availableCourses": {
+            "items": {
+              "$ref": "#/components/schemas/AvailableCourseRef"
+            },
+            "type": "array",
+            "title": "Availablecourses"
+          },
+          "currentSemesterKey": {
+            "type": "string",
+            "title": "Currentsemesterkey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student",
+          "degreeRequirements",
+          "availableCourses",
+          "currentSemesterKey"
+        ],
+        "title": "RoadmapRequest"
+      },
+      "StudentAdvisorProfile": {
+        "properties": {
+          "studyProgramId": {
+            "type": "string",
+            "title": "Studyprogramid",
+            "default": "invalid study id"
+          },
+          "studyProgramName": {
+            "type": "string",
+            "title": "Studyprogramname",
+            "default": "no study field"
+          },
+          "semester": {
+            "type": "integer",
+            "title": "Semester"
+          },
+          "careerGoals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Careergoals",
+            "default": []
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests",
+            "default": []
+          },
+          "totalCreditsEarned": {
+            "type": "integer",
+            "title": "Totalcreditsearned",
+            "default": 0
+          },
+          "totalCreditsRequired": {
+            "type": "integer",
+            "title": "Totalcreditsrequired",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "semester"
+        ],
+        "title": "StudentAdvisorProfile"
+      },
+      "StudentProfile": {
+        "properties": {
+          "studyProgramName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studyprogramname",
+            "default": "no study program"
+          },
+          "studyProgramId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studyprogramid",
+            "default": "invalid id"
+          },
+          "semester": {
+            "type": "integer",
+            "title": "Semester"
+          },
+          "careerGoals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Careergoals",
+            "default": []
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests",
+            "default": []
+          },
+          "preferredWorkload": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferredworkload"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills",
+            "default": []
+          },
+          "industryPreference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industrypreference"
+          },
+          "rolePreference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rolepreference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "semester"
+        ],
+        "title": "StudentProfile"
+      },
+      "StudentRoadmapProfile": {
+        "properties": {
+          "studyProgram": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studyprogram"
+          },
+          "studyProgramId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studyprogramid"
+          },
+          "semester": {
+            "type": "integer",
+            "title": "Semester"
+          },
+          "careerGoals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Careergoals",
+            "default": []
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests",
+            "default": []
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoadmapPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "semester"
+        ],
+        "title": "StudentRoadmapProfile"
+      },
+      "TranscriptMatchRequest": {
+        "properties": {
+          "modules": {
+            "items": {
+              "$ref": "#/components/schemas/UnmatchedModule"
+            },
+            "type": "array",
+            "title": "Modules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modules"
+        ],
+        "title": "TranscriptMatchRequest"
+      },
+      "UnmatchedModule": {
+        "properties": {
+          "module_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module Id"
+          },
+          "title_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title En"
+          },
+          "title_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title De"
+          }
+        },
+        "type": "object",
+        "title": "UnmatchedModule"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

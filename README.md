@@ -110,7 +110,7 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 (The right side should be in profiles. We didnt manage to move it because of time constraints)
 
 ### openapi
-[openapi](./docs/openapi)
+[./docs/openapi](./docs/openapi)
 
 
 ### deployment urls
