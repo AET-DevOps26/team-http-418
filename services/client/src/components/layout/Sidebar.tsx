@@ -1,12 +1,12 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BookOpen,
+	ChevronsLeft,
+	ChevronsRight,
 	Home,
 	LogOut,
 	Map as MapIcon,
 	MessageCircle,
-	PanelLeftClose,
-	PanelLeftOpen,
 	TrendingUp,
 } from "lucide-react";
 import { logout } from "#/api";
@@ -43,22 +43,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 	return (
 		<aside className={`sidebar${collapsed ? " sidebar--collapsed" : ""}`}>
 			<div className="sidebar-brand">
-				<div className="sidebar-brand-left">
-					<div className="sidebar-brand-mark">A</div>
-					{!collapsed && <span className="sidebar-brand-name">AIDAN</span>}
-				</div>
-				<button
-					type="button"
-					className="sidebar-toggle-btn"
-					onClick={onToggle}
-					title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-				>
-					{collapsed ? (
-						<PanelLeftOpen size={16} strokeWidth={1.75} />
-					) : (
-						<PanelLeftClose size={16} strokeWidth={1.75} />
-					)}
-				</button>
+				<div className="sidebar-brand-mark">A</div>
+				{!collapsed && <span className="sidebar-brand-name">AIDAN</span>}
 			</div>
 
 			<nav className="sidebar-nav">
@@ -89,6 +75,19 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 					<LogOut size={15} strokeWidth={1.75} />
 				</button>
 			</div>
+
+			<button
+				type="button"
+				className="sidebar-toggle-btn"
+				onClick={onToggle}
+				title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+			>
+				{collapsed ? (
+					<ChevronsRight size={16} strokeWidth={1.75} />
+				) : (
+					<ChevronsLeft size={16} strokeWidth={1.75} />
+				)}
+			</button>
 		</aside>
 	);
 }

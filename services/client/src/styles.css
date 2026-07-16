@@ -101,16 +101,9 @@ body {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   padding: 20px 16px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-brand-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
 }
 
 .sidebar-brand-mark {
@@ -233,21 +226,20 @@ body {
 .sidebar-toggle-btn {
   background: none;
   border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.35);
   cursor: pointer;
-  padding: 4px;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-xs);
   transition: color 0.1s;
-  flex-shrink: 0;
 }
 .sidebar-toggle-btn:hover {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.sidebar--collapsed .sidebar-brand { justify-content: center; gap: 6px; padding: 20px 8px 16px; }
+.sidebar--collapsed .sidebar-brand { justify-content: center; }
 .sidebar--collapsed .sidebar-nav { padding: 12px 6px; }
 .sidebar--collapsed .nav-item { justify-content: center; padding: 9px; gap: 0; }
 .sidebar--collapsed .sidebar-footer { justify-content: center; padding: 12px 6px; flex-wrap: wrap; gap: 8px; }
