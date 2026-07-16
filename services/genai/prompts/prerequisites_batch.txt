@@ -1,0 +1,4 @@
+Extract prerequisites for these target course IDs: {target_ids}.
+{prompts}
+
+Return ONLY valid JSON in this exact form: {{"trees":[{{"courseId":<target id>,"prerequisites":[...]}}]}}. Include exactly one tree per target course ID in the same order.

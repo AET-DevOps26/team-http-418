@@ -1,13 +1,11 @@
 import json
 import logging
-from pathlib import Path
 
 from fastapi import HTTPException
 
 from llm.provider import get_llm
 from models.plan_validate import PlanValidateRequest
-
-_PLAN_VALIDATE_PROMPT = (Path(__file__).parent.parent / "prompts" / "plan_validate.txt").read_text()
+from prompt_config import get_spec
 
 logger = logging.getLogger("genai")
 
@@ -32,7 +30,7 @@ def _build_prompt(request: PlanValidateRequest) -> str:
 
     completed = ", ".join(f"{c.course_name} ({c.course_code})" for c in request.completed_courses) or "none"
 
-    return _PLAN_VALIDATE_PROMPT.format(
+    return get_spec("plan_validate").render(
         semester=request.student.semester,
         career_goals=", ".join(request.student.career_goals) or "not specified",
         max_credits_per_semester=prefs.max_credits_per_semester,

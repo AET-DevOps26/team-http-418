@@ -2,15 +2,13 @@ import json
 import logging
 from collections import defaultdict
 from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from llm.provider import get_llm
 from models.roadmap import RoadmapGeneration, RoadmapRequest
-
-_ROADMAP_PROMPT = (Path(__file__).parent.parent / "prompts" / "roadmap.txt").read_text()
+from prompt_config import get_spec
 
 logger = logging.getLogger("genai")
 
@@ -63,7 +61,7 @@ def _build_messages(request: RoadmapRequest) -> list:
     else:
         available_text = "  none"
 
-    system_content = _ROADMAP_PROMPT.format(
+    system_content = get_spec("roadmap").render(
         study_program=student.study_program or "not specified",
         current_semester=request.current_semester_key,
         career_goals=", ".join(student.career_goals) or "not specified",
@@ -80,7 +78,7 @@ def _build_messages(request: RoadmapRequest) -> list:
 
     return [
         SystemMessage(content=system_content),
-        HumanMessage(content="Generate my semester-by-semester course plan."),
+        HumanMessage(content=get_spec("roadmap_user").render()),
     ]
 
 

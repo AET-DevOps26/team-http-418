@@ -1,6 +1,5 @@
 import json
 import logging
-from pathlib import Path
 
 from fastapi import HTTPException
 
@@ -13,10 +12,9 @@ from models.prerequisites import (
     PrerequisiteExtractBatchRequest,
     PrerequisiteExtractRequest,
 )
+from prompt_config import get_spec
 from repositories.recommendations import find_similar_courses
 from services.normalize import normalize_prerequisite_nodes
-
-_PREREQUISITES_PROMPT = (Path(__file__).parent.parent / "prompts" / "prerequisites.txt").read_text()
 
 logger = logging.getLogger("genai")
 
@@ -27,7 +25,7 @@ def _build_prompt(
 ) -> str:
     available_text = "\n".join(f"  - courseId={c.course_id} | {c.course_name}" for c in available_courses) or "  none"
 
-    return _PREREQUISITES_PROMPT.format(
+    return get_spec("prerequisites").render(
         course_name=request.course_name,
         previous_knowledge_text=request.previous_knowledge_text,
         available_courses_text=available_text,
@@ -110,11 +108,9 @@ async def extract_prerequisites_batch(request: PrerequisiteExtractBatchRequest) 
                 _build_prompt(course, filtered_available_by_course[course.course_id]) for course in chunk
             )
             target_ids = ", ".join(str(course.course_id) for course in chunk)
-            prompt = (
-                f"Extract prerequisites for these target course IDs: {target_ids}.\n{prompts}\n\n"
-                "Return ONLY valid JSON in this exact form: "
-                '{"trees":[{"courseId":<target id>,"prerequisites":[...]}]}. '
-                "Include exactly one tree per target course ID in the same order."
+            prompt = get_spec("prerequisites_batch").render(
+                target_ids=target_ids,
+                prompts=prompts,
             )
             result = await llm.ainvoke(prompt)
             raw_trees = _parse_chunk_response(result.content)
