@@ -70,13 +70,9 @@ def _append_course_context(messages: list, courses: list[tuple[CourseRef, float]
         for course, score in courses
     )
     if courses_text:
-        messages.append(
-            SystemMessage(content=get_spec("advisor_rag_has_data").render(courses_text=courses_text))
-        )
+        messages.append(SystemMessage(content=get_spec("advisor_rag_has_data").render(courses_text=courses_text)))
     else:
-        messages.append(
-            SystemMessage(content=get_spec("advisor_rag_no_data").render())
-        )
+        messages.append(SystemMessage(content=get_spec("advisor_rag_no_data").render()))
     return messages
 
 

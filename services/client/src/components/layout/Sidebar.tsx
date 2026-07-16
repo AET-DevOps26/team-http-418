@@ -61,11 +61,17 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 				))}
 			</nav>
 
-			<div className={`sidebar-footer${isActive("/profile") ? " sidebar-footer--active" : ""}`}>
+			<div
+				className={`sidebar-footer${isActive("/profile") ? " sidebar-footer--active" : ""}`}
+			>
 				<Link to="/profile" className="sidebar-avatar" title="Profile">
 					{firstName ? firstName.charAt(0).toUpperCase() : "TU"}
 				</Link>
-				{!collapsed && <span className="sidebar-user-name">{firstName || "TUM Student"}</span>}
+				{!collapsed && (
+					<span className="sidebar-user-name">
+						{firstName || "TUM Student"}
+					</span>
+				)}
 				<button
 					type="button"
 					className="sidebar-logout-btn"

@@ -1,5 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthError, isAuthenticated, login } from "#/api";
 import { getProfile } from "#/api/profile";
