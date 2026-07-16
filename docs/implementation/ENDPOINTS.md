@@ -22,31 +22,9 @@
 
 ### Health
 
-| Impl | Method | Endpoint | Description | Service |
-| :---: | :---: | :--- | :--- | :--- |
-| [ ] | `GET` | `/health` | Full health check with component statuses | System |
-| [ ] | `GET` | `/health/ready` | Readiness probe (k8s / Docker) | System |
-| [ ] | `GET` | `/health/live` | Liveness probe | System |
-
-<details>
-<summary>Response schemas</summary>
-
-**`GET /health`**
-```json
-{
-  "status": "UP",
-  "components": {
-    "db": "UP",
-    "genai": "UP"
-  }
-}
-```
-
-**`GET /health/ready` / `GET /health/live`**
-```json
-{ "status": "UP" }
-```
-</details>
+| Impl  | Method | Endpoint | Description       | Service |
+|:-----:| :---: | :--- |:------------------| :--- |
+| [ x ] | `GET` | `/health` | health check | System |
 
 ---
 
@@ -102,8 +80,8 @@
 
 | Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
 |:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
-|  [ ]  | `GET` | `/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
-|  [ ]  | `POST` | `/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
+| [ x ] | `GET` | `/me/progress` | — | 200 | Academic KPIs: credits earned, GPA, progress %, alerts | Student Service |
+| [ x ] | `POST` | `/me/transcript/upload` | Multipart: `file` (PDF/CSV) | 200 / 422 | Parse and import transcript into completed courses | Student Service |
 to update fields do a full profile update using POST /me
 
 <details>
@@ -132,7 +110,6 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "courseId": "uuid",
-  "courseCode": "IN2346",
   "courseName": "Introduction to Deep Learning",
   "credits": 6,
   "grade": 1.7,
@@ -145,7 +122,6 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "courseId": "uuid",
-  "courseCode": "IN2349",
   "courseName": "Advanced Deep Learning",
   "credits": 6,
   "semester": "SS2025",
@@ -170,7 +146,6 @@ to update fields do a full profile update using POST /me
       "courses": [
         {
           "courseId": "uuid",
-          "courseCode": "IN2001",
           "courseName": "Algorithms",
           "credits": 8,
           "status": "COMPLETED | ENROLLED | MISSING",
@@ -192,7 +167,7 @@ to update fields do a full profile update using POST /me
   "skippedCount": 2,
   "errors": ["Could not match course 'XYZ123' to catalog"],
   "importedCourses": [
-    { "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "credits": 6 }
+    { "courseName": "Introduction to Deep Learning", "credits": 6 }
   ]
 }
 ```
@@ -206,10 +181,10 @@ to update fields do a full profile update using POST /me
 |:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
 | [ x ] | `GET` | `/courses` | Query: `page, size, sort, search, department, semester, credits_min, credits_max, language, level, studyProgramId, ai` | 200 | Paginated, filtered course listing; when `ai=true`, the `search` param is interpreted as a semantic query against pgvector embeddings in PostgreSQL instead of a keyword filter | Browsing Service + AI Service |
 | [ x ] | `GET` | `/courses/{courseId}` | — | 200 / 404 | Full course details | Browsing Service |
-|  [ ]  | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
-|  [ ]  | `GET` | `/study-programs` | — | 200 | Study programs | Catalog Service |
-| [ - ] | `GET` | `/study-programs/{programId}` | — | 200 / 404 | Study program detail with credit breakdown | Catalog Service |
-| [ - ] | `GET` | `/study-programs/{programId}/courses` | Query: `page, size, category, semester` | 200 | Courses offered within a study program | Catalog Service |
+| [ x ] | `GET` | `/departments` | — | 200 | All TUM departments | Catalog Service |
+| [ x ] | `GET` | `/study-programs` | — | 200 | Study programs | Catalog Service |
+| [ x ] | `GET` | `/study-programs/{programId}` | — | 200 / 404 | Study program detail with credit breakdown | Catalog Service |
+| [ x ] | `GET` | `/study-programs/{programId}/courses` | Query: `page, size, category, semester` | 200 | Courses offered within a study program | Catalog Service |
 
 <details>
 <summary>Response schemas</summary>
@@ -218,7 +193,6 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "id": "uuid",
-  "courseCode": "IN2346",
   "name": "Introduction to Deep Learning",
   "department": "Informatics",
   "credits": 6,
@@ -234,7 +208,6 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "id": "uuid",
-  "courseCode": "IN2346",
   "name": "Introduction to Deep Learning",
   "description": "Full course description (Markdown or plain text)",
   "department": "Informatics",
@@ -251,7 +224,7 @@ to update fields do a full profile update using POST /me
     { "day": "THURSDAY", "startTime": "14:00", "endTime": "16:00", "room": "MW 2001", "type": "TUTORIAL" }
   ],
   "prerequisites": [
-    { "courseId": "uuid", "courseCode": "IN2345", "name": "Machine Learning", "type": "REQUIRED" }
+    { "courseId": "uuid", "name": "Machine Learning", "type": "REQUIRED" }
   ],
   "studyPrograms": [
     { "id": "uuid", "name": "Informatics M.Sc.", "category": "Elective" }
@@ -287,10 +260,10 @@ to update fields do a full profile update using POST /me
 
 ### Student Profile (AIDAN 3)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description                                  | Service |
-| :---: |:------:| :--- | :--- | :---: |:---------------------------------------------| :--- |
-| [ ] | `GET`  | `/me` | — | 200 | Get the authenticated student's full profile | Student Service |
-| [ ] | `POST` | `/me` | Body: `StudentProfile` | 200 | replace the current with the given profile   | Student Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description                                  | Service |
+|:-----:|:------:| :--- | :--- | :---: |:---------------------------------------------| :--- |
+| [ x ] | `GET`  | `/me` | — | 200 | Get the authenticated student's full profile | Student Service |
+| [ x ] | `POST` | `/me` | Body: `StudentProfile` | 200 | replace the current with the given profile   | Student Service |
 
 <details>
 <summary>Request / response schemas</summary>
@@ -331,10 +304,10 @@ to update fields do a full profile update using POST /me
 
 ### AI Recommendations (AIDAN 4)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/recommendations` | Query: `limit, category, semester` | 200 | Personalized course recommendations based on profile + history | Planning Service + AI Service |
-| [ ] | `POST` | `/me/recommendations` | Body: `{ goals, interests, excludeCourseIds }` | 200 | On-demand recommendation with explicit context override | Planning Service + AI Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `GET` | `/me/recommendations` | Query: `limit, category, semester` | 200 | Personalized course recommendations based on profile + history | Planning Service + AI Service |
+| [ x ] | `POST` | `/me/recommendations` | Body: `{ goals, interests, excludeCourseIds }` | 200 | On-demand recommendation with explicit context override | Planning Service + AI Service |
 
 <details>
 <summary>Request / response schemas</summary>
@@ -354,7 +327,6 @@ to update fields do a full profile update using POST /me
   "recommendations": [
     {
       "courseId": "uuid",
-      "courseCode": "IN2390",
       "courseName": "Robot Learning",
       "credits": 6,
       "relevanceScore": 0.92,
@@ -372,16 +344,16 @@ to update fields do a full profile update using POST /me
 
 ### Roadmap & Semester Plans (AIDAN 5)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/roadmap` | — | 200 / 404 | Retrieve current roadmap with all semester plans | Planning Service |
-| [ ] | `POST` | `/me/roadmap/generate` | Body: `RoadmapGenerateRequest` | 200 / 202 | AI-generate (or regenerate) the full roadmap | Planning Service + AI Service |
-| [ ] | `PUT` | `/me/roadmap` | Body: `RoadmapUpdate` | 200 | Update roadmap aims / preferences / interests | Planning Service |
-| [ ] | `GET` | `/me/roadmap/semesters` | — | 200 | All semester plans in the roadmap | Planning Service |
-| [ ] | `GET` | `/me/roadmap/semesters/{semesterKey}` | — | 200 / 404 | Single semester plan detail | Planning Service |
-| [ ] | `PUT` | `/me/roadmap/semesters/{semesterKey}` | Body: `SemesterPlanUpdate` | 200 | Edit a semester plan manually | Planning Service |
-| [ ] | `POST` | `/me/roadmap/semesters/{semesterKey}/courses` | Body: `{ courseId }` | 201 | Add a course to a semester plan | Planning Service |
-| [ ] | `DELETE` | `/me/roadmap/semesters/{semesterKey}/courses/{courseId}` | — | 204 | Remove a course from a semester plan | Planning Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `GET` | `/me/roadmap` | — | 200 / 404 | Retrieve current roadmap with all semester plans | Planning Service |
+| [ x ] | `POST` | `/me/roadmap/generate` | Body: `RoadmapGenerateRequest` | 200 / 202 | AI-generate (or regenerate) the full roadmap | Planning Service + AI Service |
+| [ x ] | `PUT` | `/me/roadmap` | Body: `RoadmapUpdate` | 200 | Update roadmap aims / preferences / interests | Planning Service |
+| [ x ] | `GET` | `/me/roadmap/semesters` | — | 200 | All semester plans in the roadmap | Planning Service |
+| [ x ] | `GET` | `/me/roadmap/semesters/{semesterKey}` | — | 200 / 404 | Single semester plan detail | Planning Service |
+| [ x ] | `PUT` | `/me/roadmap/semesters/{semesterKey}` | Body: `SemesterPlanUpdate` | 200 | Edit a semester plan manually | Planning Service |
+| [ x ] | `POST` | `/me/roadmap/semesters/{semesterKey}/courses` | Body: `{ courseId }` | 201 | Add a course to a semester plan | Planning Service |
+| [ x ] | `DELETE` | `/me/roadmap/semesters/{semesterKey}/courses/{courseId}` | — | 204 | Remove a course from a semester plan | Planning Service |
 
 > **Note**: `/generate` may return `202 Accepted` with a status URL when the AI service takes > a few seconds. The client should poll or use SSE to retrieve the final result.
 
@@ -417,7 +389,6 @@ to update fields do a full profile update using POST /me
       "courses": [
         {
           "courseId": "uuid",
-          "courseCode": "IN2349",
           "courseName": "Advanced Deep Learning",
           "credits": 6,
           "status": "ENROLLED",
@@ -441,7 +412,6 @@ to update fields do a full profile update using POST /me
   "courses": [
     {
       "courseId": "uuid",
-      "courseCode": "IN2349",
       "courseName": "Advanced Deep Learning",
       "credits": 6,
       "status": "ENROLLED",
@@ -460,8 +430,8 @@ to update fields do a full profile update using POST /me
 
 | Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
 |:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
-| [ - ] | `GET` | `/courses/{courseId}/prerequisites` | — | 200 / 404 | Full recursive prerequisite tree for a course | Catalog Service |
-| [ - ] | `GET` | `/courses/{courseId}/prerequisites/check` | — (uses auth token) | 200 / 404 | Check if the authenticated student meets all prerequisites | Catalog Service + Student Service |
+| [ x ] | `GET` | `/courses/{courseId}/prerequisites` | — | 200 / 404 | Full recursive prerequisite tree for a course | Catalog Service |
+| [ x ] | `GET` | `/courses/{courseId}/prerequisites/check` | — (uses auth token) | 200 / 404 | Check if the authenticated student meets all prerequisites | Catalog Service + Student Service |
 
 <details>
 <summary>Response schemas</summary>
@@ -470,19 +440,16 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "courseId": "uuid",
-  "courseCode": "IN2349",
   "courseName": "Advanced Deep Learning",
   "prerequisites": [
     {
       "courseId": "uuid",
-      "courseCode": "IN2346",
       "courseName": "Introduction to Deep Learning",
       "type": "REQUIRED",
       "prerequisites": []
     },
     {
       "courseId": "uuid",
-      "courseCode": "MA2001",
       "courseName": "Linear Algebra",
       "type": "RECOMMENDED",
       "prerequisites": []
@@ -495,13 +462,12 @@ to update fields do a full profile update using POST /me
 ```json
 {
   "courseId": "uuid",
-  "courseCode": "IN2349",
   "eligible": false,
   "unmetPrerequisites": [
-    { "courseId": "uuid", "courseCode": "IN2346", "courseName": "Introduction to Deep Learning", "type": "REQUIRED" }
+    { "courseId": "uuid", "courseName": "Introduction to Deep Learning", "type": "REQUIRED" }
   ],
   "metPrerequisites": [
-    { "courseId": "uuid", "courseCode": "MA2001", "courseName": "Linear Algebra", "type": "RECOMMENDED" }
+    { "courseId": "uuid", "courseName": "Linear Algebra", "type": "RECOMMENDED" }
   ]
 }
 ```
@@ -510,9 +476,9 @@ to update fields do a full profile update using POST /me
 
 ### Dashboard Aggregation
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/dashboard` | — | 200 | Single aggregated response powering the Dashboard screen (KPIs, alerts, top recommendations, upcoming classes) | Planning Service |
+|  Impl   | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-------:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x x ] | `GET` | `/me/dashboard` | — | 200 | Single aggregated response powering the Dashboard screen (KPIs, alerts, top recommendations, upcoming classes) | Planning Service |
 
 <details>
 <summary>Response schema</summary>
@@ -539,7 +505,6 @@ to update fields do a full profile update using POST /me
   "recommendations": [
     {
       "courseId": "uuid",
-      "courseCode": "IN2390",
       "courseName": "Robot Learning",
       "relevanceScore": 0.92,
       "reason": "Aligns with your interest in robotics"
@@ -548,7 +513,6 @@ to update fields do a full profile update using POST /me
   "upcomingCourses": [
     {
       "courseId": "uuid",
-      "courseCode": "IN2349",
       "courseName": "Advanced Deep Learning",
       "nextSession": { "day": "MONDAY", "startTime": "10:00", "room": "MW 0001" }
     }
@@ -562,12 +526,12 @@ to update fields do a full profile update using POST /me
 
 ### AI Advisor Chat (AIDAN 4 — conversational layer)
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `GET` | `/me/advisor/conversations` | Query: `page, size` | 200 | List all past conversations | Planning Service |
-| [ ] | `POST` | `/me/advisor/conversations` | Body: `{ title? }` | 201 | Start a new conversation | Planning Service |
-| [ ] | `GET` | `/me/advisor/conversations/{conversationId}` | — | 200 / 404 | Full conversation with all messages | Planning Service |
-| [ ] | `POST` | `/me/advisor/conversations/{conversationId}/messages` | Body: `{ content }` | 200 / SSE | Send a user message; response streams via SSE or returns full JSON | Planning Service + AI Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `GET` | `/me/advisor/conversations` | Query: `page, size` | 200 | List all past conversations | Planning Service |
+| [ x ] | `POST` | `/me/advisor/conversations` | Body: `{ title? }` | 201 | Start a new conversation | Planning Service |
+| [ x ] | `GET` | `/me/advisor/conversations/{conversationId}` | — | 200 / 404 | Full conversation with all messages | Planning Service |
+| [ x ] | `POST` | `/me/advisor/conversations/{conversationId}/messages` | Body: `{ content }` | 200 / SSE | Send a user message; response streams via SSE or returns full JSON | Planning Service + AI Service |
 
 > **Streaming**: Send `Accept: text/event-stream` to receive incremental tokens (drives the typing indicator in the prototype). Default `Accept: application/json` returns the completed reply synchronously.
 
@@ -594,7 +558,7 @@ to update fields do a full profile update using POST /me
       "timestamp": "2025-05-13T10:00:00Z",
       "metadata": {
         "referencedCourses": [
-          { "courseId": "uuid", "courseCode": "IN2349" }
+          { "courseId": "uuid" }
         ]
       }
     }
@@ -625,9 +589,9 @@ to update fields do a full profile update using POST /me
 
 ### Recommendation Feedback
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/me/recommendations/{courseId}/feedback` | Body: `{ action }` | 204 | Record student reaction to a recommendation (save / dismiss / enroll) | Student Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ - ] | `POST` | `/me/recommendations/{courseId}/feedback` | Body: `{ action }` | 204 | Record student reaction to a recommendation (save / dismiss / enroll) | Student Service |
 
 <details>
 <summary>Request schema</summary>
@@ -641,10 +605,10 @@ to update fields do a full profile update using POST /me
 
 ### Advisor Extras
 
-| Impl | Method | Endpoint | Params / Body | Status | Description | Service |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `DELETE` | `/me/advisor/conversations/{conversationId}` | — | 204 | Delete a conversation | Planning Service |
-| [ ] | `GET` | `/me/advisor/suggestions` | — | 200 | Suggested quick-prompt chips for the advisor screen | Planning Service + AI Service |
+| Impl  | Method | Endpoint | Params / Body | Status | Description | Service |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ - ] | `DELETE` | `/me/advisor/conversations/{conversationId}` | — | 204 | Delete a conversation | Planning Service |
+| [ - ] | `GET` | `/me/advisor/suggestions` | — | 200 | Suggested quick-prompt chips for the advisor screen | Planning Service + AI Service |
 
 <details>
 <summary>Response schema</summary>

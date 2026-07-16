@@ -114,9 +114,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoints: `GET /me/recommendations` and `POST /me/recommendations` (Planning Service) → both call this single GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
 
 **Always POST to GenAI** — both client-facing GET and POST flow here. GET sends complex student context as body (query params insufficient for arrays). POST adds optional override fields.
 
@@ -196,9 +196,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoint: `POST /me/roadmap/generate` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
 
 **Async**: Spring Boot returns `202 Accepted` to client immediately, calls this endpoint in background. Client polls a status URL to retrieve the result when ready.
 
@@ -265,9 +265,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoint: `POST /me/advisor/conversations/{id}/messages` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
 
 **Streaming**: GenAI streams SSE tokens back to Spring Boot, which forwards the stream to the client. After stream ends, Spring Boot saves the completed assistant message to DB.
 
@@ -324,9 +324,9 @@ data: {"done": true, "fullContent": "Based on your completed ML courses..."}
 
 > Spring Boot endpoint: `GET /me/advisor/suggestions` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
 
 Sync JSON — no streaming. Shown on advisor page before student types anything.
 
@@ -410,9 +410,9 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 
 > **Internal pipeline only** — not triggered by client. Called by Scraper after ingestion or by Catalog Service on demand. Client has no knowledge of this endpoint.
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors with pgvector in PostgreSQL | Catalog Service / Scraper trigger |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors with pgvector in PostgreSQL | Catalog Service / Scraper trigger |
 
 Triggered after scraper ingestion adds or updates courses. Also run on first setup (bulk embed all courses). Required for semantic search and recommendations to work.
 
