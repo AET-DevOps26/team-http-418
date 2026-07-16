@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthError, isAuthenticated, login } from "#/api";
 import { getProfile } from "#/api/profile";
@@ -424,8 +424,8 @@ function LoginPage() {
 						}}
 					>
 						Don't have an account?{" "}
-						<a
-							href="/register"
+						<Link
+							to="/register"
 							style={{
 								color: "#8A57E0",
 								fontWeight: 500,
@@ -433,7 +433,7 @@ function LoginPage() {
 							}}
 						>
 							Sign up
-						</a>
+						</Link>
 					</p>
 				</div>
 			</div>

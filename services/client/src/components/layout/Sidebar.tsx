@@ -16,9 +16,8 @@ const mainNav = [
 	{ label: "Progress", icon: TrendingUp, href: "/progress" },
 	{ label: "Courses", icon: BookOpen, href: "/courses" },
 	{ label: "My Plan", icon: MapIcon, href: "/planner" },
+	{ label: "Advisor", icon: MessageCircle, href: "/advisor" },
 ];
-
-const aiNav = [{ label: "Advisor", icon: MessageCircle, href: "/advisor" }];
 
 type Props = {
 	collapsed: boolean;
@@ -58,19 +57,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 					</Link>
 				))}
 
-				{!collapsed && <span className="sidebar-section-label">AI</span>}
 
-				{aiNav.map(({ label, icon: Icon, href }) => (
-					<Link
-						key={href}
-						to={href}
-						title={label}
-						className={`nav-item${isActive(href) ? " nav-item--active" : ""}`}
-					>
-						<Icon size={16} strokeWidth={1.75} />
-						{!collapsed && label}
-					</Link>
-				))}
 			</nav>
 
 			<div className="sidebar-footer">

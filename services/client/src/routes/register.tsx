@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthError, isAuthenticated, register } from "#/api";
 
@@ -455,8 +455,8 @@ function RegisterPage() {
 						}}
 					>
 						Already have an account?{" "}
-						<a
-							href="/login"
+						<Link
+							to="/login"
 							style={{
 								color: "#8A57E0",
 								fontWeight: 500,
@@ -464,7 +464,7 @@ function RegisterPage() {
 							}}
 						>
 							Sign in
-						</a>
+						</Link>
 					</p>
 				</div>
 			</div>

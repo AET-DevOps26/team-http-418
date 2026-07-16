@@ -352,7 +352,7 @@ function CoursesPage() {
 					{isEmpty && (
 						<div style={{ textAlign: "center", marginTop: 48 }}>
 							<p style={{ color: "var(--muted)", fontSize: 14 }}>
-								No courses found.
+								Not available in TUMOnline
 							</p>
 						</div>
 					)}
