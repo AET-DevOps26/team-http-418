@@ -46,6 +46,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/client
+          build-args: |
+            API_VERSION=${{ vars.API_VERSION }}
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/client:latest

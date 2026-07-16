@@ -57,7 +57,7 @@ class RoadmapEndpointsTest extends BaseTest {
 
 		mockMvc.perform(put("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON).content(roadmapJson)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("ACTIVE"))
+				.andExpect(jsonPath("$.status").value("READY"))
 				.andExpect(jsonPath("$.totalPlannedCredits").value(5))
 				.andExpect(jsonPath("$.estimatedGraduation").value("25S"))
 				.andExpect(jsonPath("$.semesters[0].label").value("Summer 2025"))
@@ -69,7 +69,7 @@ class RoadmapEndpointsTest extends BaseTest {
 		mockMvc.perform(
 				get("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("ACTIVE"))
+				.andExpect(jsonPath("$.status").value("READY"))
 				.andExpect(jsonPath("$.semesters[0].semesterKey").value("25S"))
 				.andExpect(jsonPath("$.totalPlannedCredits").value(5))
 				.andExpect(jsonPath("$.estimatedGraduation").value("25S"));
