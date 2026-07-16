@@ -109,6 +109,10 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 ![security](./docs/diagrams/security-schema.png)
 (The right side should be in profiles. We didnt manage to move it because of time constraints)
 
+### openapi
+[openapi](./docs/openapi)
+
+
 ### deployment urls
 
 https://aidan.stud.k8s.aet.cit.tum.de/dashboard
