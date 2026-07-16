@@ -4,6 +4,7 @@ import type {
 	CourseSearchParams,
 	CourseSummary,
 	Page,
+	PrerequisiteBatchResponse,
 	PrerequisiteCheck,
 	PrerequisiteTree,
 } from "#/api/types";
@@ -74,6 +75,15 @@ export function getCoursePrerequisites(
 	courseId: string,
 ): Promise<PrerequisiteTree> {
 	return apiFetch<PrerequisiteTree>(`/courses/${courseId}/prerequisites`);
+}
+
+export function getCoursePrerequisitesBatch(
+	courseIds: string[],
+): Promise<PrerequisiteBatchResponse> {
+	return apiFetch<PrerequisiteBatchResponse>("/courses/prerequisites/batch", {
+		method: "POST",
+		body: JSON.stringify({ courseIds: courseIds.map(Number) }),
+	});
 }
 
 export function checkPrerequisites(

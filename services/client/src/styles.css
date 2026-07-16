@@ -763,123 +763,6 @@ body {
 }
 
 
-/* ── Drop zone ── */
-/* ── Planner ── */
-
-.planner-timeline {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 8px;
-}
-
-.semester-col {
-  min-width: 230px;
-  max-width: 230px;
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-}
-
-.semester-col--current {
-  border-left: 3px solid var(--blue-600);
-  background: var(--blue-50);
-}
-
-.semester-add-course {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.semester-add-course input {
-  min-width: 0;
-  flex: 1;
-  height: 30px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: 0 8px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink);
-  background: var(--paper);
-}
-
-.semester-add-course button {
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-soft);
-  background: var(--paper);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.semester-add-course button:hover:not(:disabled) {
-  color: var(--blue-700);
-  border-color: var(--blue-300);
-}
-
-.semester-add-course button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.course-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: var(--r-md);
-  font-size: 12.5px;
-  font-weight: 500;
-  transition: background 0.1s;
-}
-
-.course-pill--completed {
-  background: var(--blue-100);
-  color: var(--blue-800);
-}
-
-.course-pill--enrolled {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.course-pill--planned {
-  background: var(--line-soft);
-  color: var(--ink-soft);
-}
-
-.course-pill-remove {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: inherit;
-  opacity: 0;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: var(--r-xs);
-  display: flex;
-  align-items: center;
-  transition: opacity 0.1s;
-}
-
-.course-pill:hover .course-pill-remove {
-  opacity: 0.6;
-}
-.course-pill-remove:hover {
-  opacity: 1 !important;
-}
-
 dialog.modal {
   border: none;
   border-radius: var(--r-xl);
@@ -1609,4 +1492,196 @@ dialog.modal::backdrop {
 
 .import-table-input:focus {
   border-color: var(--blue-400);
+}
+
+/* ── Roadmap canvas ── */
+
+.rmc-canvas-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+  margin-bottom: 28px;
+}
+
+.rmc-prereq-badge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+}
+
+.rmc-prereq-badge--error {
+  background: #fff0ee;
+  border-color: #fecaca;
+  color: var(--danger);
+}
+
+/* Semester group lane */
+
+.rmc-semester-group {
+  width: 100%;
+  height: 100%;
+  background: var(--canvas);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
+  padding: 10px 14px 0;
+  box-sizing: border-box;
+}
+
+.rmc-semester-group--current {
+  background: var(--blue-50);
+  border-color: var(--blue-200);
+  border-left: 3px solid var(--blue-600);
+}
+
+.rmc-semester-group__label {
+  margin: 0 0 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rmc-semester-group--current .rmc-semester-group__label {
+  color: var(--blue-700);
+}
+
+.rmc-semester-group__credits {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+/* Course node */
+
+.rmc-course-node {
+	margin: 0;
+	min-inline-size: 0;
+	width: 100%;
+  height: 100%;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+	cursor: default;
+}
+
+.rmc-course-node__focus-target {
+	align-items: stretch;
+	appearance: none;
+	background: none;
+	border: 0;
+	color: inherit;
+	cursor: default;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	font: inherit;
+	gap: 2px;
+	min-height: 0;
+	padding: 0;
+	text-align: left;
+}
+
+.rmc-course-node--completed {
+  background: var(--blue-100);
+  border-color: var(--blue-200);
+}
+
+.rmc-course-node--enrolled {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.rmc-course-node--planned {
+  background: var(--paper);
+  border-color: var(--line);
+}
+
+.rmc-course-node--missing {
+  background: #fff0ee;
+  border-color: #fecaca;
+}
+
+.rmc-course-node__code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue-700);
+}
+
+.rmc-course-node--completed .rmc-course-node__code {
+  color: var(--blue-800);
+}
+
+.rmc-course-node__name {
+  font-size: 11px;
+  color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.35;
+}
+
+.rmc-course-node__credits {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: auto;
+}
+
+/* Handle (connection points) */
+
+.rmc-handle {
+  width: 8px;
+  height: 8px;
+  background: var(--line);
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+
+/* Hover tooltip */
+
+.rmc-tooltip {
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  max-width: 240px;
+  box-shadow: var(--shadow-2);
+}
+
+.rmc-tooltip__name {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.rmc-tooltip__meta {
+  margin: 0;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  opacity: 0.7;
 }

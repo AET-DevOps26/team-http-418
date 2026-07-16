@@ -1,15 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
-import { GenerateRoadmapModal } from "#/components/roadmap/GenerateRoadmapModal";
-import { GeneratingState } from "#/components/roadmap/GeneratingState";
-import { RoadmapTimeline } from "#/components/roadmap/RoadmapTimeline";
-import {
-	useAddCourseToSemester,
-	useGenerateRoadmap,
-	useRemoveCourseFromSemester,
-	useRoadmap,
-} from "#/hooks/useRoadmap";
+import { RoadmapCanvas } from "#/components/roadmap/RoadmapCanvas";
+import { useGenerateRoadmap, useRoadmap } from "#/hooks/useRoadmap";
 
 export const Route = createFileRoute("/_authenticated/planner")({
 	component: Planner,
@@ -57,9 +49,6 @@ function PlannerSkeleton() {
 function Planner() {
 	const { data, isLoading, isError, refetch } = useRoadmap();
 	const generateMutation = useGenerateRoadmap();
-	const addMutation = useAddCourseToSemester();
-	const removeMutation = useRemoveCourseFromSemester();
-	const [modalOpen, setModalOpen] = useState(false);
 
 	if (isLoading) return <PlannerSkeleton />;
 
@@ -89,7 +78,9 @@ function Planner() {
 		);
 	}
 
-	if (data.status === "GENERATING") {
+	const hasPreviousRoadmap = data.semesters.length > 0;
+
+	if (data.status === "GENERATING" && !hasPreviousRoadmap) {
 		return (
 			<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
 				<GeneratingState />
@@ -121,79 +112,134 @@ function Planner() {
 					<button
 						type="button"
 						className="btn btn-primary"
-						onClick={() => setModalOpen(true)}
+						disabled={generateMutation.isPending}
+						onClick={() => generateMutation.mutate()}
 					>
 						<Sparkles size={14} strokeWidth={2} />
 						Generate Roadmap
 					</button>
-					<GenerateRoadmapModal
-						open={modalOpen}
-						onClose={() => setModalOpen(false)}
-						onSubmit={(req) => generateMutation.mutate(req)}
-					/>
 				</div>
 			</div>
 		);
 	}
 
-	return (
-		<div className="view-fade" style={{ padding: "28px 28px 40px" }}>
+	if (data.status === "ERROR" && !hasPreviousRoadmap) {
+		return (
 			<div
+				className="view-fade"
 				style={{
+					flex: 1,
 					display: "flex",
-					alignItems: "flex-start",
-					justifyContent: "space-between",
-					marginBottom: 24,
+					alignItems: "center",
+					justifyContent: "center",
 				}}
 			>
-				<div>
-					<h1
-						style={{
-							margin: 0,
-							fontSize: 24,
-							fontWeight: 700,
-							color: "var(--ink)",
-							lineHeight: 1.2,
-						}}
-					>
-						Semester Planner
-					</h1>
-					<p
-						style={{
-							margin: "4px 0 0",
-							fontSize: 14,
-							color: "var(--muted)",
-						}}
-					>
-						Est. graduation {data.estimatedGraduation} ·{" "}
-						{data.totalPlannedCredits} total credits
+				<div style={{ textAlign: "center" }}>
+					<p style={{ color: "var(--muted)", marginBottom: 16, fontSize: 14 }}>
+						We could not generate a roadmap. Please try again.
 					</p>
+					<button
+						type="button"
+						className="btn btn-primary"
+						disabled={generateMutation.isPending}
+						onClick={() => generateMutation.mutate()}
+					>
+						<Sparkles size={14} strokeWidth={2} />
+						Retry
+					</button>
 				</div>
-				<button
-					type="button"
-					className="btn btn-primary"
-					onClick={() => setModalOpen(true)}
-				>
-					<Sparkles size={14} strokeWidth={2} />
-					Regenerate Roadmap
-				</button>
 			</div>
+		);
+	}
 
-			<RoadmapTimeline
-				semesters={data.semesters}
-				onAddCourse={(semesterKey, courseId) =>
-					addMutation.mutate({ semesterKey, courseId })
-				}
-				onRemoveCourse={(semesterKey, courseId) =>
-					removeMutation.mutate({ semesterKey, courseId })
-				}
-			/>
+	const header = (
+		<div
+			style={{
+				display: "flex",
+				alignItems: "flex-start",
+				justifyContent: "space-between",
+				marginBottom: 24,
+			}}
+		>
+			<div>
+				<h1
+					style={{
+						margin: 0,
+						fontSize: 24,
+						fontWeight: 700,
+						color: "var(--ink)",
+						lineHeight: 1.2,
+					}}
+				>
+					Semester Planner
+				</h1>
+				<p
+					style={{
+						margin: "4px 0 0",
+						fontSize: 14,
+						color: "var(--muted)",
+					}}
+				>
+					Est. graduation {data.estimatedGraduation} ·{" "}
+					{data.totalPlannedCredits} total credits
+				</p>
+			</div>
+			<button
+				type="button"
+				className="btn btn-primary"
+				disabled={generateMutation.isPending || data.status === "GENERATING"}
+				onClick={() => generateMutation.mutate()}
+			>
+				<Sparkles size={14} strokeWidth={2} />
+				{data.status === "ERROR" ? "Retry" : "Regenerate"}
+			</button>
+		</div>
+	);
 
-			<GenerateRoadmapModal
-				open={modalOpen}
-				onClose={() => setModalOpen(false)}
-				onSubmit={(req) => generateMutation.mutate(req)}
-			/>
+	return (
+		<div
+			className="view-fade"
+			style={{
+				flex: 1,
+				display: "flex",
+				flexDirection: "column",
+				overflow: "hidden",
+				padding: "28px 28px 0",
+			}}
+		>
+			{header}
+			{data.status === "GENERATING" && (
+				<div className="rmc-prereq-badge">
+					Generating an updated roadmap. Your current plan remains available.
+				</div>
+			)}
+			{data.status === "ERROR" && (
+				<div className="rmc-prereq-badge rmc-prereq-badge--error" role="alert">
+					Regeneration failed. Your previous roadmap is still available; retry
+					when ready.
+				</div>
+			)}
+			<RoadmapCanvas semesters={data.semesters} />
+		</div>
+	);
+}
+
+function GeneratingState() {
+	return (
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				justifyContent: "center",
+				minHeight: 300,
+				gap: 16,
+			}}
+		>
+			<div className="spinner" />
+			<p style={{ color: "var(--muted)", fontSize: 14 }}>
+				Generating your roadmap…
+			</p>
 		</div>
 	);
 }

@@ -312,23 +312,13 @@ export type SemesterPlanDetail = {
 	isCurrent: boolean;
 };
 
-export type RoadmapStatus = "READY" | "GENERATING" | "EMPTY";
+export type RoadmapStatus = "READY" | "GENERATING" | "EMPTY" | "ERROR";
 
 export type Roadmap = {
 	status: RoadmapStatus;
 	semesters: SemesterPlanDetail[];
 	totalPlannedCredits: number;
-	estimatedGraduation: SemesterKey;
-};
-
-export type GenerateRoadmapRequest = {
-	aims: string;
-	maxCreditsPerSemester: number;
-	interests: string[];
-};
-
-export type AddCourseRequest = {
-	courseId: string;
+	estimatedGraduation: SemesterKey | null;
 };
 
 // ── Course catalog types ──
@@ -428,6 +418,11 @@ export type PrerequisiteTree = {
 	courseCode: string;
 	courseName: string;
 	prerequisites: PrerequisiteNode[];
+};
+
+export type PrerequisiteBatchResponse = {
+	trees: PrerequisiteTree[];
+	missingCourseIds: number[];
 };
 
 export type PrerequisiteCheckRef = {
