@@ -57,11 +57,16 @@ public class APIControllerMe {
 				.map(row -> new AcademicProgressDTO.CreditsByCategory(row.category(), row.totalCredits())).toList();
 		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(tumid, 0, 1000);
 		final List<CompletedCourseDTO> completedDtos = rows.stream()
-				.filter(row -> row.courseId() != null)
 				.map(row -> {
-					final String name = coursesDataDB.getCourseTitleEn(row.courseId());
-					return new CompletedCourseDTO(row.courseId(), String.valueOf(row.courseId()),
-							name != null ? name : "Unknown",
+					if (row.courseId() != null) {
+						final String name = coursesDataDB.getCourseTitleEn(row.courseId());
+						return new CompletedCourseDTO(row.courseId(), String.valueOf(row.courseId()),
+								name != null ? name : "Unknown",
+								row.grade(), row.credits(), row.semesterKey(), row.category());
+					}
+					return new CompletedCourseDTO(null,
+							row.moduleId() != null ? row.moduleId() : "—",
+							row.moduleTitle() != null ? row.moduleTitle() : "Unknown",
 							row.grade(), row.credits(), row.semesterKey(), row.category());
 				}).toList();
 		return ResponseEntity.ok(new DegreeRequirementsDTO(totalCredits, byCategory, completedDtos));
@@ -124,18 +129,60 @@ public class APIControllerMe {
 				}
 			}
 
+			final Map<String, Long> moduleIdToRowId = new HashMap<>();
 			for (final ParsedModule module : unmatchedModules) {
 				skipped++;
 				final String title = module.titleEn() != null ? module.titleEn() : module.titleDe();
 				errors.add("No catalog match for " + module.moduleId() + ": " + title);
 				final BigDecimal gradeVal = new BigDecimal(String.valueOf(module.grade()))
 						.setScale(1, RoundingMode.HALF_UP);
-				studentDataDB.insertCompletedCourse(
+				final StudentDataDB.CompletedCourseRow inserted = studentDataDB.insertCompletedCourse(
 						tumid, null, gradeVal, module.credits(), null, null,
 						"unmatched", module.moduleId(), title);
+				if (inserted != null) {
+					moduleIdToRowId.put(module.moduleId(), inserted.id());
+				}
 				finalUnmatchedDTOs.add(new TranscriptImportResultDTO.UnmatchedModule(
 						module.moduleId(), module.titleDe(), module.titleEn(),
 						gradeVal.toPlainString(), module.credits()));
+			}
+
+			try {
+				if (!finalUnmatchedDTOs.isEmpty()) {
+					final List<Map<String, String>> aiModules = new ArrayList<>();
+					for (final TranscriptImportResultDTO.UnmatchedModule um : finalUnmatchedDTOs) {
+						final Map<String, String> entry = new HashMap<>();
+						entry.put("module_id", um.moduleId());
+						entry.put("title_en", um.titleEn());
+						entry.put("title_de", um.titleDe());
+						aiModules.add(entry);
+					}
+					final String aiResponse = transcriptService.callTranscriptMatch(Map.of("modules", aiModules));
+					final Map<String, Object> aiResult = objectMapper.readValue(aiResponse, new TypeReference<>() {});
+					@SuppressWarnings("unchecked")
+					final List<Map<String, Object>> aiMatches = (List<Map<String, Object>>) aiResult.get("matches");
+					if (aiMatches != null) {
+						for (final Map<String, Object> match : aiMatches) {
+							final String moduleId = (String) match.get("module_id");
+							final long courseId = ((Number) match.get("course_id")).longValue();
+							if (moduleId == null) continue;
+							final Long rowId = moduleIdToRowId.get(moduleId);
+							if (rowId == null) continue;
+							final CoursesDataDB.CourseInfo info = coursesDataDB.getCourseInfo(courseId);
+							studentDataDB.resolveUnmatched(rowId, tumid, courseId, "Uncategorized");
+							skipped--;
+							final String courseName = info != null && info.titleEn() != null ? info.titleEn() : moduleId;
+							final String courseCode = info != null && info.key() != null ? info.key() : String.valueOf(courseId);
+							importedCourses.add(new TranscriptImportResultDTO.ImportedCourse(
+									String.valueOf(courseId), courseCode, courseName,
+									moduleId, null, null,
+									null, 0));
+							finalUnmatchedDTOs.removeIf(um -> moduleId.equals(um.moduleId()));
+						}
+					}
+				}
+			} catch (Exception e) {
+				logger.warn("Auto AI match failed, modules stay unmatched: {}", e.getMessage());
 			}
 
 			return ResponseEntity

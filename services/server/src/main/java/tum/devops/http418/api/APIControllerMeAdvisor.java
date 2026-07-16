@@ -129,12 +129,16 @@ public class APIControllerMeAdvisor {
 						.getCourseDataForIds(completedIds).stream()
 						.collect(java.util.stream.Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
 				final List<Map<String, Object>> completedCoursesPayload = completedRows.stream()
-						.filter(row -> row.courseId() != null)
 						.map(row -> {
-							final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
 							final Map<String, Object> m = new LinkedHashMap<>();
-							m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
-							m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+							if (row.courseId() != null) {
+								final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+								m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+								m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+							} else {
+								m.put("courseCode", row.moduleId() != null ? row.moduleId() : "—");
+								m.put("courseName", row.moduleTitle() != null ? row.moduleTitle() : "Unknown");
+							}
 							m.put("credits", row.credits());
 							return m;
 						}).toList();
@@ -235,12 +239,16 @@ public class APIControllerMeAdvisor {
 					.getCourseDataForIds(completedIds).stream()
 					.collect(java.util.stream.Collectors.toMap(CoursesDataDB.CourseDataRow::id, r -> r, (a, b) -> a));
 			final List<Map<String, Object>> completedCoursesPayload = completedRows.stream()
-					.filter(row -> row.courseId() != null)
 					.map(row -> {
-						final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
 						final Map<String, Object> m = new LinkedHashMap<>();
-						m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
-						m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+						if (row.courseId() != null) {
+							final CoursesDataDB.CourseDataRow cd = completedCourseData.get(row.courseId());
+							m.put("courseCode", cd != null ? cd.key() : String.valueOf(row.courseId()));
+							m.put("courseName", cd != null && cd.title_en() != null ? cd.title_en() : "Unknown");
+						} else {
+							m.put("courseCode", row.moduleId() != null ? row.moduleId() : "—");
+							m.put("courseName", row.moduleTitle() != null ? row.moduleTitle() : "Unknown");
+						}
 						m.put("credits", row.credits());
 						return m;
 					}).toList();

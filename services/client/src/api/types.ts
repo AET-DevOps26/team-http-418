@@ -222,7 +222,7 @@ export type AcademicProgress = {
 };
 
 export type CompletedCourse = {
-	courseId: string;
+	courseId: string | null;
 	courseCode: string;
 	courseName: string;
 	credits: number;

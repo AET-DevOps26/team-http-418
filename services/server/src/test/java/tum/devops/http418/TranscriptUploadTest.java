@@ -166,6 +166,89 @@ class TranscriptUploadTest extends BaseTest {
 	}
 
 	@Test
+	void unmatchedModuleSurvivesConfirm() throws Exception {
+		final String username = "transcript-unmatched-confirm";
+		final String token = getToken(username);
+		when(transcriptService.callPdfParser(any())).thenReturn(
+				"""
+						[{"moduleId":"XX888","titleEn":"Exotic Seminar","titleDe":"Exotisches Seminar","grade":1.3,"credits":6,"page":1}]
+						""");
+		when(transcriptService.fetchProfile(any())).thenReturn(null);
+
+		mockMvc.perform(multipart(endpoint())
+				.file(new MockMultipartFile("file", "test.pdf", "application/octet-stream", "pdf".getBytes()))
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		// Confirm — unmatched should survive as confirmed with null course_id
+		mockMvc.perform(post(confirmEndpoint()).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		final List<StudentDataDB.CompletedCourseRow> rows = studentDataDB.getCompletedCourses(username, 0, 10);
+		assertThat(rows).hasSize(1);
+		assertThat(rows.getFirst().status()).isEqualTo("confirmed");
+		assertThat(rows.getFirst().courseId()).isNull();
+		assertThat(rows.getFirst().moduleId()).isEqualTo("XX888");
+		assertThat(rows.getFirst().moduleTitle()).isEqualTo("Exotic Seminar");
+		assertThat(rows.getFirst().credits()).isEqualTo(6);
+		assertThat(rows.getFirst().grade()).isEqualByComparingTo("1.3");
+	}
+
+	@Test
+	void skippedCourseDeletedOnConfirm() throws Exception {
+		final String username = "transcript-skip-confirm";
+		final String token = getToken(username);
+		when(transcriptService.callPdfParser(any())).thenReturn(
+				"""
+						[{"moduleId":"XX777","titleEn":"Skippable Course","titleDe":"Ueberspringbar","grade":3.0,"credits":4,"page":1}]
+						""");
+		when(transcriptService.fetchProfile(any())).thenReturn(null);
+
+		mockMvc.perform(multipart(endpoint())
+				.file(new MockMultipartFile("file", "test.pdf", "application/octet-stream", "pdf".getBytes()))
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		// Skip the unmatched course
+		final long rowId = studentDataDB.getImportState(username).getFirst().id();
+		studentDataDB.skipUnmatched(rowId, username);
+
+		// Confirm — skipped should be deleted
+		mockMvc.perform(post(confirmEndpoint()).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		assertThat(studentDataDB.getCompletedCourses(username, 0, 10)).isEmpty();
+	}
+
+	@Test
+	void completedCourseIdsExcludesUnlinked() throws Exception {
+		final String username = "transcript-ids-filter";
+		final String token = getToken(username);
+		when(transcriptService.callPdfParser(any())).thenReturn(
+				"""
+						[{"moduleId":"IN2001","titleEn":"Introduction to Computer Science","titleDe":"Einfuehrung in die Informatik","grade":1.7,"credits":5,"page":1},
+						 {"moduleId":"XX666","titleEn":"Unlinked Course","titleDe":"Unverlinkt","grade":2.0,"credits":3,"page":1}]
+						""");
+		when(transcriptService.fetchProfile(username)).thenReturn(CS_PROFILE);
+
+		mockMvc.perform(multipart(endpoint())
+				.file(new MockMultipartFile("file", "test.pdf", "application/octet-stream", "pdf".getBytes()))
+				.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(post(confirmEndpoint()).header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk());
+
+		// Both should be confirmed
+		assertThat(studentDataDB.getCompletedCourses(username, 0, 10)).hasSize(2);
+
+		// But getCompletedCourseIds should only return the linked one
+		final List<Long> ids = studentDataDB.getCompletedCourseIds(username);
+		assertThat(ids).hasSize(1);
+		assertThat(ids.getFirst()).isEqualTo(100L);
+	}
+
+	@Test
 	void importStateReturnsActiveImport() throws Exception {
 		final String username = "transcript-state";
 		final String token = getToken(username);

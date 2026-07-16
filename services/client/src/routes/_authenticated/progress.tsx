@@ -24,7 +24,7 @@ function Progress() {
 			phase: "done",
 			imported: completedPage.content.map((c) => ({
 				rowId: 0,
-				courseId: c.courseId,
+				courseId: c.courseId ?? undefined,
 				courseCode: c.courseCode,
 				courseName: c.courseName,
 				grade: c.grade != null ? String(c.grade) : undefined,
