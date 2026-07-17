@@ -147,7 +147,9 @@ async def _roadmap(case, courses: dict[int, EvalCourse]) -> tuple[str, list[str]
     errors: list[str] = []
     allowed = set(case.candidate_ids)
     excluded = set(case.excluded_ids) | {
-        course.course_id for course in request.completed_courses + request.enrolled_courses if course.course_id
+        course.course_id
+        for course in request.completed_courses + request.enrolled_courses
+        if course.course_id is not None
     }
     cap = request.student.preferences.max_credits_per_semester if request.student.preferences else 30
     for semester in result.semesters:

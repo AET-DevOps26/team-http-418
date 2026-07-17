@@ -30,6 +30,9 @@ Rules:
 - Prioritize courses that align with career goals and interests
 - Use semester key format: 2-digit year + W or S (e.g. 25W, 26S)
 - Start semesters from the NEXT semester after the current one
+- work on a best effort basis. If some constraints can not be fulfilled, do your best to get as close as possible
+- always end the roadmap with the corresponding thesis.
+- Do not put a course in multiple semesters.
 
 Return ONLY a valid JSON object. No explanation, no markdown, just JSON:
 {{

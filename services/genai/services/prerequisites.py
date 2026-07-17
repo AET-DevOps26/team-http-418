@@ -127,7 +127,7 @@ async def extract_prerequisites_batch(request: PrerequisiteExtractBatchRequest) 
                     "prerequisites": normalize_prerequisite_nodes(raw_prerequisites, available_map),
                 }
     except (json.JSONDecodeError, ValueError) as e:
-        logger.error("prerequisites | LLM response invalid: %s", e)
+        logger.error("prerequisites | LLM response invalid: %s\nmessage: %s", e, result.content)
         raise HTTPException(
             status_code=502,
             detail="LLM returned malformed response — could not parse prerequisite batch",
