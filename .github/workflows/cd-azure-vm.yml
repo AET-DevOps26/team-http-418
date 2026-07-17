@@ -29,6 +29,18 @@ jobs:
           fetch-depth: 0
           lfs: true
 
+      - name: Verify Git LFS files are not pointers
+        run: |
+          set -Eeuo pipefail
+          git lfs pull
+          for f in infra/db/init/*.sql.gz.data; do
+            head -c 2 "$f" | od -An -tx1 | grep -q '1f 8b' || {
+              echo "::error::$f is not valid gzip — Git LFS download may have failed"
+              head -1 "$f" >&2
+              exit 1
+            }
+          done
+
       - name: Validate the requested deployment revision
         if: inputs.revision != ''
         env:
