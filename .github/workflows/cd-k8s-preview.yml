@@ -62,6 +62,9 @@ jobs:
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
           echo "image_tag=pr-${{ github.event.pull_request.number }}-$commit" >> "$GITHUB_OUTPUT"
 
+      - name: Create .env for Docker Compose parsing
+        run: cp .env.example .env
+
       - name: Build and push preview images
         uses: docker/bake-action@v6
         with:
