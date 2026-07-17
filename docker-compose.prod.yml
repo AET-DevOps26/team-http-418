@@ -26,6 +26,10 @@ services:
   server:
     image: ghcr.io/aet-devops26/team-http-418/server:${IMAGE_TAG:-latest}
     env_file: .env
+    networks:
+      default:
+        aliases:
+          - server-service
     depends_on:
       db:
         condition: service_healthy

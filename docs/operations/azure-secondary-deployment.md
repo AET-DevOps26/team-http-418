@@ -24,12 +24,20 @@ Do not populate it with an unauthenticated `ssh-keyscan` result.
 ## GitHub environments and branch protection
 
 Create `production-azure`, `production-k8s`, and `production-azure-infra`
-environments. Restrict each environment to deployments from `main`; require an
-approver for `production-azure-infra`. Move Azure deployment secrets into
+environments. `production-azure-infra` should remain restricted to `main` and
+require an approver. The two application environments must permit trusted
+same-repository PR deployments as well as `main`: the preview workflow itself
+requires the `deployment-preview` label and rejects fork PRs before it can use
+deployment credentials. Move Azure deployment secrets into
 `production-azure` and Kubernetes deployment secrets into `production-k8s`
 only after their consuming workflows have been migrated. The Azure environment
 needs `AZURE_VM_IP`, `AZURE_SSH_PRIVATE_KEY`, `AZURE_SSH_KNOWN_HOSTS`, and its
 application secrets.
+
+Add the repository Actions variable `AZURE_PREVIEW_URL` with the VM's public
+base URL, for example `http://203.0.113.10`. Do not include a trailing slash.
+Preview smoke checks and the PR deployment report use this value; the existing
+`AZURE_VM_IP` secret remains the SSH/inventory address.
 
 Create a `main` ruleset that requires a pull request, one non-stale approval,
 resolved conversations, and these checks:

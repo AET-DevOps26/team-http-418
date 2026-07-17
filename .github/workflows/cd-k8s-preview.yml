@@ -1,4 +1,4 @@
-name: CD — Preview Images
+name: CD — Preview Deployments
 
 on:
   pull_request:
@@ -7,11 +7,37 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
+  K8S_PREVIEW_URL: https://aidan.stud.k8s.aet.cit.tum.de
 
 jobs:
-  build-preview-images:
-    if: contains(github.event.pull_request.labels.*.name, 'deployment-preview')
+  genai-quality-impact:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'deployment-preview')
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - id: filter
+        uses: ./.github/actions/genai-quality-filter
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+  build-images:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'deployment-preview')
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      commit: ${{ steps.meta.outputs.commit }}
     permissions:
       contents: read
       packages: write
@@ -21,19 +47,20 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           lfs: true
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set image tag
+      - name: Set immutable preview image tag
         id: meta
-        run: echo "sha=pr-${{ github.event.pull_request.number }}-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          commit=$(git rev-parse HEAD)
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "image_tag=pr-${{ github.event.pull_request.number }}-$commit" >> "$GITHUB_OUTPUT"
 
       - name: Build and push preview images
         uses: docker/bake-action@v6
@@ -43,9 +70,287 @@ jobs:
           push: true
           set: |
             client.args.API_VERSION=${{ vars.API_VERSION }}
-            server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.sha }}
-            client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.sha }}
-            genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
-            db.tags=${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
-            user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.sha }}
-            pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.sha }}
+            server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.image_tag }}
+            client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.image_tag }}
+            genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.image_tag }}
+            db.tags=${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.image_tag }}
+            user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.image_tag }}
+            pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.image_tag }}
+
+  deploy-k8s:
+    if: needs.build-images.result == 'success'
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: production-k8s
+    concurrency:
+      group: production-k8s
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: azure/setup-helm@v4
+
+      - name: Write kubeconfig
+        run: |
+          set -Eeuo pipefail
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Apply namespace manifests and registry credentials
+        run: |
+          set -Eeuo pipefail
+          kubectl apply -f infra/k8s/namespace.yml
+          for ns in aidan aidan-monitoring; do
+            kubectl create secret docker-registry ghcr-pull-secret \
+              --docker-server=ghcr.io \
+              --docker-username=${{ github.actor }} \
+              --docker-password=${{ secrets.GHCR_PULL_TOKEN }} \
+              --namespace="$ns" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - name: Deploy application with the preview image tag
+        run: |
+          set -Eeuo pipefail
+          helm upgrade --install aidan ./infra/helm/aidan \
+            -f ./infra/helm/aidan/values-prod.yaml \
+            --set image.tag=${{ needs.build-images.outputs.image_tag }} \
+            --set postgres.image=${{ env.IMAGE_PREFIX }}/db:${{ needs.build-images.outputs.image_tag }} \
+            --set postgres.password=${{ secrets.DB_PASSWORD }} \
+            --set jwt.secret=${{ secrets.APP_JWT_SECRET }} \
+            --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
+            --namespace aidan \
+            --wait \
+            --timeout 25m
+          helm upgrade --install aidan-monitoring ./infra/helm/aidan-monitoring \
+            -f ./infra/helm/aidan-monitoring/values-prod.yaml \
+            --set grafana.adminUser=${{ secrets.GF_SECURITY_ADMIN_USER }} \
+            --set grafana.adminPassword=${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} \
+            --set postgresExporter.password=${{ secrets.DB_PASSWORD }} \
+            --namespace aidan-monitoring \
+            --wait \
+            --timeout 5m
+
+      - name: Smoke-test the Kubernetes preview
+        run: |
+          set -Eeuo pipefail
+          for path in / /api/health; do
+            curl --fail --show-error --silent --retry 6 --retry-all-errors \
+              --connect-timeout 10 "${K8S_PREVIEW_URL}${path}" >/dev/null
+          done
+
+      - name: Debug Kubernetes deployment failure
+        if: failure()
+        run: |
+          kubectl get pods -n aidan || true
+          kubectl get events -n aidan --sort-by='.lastTimestamp' || true
+          kubectl describe pods -n aidan || true
+
+  deploy-azure:
+    if: needs.build-images.result == 'success'
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: production-azure
+    concurrency:
+      # This must match cd-azure-vm.yml so main and preview never replace the VM together.
+      group: production-azure
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install pinned Ansible
+        run: python -m pip install 'ansible-core==2.18.7'
+
+      - name: Validate deployment configuration and prepare SSH
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AZURE_SSH_KNOWN_HOSTS }}
+          PREVIEW_URL: ${{ vars.AZURE_PREVIEW_URL }}
+        run: |
+          set -Eeuo pipefail
+          [ -n "$VM_IP" ] || { echo "AZURE_VM_IP is required" >&2; exit 1; }
+          [ -n "$SSH_PRIVATE_KEY" ] || { echo "AZURE_SSH_PRIVATE_KEY is required" >&2; exit 1; }
+          [ -n "$SSH_KNOWN_HOSTS" ] || { echo "AZURE_SSH_KNOWN_HOSTS is required" >&2; exit 1; }
+          [[ "$PREVIEW_URL" =~ ^https?://[^/]+$ ]] || {
+            echo "AZURE_PREVIEW_URL must be a public http(s) base URL without a trailing slash" >&2
+            exit 1
+          }
+          python - <<'PY'
+          import ipaddress
+          import os
+          ipaddress.IPv4Address(os.environ["VM_IP"])
+          PY
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/aidan_azure ~/.ssh/known_hosts
+          ssh-keygen -l -f ~/.ssh/aidan_azure >/dev/null
+          ssh-keygen -F "$VM_IP" -f ~/.ssh/known_hosts >/dev/null
+
+      - name: Render and validate exactly one Azure inventory host
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: |
+          set -Eeuo pipefail
+          sed "s/PLACEHOLDER_VM_IP/$VM_IP/" infra/ansible/inventory.ini > infra/ansible/inventory.rendered.ini
+          inventory=$(ansible-inventory -i infra/ansible/inventory.rendered.ini --list)
+          jq -e '._meta.hostvars | keys == ["aidan_vm"]' <<< "$inventory" >/dev/null || {
+            echo "Inventory must resolve exactly one host named aidan_vm" >&2
+            exit 1
+          }
+
+      - name: Verify Ansible connectivity before deployment
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: ansible aidan_vm -i infra/ansible/inventory.rendered.ini --private-key ~/.ssh/aidan_azure -m ping
+
+      - name: Deploy the preview image tag via Ansible
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          LOGOS_API_KEY: ${{ secrets.LOGOS_API_KEY }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+          GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
+        run: ansible-playbook -i infra/ansible/inventory.rendered.ini infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure
+
+      - name: Smoke-test the Azure preview
+        env:
+          PREVIEW_URL: ${{ vars.AZURE_PREVIEW_URL }}
+        run: |
+          set -Eeuo pipefail
+          for path in / /api/health; do
+            curl --fail --show-error --silent --retry 6 --retry-all-errors \
+              --connect-timeout 10 "${PREVIEW_URL}${path}" >/dev/null
+          done
+
+  genai-golden-evaluation:
+    needs: [build-images, deploy-k8s, genai-quality-impact]
+    if: >-
+      needs.build-images.result == 'success' &&
+      needs.deploy-k8s.result == 'success' &&
+      needs.genai-quality-impact.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Write kubeconfig and run the evaluation
+        run: |
+          set -Eeuo pipefail
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          job="genai-eval-pr-${{ github.event.pull_request.number }}-${{ needs.build-images.outputs.commit }}"
+          job="${job:0:63}"
+          kubectl delete job "$job" -n aidan --ignore-not-found
+          kubectl apply -n aidan -f - <<EOF
+          apiVersion: batch/v1
+          kind: Job
+          metadata: {name: $job}
+          spec:
+            backoffLimit: 0
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                restartPolicy: Never
+                imagePullSecrets: [{name: ghcr-pull-secret}]
+                containers:
+                  - name: evaluator
+                    image: ${{ env.IMAGE_PREFIX }}/genai:${{ needs.build-images.outputs.image_tag }}
+                    command: ["python", "-m", "evals.run", "--output-dir", "/tmp/eval", "--emit-candidate-baseline"]
+                    envFrom: [{configMapRef: {name: aidan-config}}, {secretRef: {name: aidan-secret}}]
+          EOF
+          kubectl wait --for=condition=complete "job/$job" -n aidan --timeout=12m || true
+          pod=$(kubectl get pods -n aidan -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
+          mkdir -p genai-eval-report
+          kubectl logs -n aidan "$pod" || true
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/results.json > genai-eval-report/results.json
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/summary.md > genai-eval-report/summary.md
+          kubectl exec -n aidan "$pod" -- cat /tmp/eval/candidate-baseline.json > genai-eval-report/candidate-baseline.json || true
+          cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          kubectl get job "$job" -n aidan -o jsonpath='{.status.failed}' | grep -q '^1$' && exit 1 || true
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genai-golden-evaluation-pr-${{ github.event.pull_request.number }}
+          path: genai-eval-report
+          retention-days: 30
+
+  report:
+    if: >-
+      always() && github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'deployment-preview')
+    needs: [build-images, deploy-k8s, deploy-azure]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Upsert preview deployment report
+        uses: actions/github-script@v7
+        env:
+          BUILD_STATUS: ${{ needs.build-images.result }}
+          K8S_STATUS: ${{ needs.deploy-k8s.result }}
+          AZURE_STATUS: ${{ needs.deploy-azure.result }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          COMMIT: ${{ needs.build-images.outputs.commit || github.event.pull_request.head.sha }}
+          K8S_URL: ${{ env.K8S_PREVIEW_URL }}
+          AZURE_URL: ${{ vars.AZURE_PREVIEW_URL }}
+        with:
+          script: |
+            const marker = '<!-- preview-deployment-report -->';
+            const outcome = (name, value) => {
+              const icon = value === 'success' ? '✅' : value === 'skipped' ? '⏭️' : '❌';
+              return `- ${icon} ${name}: \`${value}\``;
+            };
+            const commit = process.env.COMMIT;
+            const body = `${marker}
+            ## Preview deployment
+
+            Commit: [\`${commit.slice(0, 7)}\`](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${commit})
+            Image tag: \`${process.env.IMAGE_TAG || 'not built'}\`
+
+            ${outcome('Image build', process.env.BUILD_STATUS)}
+            ${outcome('Kubernetes', process.env.K8S_STATUS)}
+            ${outcome('Azure VM', process.env.AZURE_STATUS)}
+
+            - Kubernetes client: ${process.env.K8S_URL}
+            - Kubernetes health: ${process.env.K8S_URL}/api/health
+            - Azure client: ${process.env.AZURE_URL || 'AZURE_PREVIEW_URL is not configured'}
+            - Azure health: ${process.env.AZURE_URL ? `${process.env.AZURE_URL}/api/health` : 'AZURE_PREVIEW_URL is not configured'}
+
+            ⚠️ Both previews replace shared environments. A later preview or a deployment from \`main\` replaces them; removing the label or closing this PR does not restore \`main\`.`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body,
+              });
+            }
