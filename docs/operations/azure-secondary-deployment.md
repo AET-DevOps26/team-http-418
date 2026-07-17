@@ -17,9 +17,7 @@ az account show --subscription 4a5b0ca8-2a36-4c44-90e9-079ff3d6178d
 Confirm the subscription is enabled, the VM is running, and the public IP
 matches the existing `AZURE_VM_IP` value. Compare the VM authorized-key
 fingerprint with `~/.ssh/aidan_azure.pub`; rotate that key only if it differs
-or is compromised. Obtain the VM SSH host key via Azure's authenticated
-console/channel, then set `AZURE_SSH_KNOWN_HOSTS` to its known-hosts entry.
-Do not populate it with an unauthenticated `ssh-keyscan` result.
+or is compromised.
 
 ## GitHub environments and branch protection
 
@@ -31,8 +29,7 @@ requires the `deployment-preview` label and rejects fork PRs before it can use
 deployment credentials. Move Azure deployment secrets into
 `production-azure` and Kubernetes deployment secrets into `production-k8s`
 only after their consuming workflows have been migrated. The Azure environment
-needs `AZURE_VM_IP`, `AZURE_SSH_PRIVATE_KEY`, `AZURE_SSH_KNOWN_HOSTS`, and its
-application secrets.
+needs `AZURE_VM_IP`, `AZURE_SSH_PRIVATE_KEY`, and its application secrets.
 
 Add the repository Actions variable `AZURE_PREVIEW_URL` with the VM's public
 base URL, for example `http://203.0.113.10`. Do not include a trailing slash.

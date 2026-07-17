@@ -178,13 +178,11 @@ jobs:
         env:
           VM_IP: ${{ secrets.AZURE_VM_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.AZURE_SSH_KNOWN_HOSTS }}
           PREVIEW_URL: ${{ vars.AZURE_PREVIEW_URL }}
         run: |
           set -Eeuo pipefail
           [ -n "$VM_IP" ] || { echo "AZURE_VM_IP is required" >&2; exit 1; }
           [ -n "$SSH_PRIVATE_KEY" ] || { echo "AZURE_SSH_PRIVATE_KEY is required" >&2; exit 1; }
-          [ -n "$SSH_KNOWN_HOSTS" ] || { echo "AZURE_SSH_KNOWN_HOSTS is required" >&2; exit 1; }
           [[ "$PREVIEW_URL" =~ ^https?://[^/]+$ ]] || {
             echo "AZURE_PREVIEW_URL must be a public http(s) base URL without a trailing slash" >&2
             exit 1
@@ -197,10 +195,8 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/aidan_azure ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/aidan_azure
           ssh-keygen -l -f ~/.ssh/aidan_azure >/dev/null
-          ssh-keygen -F "$VM_IP" -f ~/.ssh/known_hosts >/dev/null
 
       - name: Render and validate exactly one Azure inventory host
         env:
