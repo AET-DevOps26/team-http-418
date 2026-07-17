@@ -146,7 +146,6 @@ jobs:
           chmod 700 ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
           chmod 600 ~/.ssh/aidan_azure
-          ssh-keygen -l -f ~/.ssh/aidan_azure >/dev/null
 
       - name: Render and validate the inventory
         env:

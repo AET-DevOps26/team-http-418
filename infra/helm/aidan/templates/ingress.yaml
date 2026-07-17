@@ -22,22 +22,15 @@ spec:
     - http:
     {{- end }}
         paths:
-          - path: /health
-            pathType: Exact
+          - path: /api/(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: server-service
                 port:
                   number: {{ .Values.server.port }}
-          - path: /api/
-            pathType: Prefix
-            backend:
-              service:
-                name: server-service
-                port:
-                  number: {{ .Values.server.port }}
-          - path: /
-            pathType: Prefix
+          - path: /(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: client-service
