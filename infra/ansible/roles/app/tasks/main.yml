@@ -6,6 +6,14 @@
     group: azureuser
     mode: '0755'
 
+- name: Create monitoring directory
+  file:
+    path: /opt/aidan/monitoring
+    state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+
 - name: Copy monitoring configuration files
   copy:
     src: "{{ playbook_dir }}/../../infra/helm/aidan-monitoring/{{ item }}"
