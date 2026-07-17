@@ -77,18 +77,24 @@ jobs:
       - name: Create .env for Docker Compose parsing
         run: cp .env.example .env
 
+      - name: Build and push db image
+        run: |
+          set -Eeuo pipefail
+          tag="${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.image_tag }}"
+          docker build -t "$tag" ./infra/db
+          docker push "$tag"
+
       - name: Build and push preview images
         uses: docker/bake-action@v6
         with:
           files: docker-compose.yml
-          targets: server,client,genai,db,user-profile-service,pdf-parser
+          targets: server,client,genai,user-profile-service,pdf-parser
           push: true
           set: |
             client.args.API_VERSION=${{ vars.API_VERSION }}
             server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.image_tag }}
             client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.image_tag }}
             genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.image_tag }}
-            db.tags=${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.image_tag }}
             user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.image_tag }}
             pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.image_tag }}
 

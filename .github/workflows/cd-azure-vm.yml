@@ -117,13 +117,13 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.sha }}
 
       - name: Build and push db image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./infra/db
-          push: true
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/db:latest
-            ${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}
+        run: |
+          set -Eeuo pipefail
+          sha_tag="${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.sha }}"
+          latest_tag="${{ env.IMAGE_PREFIX }}/db:latest"
+          docker build -t "$sha_tag" -t "$latest_tag" ./infra/db
+          docker push "$sha_tag"
+          docker push "$latest_tag"
 
   deploy:
     runs-on: ubuntu-latest
