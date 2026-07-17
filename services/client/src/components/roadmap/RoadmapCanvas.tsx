@@ -41,12 +41,12 @@ export function RoadmapCanvas({ semesters }: Props) {
 					Loading prerequisites ({loaded}/{total})
 				</div>
 			)}
-			{!isLoading && errored > 0 && (
-				<div className="rmc-prereq-badge rmc-prereq-badge--error">
-					Failed to load prerequisites for {errored} course
-					{errored > 1 ? "s" : ""}
-				</div>
-			)}
+			{/*{!isLoading && errored > 0 && (*/}
+			{/*	<div className="rmc-prereq-badge rmc-prereq-badge--error">*/}
+			{/*		Failed to load prerequisites for {errored} course*/}
+			{/*		{errored > 1 ? "s" : ""}*/}
+			{/*	</div>*/}
+			{/*)}*/}
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}

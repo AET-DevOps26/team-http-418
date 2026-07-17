@@ -193,12 +193,12 @@ public class APIControllerMeAdvisor {
 					}
 				}
 
-				studentDataDB.insertMessage(id, MessageRole.ASSISTANT, fullResponse.toString(), List.of()); // TODO add previous list?
+				studentDataDB.insertMessage(id, MessageRole.ASSISTANT, fullResponse.toString(), List.of());
 				emitter.complete();
 			} catch (Exception e) {
 				log.error("Error streaming advisor response for conversation {}", id, e);
 				studentDataDB.insertMessage(id, MessageRole.ASSISTANT,
-						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of()); // TODO add previous list?
+						"I'm sorry, I'm unable to respond right now. Please try again later.", List.of());
 				try {
 					emitter.send(SseEmitter.event().data("I'm sorry, I'm unable to respond right now."));
 				} catch (Exception sendErr) {

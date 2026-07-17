@@ -1089,56 +1089,65 @@ dialog.modal::backdrop {
 
 /* ── Course detail sheet ── */
 
-.catalog-sheet-overlay {
+.catalog-sheet-root {
   position: fixed;
   inset: 0;
-  background: rgba(11, 31, 51, 0.35);
   z-index: 100;
+}
+
+.catalog-sheet-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 31, 51, 0.45);
+  border: none;
+  padding: 0;
   animation: fade-up 0.15s ease both;
 }
 
 .catalog-sheet-panel {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(520px, 100vw);
+  width: min(560px, 100vw);
+  max-width: 100%;
   background: var(--paper);
   box-shadow: var(--shadow-3);
-  z-index: 101;
-  overflow-y: auto;
+  z-index: 1;
+  overflow: hidden;
   animation: sheet-slide-in 0.2s ease both;
 }
 
 @keyframes sheet-slide-in {
-  from { transform: translateX(40px); opacity: 0; }
+  from { transform: translateX(32px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
 .catalog-sheet-close {
-  position: sticky;
-  top: 0;
-  float: right;
-  margin: 14px 14px 0 0;
+  position: absolute;
+  top: 14px;
+  right: 14px;
   background: var(--canvas);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--ink-soft);
-  z-index: 1;
+  z-index: 2;
   transition: background 0.1s;
 }
 .catalog-sheet-close:hover { background: var(--canvas-2); }
 
 .catalog-sheet-content {
-  padding: 24px;
-  padding-top: 16px;
-  clear: both;
+  padding: 28px 28px 28px;
+  max-height: min(88vh, 900px);
+  overflow-y: auto;
 }
 
 .catalog-sheet-title {

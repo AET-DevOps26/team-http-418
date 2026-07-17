@@ -242,7 +242,10 @@ function CoursesPage() {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	function setSearch(patch: Partial<SearchSchema>) {
-		navigate({ search: (prev) => cleanSearch({ ...prev, ...patch }) });
+		navigate({
+			search: (prev) => cleanSearch({ ...prev, ...patch }),
+			resetScroll: false,
+		});
 	}
 
 	const allCourses = data?.pages.flatMap((p) => p.content) ?? [];

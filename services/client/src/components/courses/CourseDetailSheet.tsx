@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { isAuthenticated } from "#/api";
 import type { CourseDetail } from "#/api/types";
 import { PrerequisiteTree } from "#/components/courses/PrerequisiteTree";
@@ -14,11 +15,7 @@ type Props = {
 };
 
 export function CourseDetailSheet({ courseId, onClose }: Props) {
-	const {
-		data: course,
-		isLoading,
-		isError,
-	} = useCourse<CourseDetail>(courseId);
+	const { data: course, isLoading, isError } = useCourse(courseId);
 	const { data: prereqTree } = usePrerequisiteTree(courseId);
 	const { data: prereqCheck } = usePrerequisiteCheck(courseId);
 	const authed = isAuthenticated();
@@ -27,14 +24,12 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 			if (e.key === "Escape") onClose();
 		}
 		document.addEventListener("keydown", onKey);
-		return () => document.removeEventListener("keydown", onKey);
+		document.body.style.overflow = "hidden";
+		return () => {
+			document.removeEventListener("keydown", onKey);
+			document.body.style.overflow = "";
+		};
 	}, [onClose]);
-	if (isError) {
-		return <div className="rec-card">Failed to load course</div>;
-	}
-	if (isLoading || !course) {
-		return <div className="rec-card">Loading…</div>; // or a skeleton
-	}
 
 	const metIds = prereqCheck
 		? new Set(prereqCheck.metPrerequisites.map((r) => r.courseId))
@@ -43,15 +38,46 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 		? new Set(prereqCheck.unmetPrerequisites.map((r) => r.courseId))
 		: undefined;
 
-	return (
-		<>
+	const safeCourse: CourseDetail = course ?? {
+		id: Number(courseId),
+		title_en: "",
+		title_ger: "",
+		sws: 0,
+		description_ger: "",
+		description_en: "",
+		course_objective_en: "",
+		course_objective_ger: "",
+		teaching_method_en: "",
+		teaching_method_ger: "",
+		registration_info: "",
+		course_type: "",
+		semester_key: "",
+		org_name_ger: "",
+		org_name_en: "",
+		org_url: "",
+		people: [],
+		appointments: [],
+		curriculumConnections: [],
+		previous_knowledge_ger: "",
+		previous_knowledge_en: "",
+	};
+
+	if (typeof document === "undefined") return null;
+
+	return createPortal(
+		<div className="catalog-sheet-root">
 			<button
 				type="button"
 				className="catalog-sheet-overlay"
 				onClick={onClose}
 				aria-label="Close course detail"
 			/>
-			<div className="catalog-sheet-panel">
+			<div
+				className="catalog-sheet-panel"
+				role="dialog"
+				aria-modal="true"
+				aria-label="Course details"
+			>
 				<button
 					type="button"
 					className="catalog-sheet-close"
@@ -61,7 +87,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 					<X size={16} strokeWidth={1.75} />
 				</button>
 
-				{isLoading && (
+				{isLoading && !course && (
 					<div style={{ padding: "32px 24px" }}>
 						{(["title", "dept", "desc", "a", "b", "c"] as const).map(
 							(id, i) => (
@@ -106,7 +132,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										fontWeight: 600,
 									}}
 								>
-									{course.title_en ?? course.title_ger ?? "N/A"}
+									{safeCourse.title_en ?? safeCourse.title_ger ?? "N/A"}
 								</span>
 								<span
 									className="tag"
@@ -115,7 +141,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										color: "var(--blue-700)",
 									}}
 								>
-									{course.course_type}
+									{safeCourse.course_type}
 								</span>
 								<span
 									className="tag"
@@ -131,19 +157,19 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										color: "var(--muted)",
 									}}
 								>
-									{course.sws} SWS
+									{safeCourse.sws ?? "?"} SWS
 								</span>
 							</div>
 							<h2 className="catalog-sheet-title">
-								{course.title_en ?? course.title_ger ?? "N/A"}
+								{safeCourse.title_en ?? safeCourse.title_ger ?? "N/A"}
 							</h2>
 							<p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-								{course.org_name_en}
+								{safeCourse.org_name_en}
 								<br />
-								{course.org_url && (
+								{safeCourse.org_url && (
 									<a
 										style={{ color: "blue", textDecoration: "underline" }}
-										href={course.org_url}
+										href={safeCourse.org_url}
 									>
 										Chair Homepage
 									</a>
@@ -179,14 +205,14 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									whiteSpace: "pre-line",
 								}}
 							>
-								{course.description_en ??
-									course.description_ger ??
+								{safeCourse.description_en ??
+									safeCourse.description_ger ??
 									"no description in TUMOnline"}
 							</p>
 						</section>
 
-						{(course.previous_knowledge_en ??
-							course.previous_knowledge_ger) && (
+						{(safeCourse.previous_knowledge_en ??
+							safeCourse.previous_knowledge_ger) && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Requirements</p>
 								<p
@@ -198,19 +224,19 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 										whiteSpace: "pre-line",
 									}}
 								>
-									{course.previous_knowledge_en ??
-										course.previous_knowledge_ger}
+									{safeCourse.previous_knowledge_en ??
+										safeCourse.previous_knowledge_ger}
 								</p>
 							</section>
 						)}
 
-						{course.people?.length > 0 && (
+						{safeCourse.people?.length > 0 && (
 							<section className="catalog-sheet-section">
 								<p className="eyebrow">Instructors</p>
 								<div
 									style={{ display: "flex", flexDirection: "column", gap: 6 }}
 								>
-									{course.people.map((inst) => (
+									{safeCourse.people.map((inst) => (
 										<div key={inst.last_name} style={{ fontSize: 13 }}>
 											<span style={{ color: "var(--ink)", fontWeight: 500 }}>
 												{inst.teaching_function}: {inst.last_name},{" "}
@@ -229,7 +255,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 
 						<section className="catalog-sheet-section">
 							<p className="eyebrow">Schedule</p>
-							<ScheduleTable slots={course.appointments} />
+							<ScheduleTable slots={safeCourse.appointments} />
 						</section>
 
 						{prereqTree && prereqTree.prerequisites.length > 0 && (
@@ -281,6 +307,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 					</div>
 				)}
 			</div>
-		</>
+		</div>,
+		document.body,
 	);
 }

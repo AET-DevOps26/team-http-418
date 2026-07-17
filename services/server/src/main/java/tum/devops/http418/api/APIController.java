@@ -55,7 +55,7 @@ public class APIController {
 
 		if (ai) {
 			try {
-				final List<GenAICourseResponse> aiResponse = restClient.get() //TODO this does not work
+				final List<GenAICourseResponse> aiResponse = restClient.get()
 						.uri(uriBuilder -> uriBuilder
 								.path(GENAI_PATH + "/courses")
 								.queryParamIfPresent("query", Optional.ofNullable(query))
