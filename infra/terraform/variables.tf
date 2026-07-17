@@ -32,8 +32,8 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
-variable "ssh_public_key_path" {
-  description = "Path to SSH public key file"
+variable "ssh_public_key" {
+  description = "SSH public key content (e.g. 'ssh-rsa AAAA...')"
   type        = string
-  default     = "~/.ssh/aidan_azure.pub"
+  sensitive   = true
 }
