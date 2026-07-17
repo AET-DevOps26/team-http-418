@@ -3,6 +3,12 @@ name: CD — Azure VM
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Immutable 40-character commit SHA reachable from main
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -19,7 +25,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.revision || github.sha }}
+          fetch-depth: 0
           lfs: true
+
+      - name: Validate the requested deployment revision
+        if: inputs.revision != ''
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$REVISION" =~ ^[0-9a-f]{40}$ ]] || { echo "revision must be a full commit SHA" >&2; exit 1; }
+          git cat-file -e "$REVISION^{commit}"
+          git fetch origin main
+          git merge-base --is-ancestor "$REVISION" origin/main || {
+            echo "revision must be reachable from main" >&2
+            exit 1
+          }
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -33,7 +55,7 @@ jobs:
 
       - name: Set image tag
         id: meta
-        run: echo "sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Build and push server image
         uses: docker/build-push-action@v6
@@ -94,24 +116,67 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
+    environment: production-azure
+    concurrency:
+      group: production-azure
+      cancel-in-progress: false
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Ansible
-        run: pip install ansible
+      - name: Install pinned Ansible
+        run: python -m pip install 'ansible-core==2.18.7'
 
-      - name: Write SSH key
+      - name: Validate deployment secrets and prepare SSH
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AZURE_SSH_KNOWN_HOSTS }}
         run: |
+          set -Eeuo pipefail
+          [ -n "$VM_IP" ] || { echo "AZURE_VM_IP is required" >&2; exit 1; }
+          [ -n "$SSH_PRIVATE_KEY" ] || { echo "AZURE_SSH_PRIVATE_KEY is required" >&2; exit 1; }
+          [ -n "$SSH_KNOWN_HOSTS" ] || { echo "AZURE_SSH_KNOWN_HOSTS is required" >&2; exit 1; }
+          python - <<'PY'
+          import ipaddress
+          import os
+          ipaddress.IPv4Address(os.environ["VM_IP"])
+          PY
           mkdir -p ~/.ssh
-          echo "${{ secrets.AZURE_SSH_PRIVATE_KEY }}" > ~/.ssh/aidan_azure
-          chmod 600 ~/.ssh/aidan_azure
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/aidan_azure ~/.ssh/known_hosts
+          ssh-keygen -l -f ~/.ssh/aidan_azure >/dev/null
+          ssh-keygen -F "$VM_IP" -f ~/.ssh/known_hosts >/dev/null || {
+            echo "AZURE_SSH_KNOWN_HOSTS does not contain a host key for AZURE_VM_IP" >&2
+            exit 1
+          }
 
-      - name: Update inventory with VM IP
+      - name: Render and validate the inventory
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
         run: |
-          sed -i "s/PLACEHOLDER_VM_IP/${{ secrets.AZURE_VM_IP }}/" infra/ansible/inventory.ini
+          set -Eeuo pipefail
+          sed "s/PLACEHOLDER_VM_IP/$VM_IP/" infra/ansible/inventory.ini > infra/ansible/inventory.rendered.ini
+          inventory=$(ansible-inventory -i infra/ansible/inventory.rendered.ini --list)
+          jq -e '._meta.hostvars | keys == ["aidan_vm"]' <<< "$inventory" >/dev/null || {
+            echo "Inventory must resolve exactly one host named aidan_vm" >&2
+            exit 1
+          }
+
+      - name: Verify Ansible connectivity before deployment
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: |
+          ansible aidan_vm -i infra/ansible/inventory.rendered.ini \
+            --private-key ~/.ssh/aidan_azure -m ping
 
       - name: Deploy via Ansible
         env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
@@ -121,4 +186,15 @@ jobs:
           GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
           GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
         run: |
-          ansible-playbook infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure
+          ansible-playbook -i infra/ansible/inventory.rendered.ini \
+            infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure
+
+      - name: Verify the deployed service from outside the VM
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+        run: |
+          set -Eeuo pipefail
+          for path in / /health; do
+            curl --fail --show-error --silent --retry 6 --retry-all-errors \
+              --connect-timeout 10 "http://$VM_IP$path" >/dev/null
+          done

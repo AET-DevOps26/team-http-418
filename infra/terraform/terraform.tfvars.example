@@ -1,4 +1,5 @@
 subscription_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+tenant_id           = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 prefix              = "aidan"
 location            = "germanywestcentral"
 vm_size             = "Standard_B2s"

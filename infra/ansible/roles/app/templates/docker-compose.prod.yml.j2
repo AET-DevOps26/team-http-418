@@ -40,6 +40,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      default:
+        aliases:
+          - server-service
 
   client:
     image: ghcr.io/aet-devops26/team-http-418/client:{{ image_tag }}

@@ -3,6 +3,11 @@ variable "subscription_id" {
   type        = string
 }
 
+variable "tenant_id" {
+  description = "Microsoft Entra tenant ID used by the GitHub OIDC identities"
+  type        = string
+}
+
 variable "prefix" {
   description = "Prefix for all resource names"
   type        = string

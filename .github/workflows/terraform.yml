@@ -1,0 +1,143 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  TF_IN_AUTOMATION: 'true'
+  TF_INPUT: 'false'
+  ARM_USE_OIDC: 'true'
+  ARM_USE_AZUREAD: 'true'
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+
+jobs:
+  terraform-gate:
+    # Keep this job free of Azure credentials so it always runs and can be
+    # configured as a required check, even when no Terraform files changed.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Check formatting
+        run: terraform -chdir=infra/terraform fmt -check -recursive
+
+      - name: Validate configuration without remote state
+        run: |
+          terraform -chdir=infra/terraform init -backend=false
+          terraform -chdir=infra/terraform validate
+
+  plan:
+    needs: terraform-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_TERRAFORM_PLAN_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Validate Azure plan configuration
+        run: |
+          set -Eeuo pipefail
+          for name in ARM_SUBSCRIPTION_ID ARM_TENANT_ID ARM_CLIENT_ID; do
+            [ -n "${!name}" ] || { echo "$name must be configured as a repository variable" >&2; exit 1; }
+          done
+          for name in AZURE_TF_STATE_RESOURCE_GROUP AZURE_TF_STATE_STORAGE_ACCOUNT AZURE_TF_STATE_CONTAINER AZURE_TF_STATE_KEY; do
+            value="${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}"
+            case "$name" in
+              AZURE_TF_STATE_STORAGE_ACCOUNT) value="${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" ;;
+              AZURE_TF_STATE_CONTAINER) value="${{ vars.AZURE_TF_STATE_CONTAINER }}" ;;
+              AZURE_TF_STATE_KEY) value="${{ vars.AZURE_TF_STATE_KEY }}" ;;
+            esac
+            [ -n "$value" ] || { echo "$name must be configured as a repository variable" >&2; exit 1; }
+          done
+
+      - name: Log in with the read-only plan identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_TERRAFORM_PLAN_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Initialize the locked Azure Blob backend
+        run: |
+          terraform -chdir=infra/terraform init \
+            -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ vars.AZURE_TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ vars.AZURE_TF_STATE_KEY }}" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="use_oidc=true"
+
+      - name: Create an immutable Terraform plan
+        run: terraform -chdir=infra/terraform plan -lock-timeout=5m -out=tfplan
+
+      - name: Upload the exact Terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ github.sha }}
+          path: infra/terraform/tfplan
+          retention-days: 1
+
+  apply:
+    needs: plan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production-azure-infra
+    concurrency:
+      group: production-azure-infra
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_TERRAFORM_APPLY_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Validate Azure apply configuration
+        run: |
+          set -Eeuo pipefail
+          [ -n "$ARM_CLIENT_ID" ] || { echo "AZURE_TERRAFORM_APPLY_CLIENT_ID must be configured" >&2; exit 1; }
+
+      - name: Log in with the protected apply identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_TERRAFORM_APPLY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Initialize the locked Azure Blob backend
+        run: |
+          terraform -chdir=infra/terraform init \
+            -backend-config="resource_group_name=${{ vars.AZURE_TF_STATE_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ vars.AZURE_TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ vars.AZURE_TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ vars.AZURE_TF_STATE_KEY }}" \
+            -backend-config="use_azuread_auth=true" \
+            -backend-config="use_oidc=true"
+
+      - name: Download the reviewed Terraform plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-${{ github.sha }}
+          path: infra/terraform
+
+      - name: Apply the reviewed Terraform plan
+        run: terraform -chdir=infra/terraform apply -lock-timeout=5m tfplan
