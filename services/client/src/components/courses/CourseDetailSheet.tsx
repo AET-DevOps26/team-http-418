@@ -15,11 +15,7 @@ type Props = {
 };
 
 export function CourseDetailSheet({ courseId, onClose }: Props) {
-	const {
-		data: course,
-		isLoading,
-		isError,
-	} = useCourse(courseId);
+	const { data: course, isLoading, isError } = useCourse(courseId);
 	const { data: prereqTree } = usePrerequisiteTree(courseId);
 	const { data: prereqCheck } = usePrerequisiteCheck(courseId);
 	const authed = isAuthenticated();
@@ -47,7 +43,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 		? new Set(prereqCheck.unmetPrerequisites.map((r) => r.courseId))
 		: undefined;
 
-	const safeCourse: CourseDetail = course ?? ({
+	const safeCourse: CourseDetail = course ?? {
 		id: Number(courseId),
 		title_en: "",
 		title_ger: "",
@@ -69,7 +65,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 		curriculumConnections: [],
 		previous_knowledge_ger: "",
 		previous_knowledge_en: "",
-	});
+	};
 
 	if (typeof document === "undefined") return null;
 
@@ -214,7 +210,9 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									whiteSpace: "pre-line",
 								}}
 							>
-								{safeCourse.description_en ?? safeCourse.description_ger ?? "N/A"}
+								{safeCourse.description_en ??
+									safeCourse.description_ger ??
+									"N/A"}
 							</p>
 						</section>
 
