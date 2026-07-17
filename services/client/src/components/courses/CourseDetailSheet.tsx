@@ -161,7 +161,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									<span>
 										Unmet prerequisites:{" "}
 										{prereqCheck.unmetPrerequisites
-											.map((r) => r?.courseCode ?? "N/A")
+											.map((r) => r?.courseName ?? "N/A")
 											.join(", ")}
 									</span>
 								)}
@@ -179,7 +179,9 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 									whiteSpace: "pre-line",
 								}}
 							>
-								{course.description_en ?? course.description_ger ?? "N/A"}
+								{course.description_en ??
+									course.description_ger ??
+									"no description in TUMOnline"}
 							</p>
 						</section>
 
