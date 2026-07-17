@@ -22,7 +22,7 @@ class RoadmapPreferences(BaseModel):
 class CourseRef(BaseModel):
     model_config = {"populate_by_name": True}
 
-    course_id: int = Field(alias="courseId")
+    course_id: int | None  = Field(alias="courseId")
     course_code: str = Field(alias="courseCode")
     course_name: str | None = Field(default=None, alias="courseName")
     credits: int
