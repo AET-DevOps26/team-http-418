@@ -175,6 +175,23 @@
         - /
         - /health
   rescue:
+    - name: Capture deployment failure diagnostics
+      shell: |
+        echo "=== Container status ==="
+        docker compose ps -a 2>&1 || true
+        echo ""
+        echo "=== Recent logs (last 30 lines per service) ==="
+        docker compose logs --tail 30 2>&1 || true
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: failure_diagnostics
+      ignore_errors: true
+
+    - name: Show deployment failure diagnostics
+      debug:
+        var: failure_diagnostics.stdout_lines
+
     - name: Restore the previous Compose configuration
       copy:
         src: /opt/aidan/docker-compose.previous.yml
