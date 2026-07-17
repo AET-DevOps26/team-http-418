@@ -33,7 +33,7 @@
     dest: "/opt/aidan/monitoring/grafana/"
     owner: azureuser
     group: azureuser
-    mode: '0644'
+    mode: '0755'
 
 - name: Login to GHCR
   shell: echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
