@@ -36,4 +36,9 @@ variable "ssh_public_key" {
   description = "SSH public key content (e.g. 'ssh-rsa AAAA...')"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.ssh_public_key)) > 0
+    error_message = "ssh_public_key must not be empty — set the SSH_PUBLIC_KEY GitHub secret."
+  }
 }
