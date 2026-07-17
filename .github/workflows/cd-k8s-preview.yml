@@ -194,7 +194,7 @@ jobs:
           PY
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
+          printf '%b\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
           chmod 600 ~/.ssh/aidan_azure
 
       - name: Render and validate exactly one Azure inventory host
