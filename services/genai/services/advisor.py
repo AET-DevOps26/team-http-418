@@ -98,7 +98,7 @@ async def do_thinking(messages, study_program_id: int):
         try:
             embeddings = get_embeddings()
             query_vector = await embeddings.aembed_query(llm_query.get("query"))
-            course_ids = find_similar_courses(query_vector, [], 30, study_program_id)
+            course_ids = find_similar_courses(query_vector, [], 50, study_program_id)
             logger.info("advisor | fournd %d courses", len(course_ids))
         except Exception as e:
             logger.warning("advisor | semantic search failed: %s", e)

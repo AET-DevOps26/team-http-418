@@ -30,11 +30,6 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 			document.body.style.overflow = "";
 		};
 	}, [onClose]);
-	const hasCourseData = Boolean(course);
-
-	if (isError && !hasCourseData) {
-		return null;
-	}
 
 	const metIds = prereqCheck
 		? new Set(prereqCheck.metPrerequisites.map((r) => r.courseId))
@@ -118,7 +113,7 @@ export function CourseDetailSheet({ courseId, onClose }: Props) {
 					</div>
 				)}
 
-				{(course || isLoading) && (
+				{course && (
 					<div className="catalog-sheet-content">
 						<div style={{ marginBottom: 16 }}>
 							<div

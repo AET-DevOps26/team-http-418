@@ -77,7 +77,7 @@ async def extract_prerequisites_batch(request: PrerequisiteExtractBatchRequest) 
     try:
         ensure_schema_initialized(dimensions=get_embedding_dimensions())
         candidates_by_course = {
-            course.course_id: find_similar_courses(query_vector=query_vector, candidate_ids=[], limit=20)
+            course.course_id: find_similar_courses(query_vector=query_vector, candidate_ids=[], limit=50)
             for course, query_vector in zip(nonblank_courses, query_vectors, strict=True)
         }
     except Exception as e:
