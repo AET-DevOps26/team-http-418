@@ -172,40 +172,34 @@ jobs:
             kubectl delete pod "$pod" -n aidan-monitoring --force --grace-period=0 || true
           done
 
-      - name: Quiesce applications and expand PostgreSQL storage
-        id: postgres-preflight
+      - name: Expand PostgreSQL storage if needed
         run: |
           set -Eeuo pipefail
-          replicas=""
-          for deployment in server client genai user-profile-service pdf-parser; do
-            if kubectl get deployment "$deployment" -n aidan >/dev/null 2>&1; then
-              count=$(kubectl get deployment "$deployment" -n aidan -o jsonpath='{.spec.replicas}')
-              replicas+="${deployment}=${count},"
-            fi
-          done
-          echo "replicas=${replicas}" >> "$GITHUB_OUTPUT"
-
           if ! kubectl get pvc postgres-pvc -n aidan >/dev/null 2>&1; then
-            echo "No existing PostgreSQL PVC; this is a fresh install."
+            echo "No existing PostgreSQL PVC; skipping expansion."
             exit 0
           fi
+
+          CURRENT=$(kubectl get pvc postgres-pvc -n aidan -o jsonpath='{.status.capacity.storage}')
+          DESIRED="5Gi"
+          if [ "$CURRENT" = "$DESIRED" ]; then
+            echo "PVC already at $DESIRED; skipping expansion."
+            exit 0
+          fi
+
+          echo "PVC is $CURRENT, expanding to $DESIRED"
           storage_class=$(kubectl get pvc postgres-pvc -n aidan -o jsonpath='{.spec.storageClassName}')
           [ -n "$storage_class" ] || { echo "postgres-pvc has no storage class" >&2; exit 1; }
           [ "$(kubectl get storageclass "$storage_class" -o jsonpath='{.allowVolumeExpansion}')" = "true" ] || {
             echo "StorageClass $storage_class does not allow volume expansion" >&2; exit 1;
           }
 
-          for deployment in server client genai user-profile-service pdf-parser; do
-            kubectl get deployment "$deployment" -n aidan >/dev/null 2>&1 && kubectl scale deployment "$deployment" -n aidan --replicas=0
-          done
-          kubectl patch pvc postgres-pvc -n aidan --type merge -p '{"spec":{"resources":{"requests":{"storage":"5Gi"}}}}'
-          kubectl wait --for=jsonpath='{.status.capacity.storage}'=5Gi pvc/postgres-pvc -n aidan --timeout=10m
+          kubectl patch pvc postgres-pvc -n aidan --type merge -p "{\"spec\":{\"resources\":{\"requests\":{\"storage\":\"$DESIRED\"}}}}"
+          kubectl wait --for=jsonpath='{.status.capacity.storage}'=$DESIRED pvc/postgres-pvc -n aidan --timeout=10m
 
           if kubectl get pvc postgres-pvc -n aidan -o jsonpath='{range .status.conditions[?(@.type=="FileSystemResizePending")]}{.status}{end}' | grep -q True; then
-            postgres_replicas=$(kubectl get deployment postgres -n aidan -o jsonpath='{.spec.replicas}')
-            kubectl scale deployment postgres -n aidan --replicas=0
-            kubectl wait --for=delete pod -l app=postgres -n aidan --timeout=5m || true
-            kubectl scale deployment postgres -n aidan --replicas="$postgres_replicas"
+            echo "Filesystem resize pending — bouncing postgres"
+            kubectl rollout restart deployment/postgres -n aidan
             kubectl rollout status deployment/postgres -n aidan --timeout=10m
           fi
 
@@ -276,17 +270,6 @@ jobs:
           kubectl get pods -n aidan-monitoring -o wide
           kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp' | tail -20
           kubectl describe pods -n aidan-monitoring
-
-      - name: Restore application replicas on failure
-        if: failure()
-        run: |
-          IFS=',' read -ra saved <<< "${{ steps.postgres-preflight.outputs.replicas }}"
-          for item in "${saved[@]}"; do
-            [ -n "$item" ] || continue
-            deployment=${item%%=*}
-            replicas=${item#*=}
-            kubectl scale deployment "$deployment" -n aidan --replicas="$replicas" || true
-          done
 
   deploy-azure:
     if: needs.build-images.result == 'success'
