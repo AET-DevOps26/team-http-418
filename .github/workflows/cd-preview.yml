@@ -242,19 +242,39 @@ jobs:
       - name: Debug Kubernetes deployment failure
         if: failure()
         run: |
-          kubectl get pods -n aidan
-          kubectl get pvc -n aidan
-          kubectl get events -n aidan --sort-by='.lastTimestamp'
+          echo "=== Helm release status ==="
+          helm status aidan -n aidan 2>&1 || true
+          helm history aidan -n aidan 2>&1 || true
+
+          echo "=== Pod overview ==="
+          kubectl get pods -n aidan -o wide
+          echo "=== Pod container statuses ==="
+          kubectl get pods -n aidan -o jsonpath='{range .items[*]}{"pod: "}{.metadata.name}{"\n"}{range .status.containerStatuses[*]}{"  "}{.name}{" ready="}{.ready}{" restarts="}{.restartCount}{" state="}{.state}{"\n"}{end}{end}' 2>/dev/null || true
+
+          echo "=== PVC status ==="
+          kubectl get pvc -n aidan -o wide
+
+          echo "=== Events (last 50) ==="
+          kubectl get events -n aidan --sort-by='.lastTimestamp' | tail -50
+
+          echo "=== Describe pods ==="
           kubectl describe pods -n aidan
-          kubectl logs -l app=postgres -n aidan --tail=50 || true
-          kubectl logs -l app=client -n aidan --tail=50 || true
-          kubectl logs -l app=server -n aidan --tail=50 || true
-          kubectl logs -l app=genai -n aidan --tail=50 || true
-          kubectl logs -l app=user-profile-service -n aidan --tail=50 || true
-          kubectl logs -l app=pdf-parser -n aidan --tail=50 || true
-          kubectl logs -n aidan job/aidan-courses-seed --tail=200 || true
-          kubectl get pods -n aidan-monitoring
-          kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp'
+
+          echo "=== Node resources ==="
+          kubectl top nodes 2>/dev/null || true
+          kubectl describe nodes | grep -A8 'Allocated resources' || true
+
+          echo "=== Pod logs ==="
+          for app in postgres client server genai user-profile-service pdf-parser; do
+            echo "--- $app ---"
+            kubectl logs -l app=$app -n aidan --tail=80 --all-containers 2>/dev/null || true
+          done
+          echo "--- courses-seed job ---"
+          kubectl logs -n aidan job/aidan-courses-seed --tail=200 2>/dev/null || true
+
+          echo "=== Monitoring namespace ==="
+          kubectl get pods -n aidan-monitoring -o wide
+          kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp' | tail -20
           kubectl describe pods -n aidan-monitoring
 
       - name: Restore application replicas on failure
