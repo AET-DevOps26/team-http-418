@@ -153,19 +153,15 @@ jobs:
       - name: Reset failed Helm release
         run: |
           STATUS=$(helm status aidan -n aidan -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
-          if [ "$STATUS" = "pending-install" ] || [ "$STATUS" = "pending-upgrade" ] || [ "$STATUS" = "pending-rollback" ]; then
-            echo "Helm release stuck in $STATUS — rolling back"
+          if [ "$STATUS" = "pending-install" ] || [ "$STATUS" = "pending-upgrade" ] || [ "$STATUS" = "pending-rollback" ] || [ "$STATUS" = "failed" ]; then
+            echo "Helm release in $STATUS — rolling back to last good revision"
             helm rollback aidan 0 -n aidan --force || helm uninstall aidan -n aidan --no-hooks || true
-          elif [ "$STATUS" = "failed" ]; then
-            echo "Helm release in failed state — will let upgrade --install handle it"
           fi
 
           MSTATUS=$(helm status aidan-monitoring -n aidan-monitoring -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
-          if [ "$MSTATUS" = "pending-install" ] || [ "$MSTATUS" = "pending-upgrade" ] || [ "$MSTATUS" = "pending-rollback" ]; then
-            echo "Monitoring Helm release stuck in $MSTATUS — rolling back"
+          if [ "$MSTATUS" = "pending-install" ] || [ "$MSTATUS" = "pending-upgrade" ] || [ "$MSTATUS" = "pending-rollback" ] || [ "$MSTATUS" = "failed" ]; then
+            echo "Monitoring Helm release in $MSTATUS — rolling back to last good revision"
             helm rollback aidan-monitoring 0 -n aidan-monitoring --force || helm uninstall aidan-monitoring -n aidan-monitoring --no-hooks || true
-          elif [ "$MSTATUS" = "failed" ]; then
-            echo "Monitoring Helm release in failed state — will let upgrade --install handle it"
           fi
 
       - name: Clean up failed Helm hook jobs and stuck pods
