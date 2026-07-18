@@ -135,19 +135,29 @@ jobs:
               --dry-run=client -o yaml | kubectl apply -f -
           done
 
-      - name: Reset failed Helm release
+      - name: Reset stuck Helm release
         run: |
           STATUS=$(helm status aidan -n aidan -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
-          if [ "$STATUS" = "pending-install" ] || [ "$STATUS" = "pending-upgrade" ] || [ "$STATUS" = "pending-rollback" ] || [ "$STATUS" = "failed" ]; then
-            echo "Helm release in $STATUS — rolling back to last good revision"
-            helm rollback aidan 0 -n aidan --force || helm uninstall aidan -n aidan --no-hooks || true
-          fi
+          case "$STATUS" in
+            pending-install|pending-upgrade|pending-rollback)
+              echo "Helm release stuck in $STATUS — uninstalling to allow clean install"
+              helm uninstall aidan -n aidan --no-hooks || true
+              ;;
+            failed)
+              echo "Helm release in failed state — upgrade --install will handle this"
+              ;;
+          esac
 
           MSTATUS=$(helm status aidan-monitoring -n aidan-monitoring -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
-          if [ "$MSTATUS" = "pending-install" ] || [ "$MSTATUS" = "pending-upgrade" ] || [ "$MSTATUS" = "pending-rollback" ] || [ "$MSTATUS" = "failed" ]; then
-            echo "Monitoring Helm release in $MSTATUS — rolling back to last good revision"
-            helm rollback aidan-monitoring 0 -n aidan-monitoring --force || helm uninstall aidan-monitoring -n aidan-monitoring --no-hooks || true
-          fi
+          case "$MSTATUS" in
+            pending-install|pending-upgrade|pending-rollback)
+              echo "Monitoring Helm release stuck in $MSTATUS — uninstalling to allow clean install"
+              helm uninstall aidan-monitoring -n aidan-monitoring --no-hooks || true
+              ;;
+            failed)
+              echo "Monitoring Helm release in failed state — upgrade --install will handle this"
+              ;;
+          esac
 
       - name: Clean up failed Helm hook jobs and stuck pods
         run: |
