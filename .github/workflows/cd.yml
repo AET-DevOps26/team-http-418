@@ -168,8 +168,9 @@ jobs:
             echo "Monitoring Helm release in failed state — will let upgrade --install handle it"
           fi
 
-      - name: Clean up stuck pods
+      - name: Clean up failed Helm hook jobs and stuck pods
         run: |
+          kubectl delete jobs -n aidan -l app.kubernetes.io/managed-by=Helm --field-selector=status.successful=0 --ignore-not-found
           kubectl delete pods -n aidan --field-selector=status.phase==Failed --ignore-not-found
           for pod in $(kubectl get pods -n aidan -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
             kubectl delete pod "$pod" -n aidan --force --grace-period=0 || true
