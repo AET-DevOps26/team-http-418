@@ -48,7 +48,10 @@ def check_fixture_schemas() -> tuple[EvalSuite | None, dict[int, EvalCourse] | N
         failures.append(f"cases.v1.json schema: {e}")
     try:
         raw = _load_json(ROOT / "fixtures" / "courses.v1.json")
-        courses = {c.course_id: EvalCourse.model_validate(item) for item, c in ((item, EvalCourse.model_validate(item)) for item in raw["courses"])}
+        courses = {
+            c.course_id: EvalCourse.model_validate(item)
+            for item, c in ((item, EvalCourse.model_validate(item)) for item in raw["courses"])
+        }
     except (ValidationError, json.JSONDecodeError, KeyError) as e:
         failures.append(f"courses.v1.json schema: {e}")
     try:
@@ -68,9 +71,8 @@ def check_request_deserialization(suite: EvalSuite) -> list[str]:
                 RoadmapRequest.model_validate(case.request)
             elif case.type == "advisor":
                 AdvisorRequest.model_validate(case.request)
-            elif case.type == "retrieval":
-                if "query" not in case.request:
-                    failures.append(f"{case.id}: retrieval case missing 'query' key")
+            elif case.type == "retrieval" and "query" not in case.request:
+                failures.append(f"{case.id}: retrieval case missing 'query' key")
         except ValidationError as e:
             failures.append(f"{case.id}: {case.type} request deserialization failed: {e}")
     return failures
@@ -161,7 +163,9 @@ def run(args: argparse.Namespace) -> int:
     results.append({"id": "fixture-schemas", "type": "deterministic", "hardFailures": schema_failures})
 
     if suite is None or courses is None:
-        results.append({"id": "remaining-checks", "type": "deterministic", "hardFailures": ["skipped: fixture schemas invalid"]})
+        results.append(
+            {"id": "remaining-checks", "type": "deterministic", "hardFailures": ["skipped: fixture schemas invalid"]}
+        )
     else:
         deser = check_request_deserialization(suite)
         results.append({"id": "request-deserialization", "type": "deterministic", "hardFailures": deser})
