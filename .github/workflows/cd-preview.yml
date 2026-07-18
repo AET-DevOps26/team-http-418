@@ -1,4 +1,4 @@
-name: CD — Preview Deployments
+name: CD — Preview
 
 on:
   pull_request:
@@ -178,7 +178,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production-azure
     concurrency:
-      # This must match cd-azure-vm.yml so main and preview never replace the VM together.
+      # This must match cd.yml so main and preview never replace the VM together.
       group: production-azure
       cancel-in-progress: false
     permissions:
