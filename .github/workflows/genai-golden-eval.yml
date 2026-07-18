@@ -11,16 +11,11 @@ on:
         required: true
         default: main
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
-
 jobs:
   evaluate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,58 +29,21 @@ jobs:
       - name: Stop for an unrelated ref
         if: steps.filter.outputs.changed != 'true'
         run: echo 'No GenAI quality input changed; evaluation skipped.' >> "$GITHUB_STEP_SUMMARY"
-      - uses: docker/login-action@v3
+      - uses: actions/setup-python@v5
         if: steps.filter.outputs.changed == 'true'
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push exact-ref evaluator image
+          python-version: '3.13'
+      - name: Install GenAI dependencies
         if: steps.filter.outputs.changed == 'true'
-        id: image
-        run: |
-          tag="manual-${GITHUB_SHA}"
-          docker build -t "${IMAGE_PREFIX}/genai:${tag}" services/genai
-          docker push "${IMAGE_PREFIX}/genai:${tag}"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-      - name: Write kubeconfig and evaluate in cluster
+        working-directory: ./services/genai
+        run: pip install -r requirements.txt
+      - name: Run deterministic evaluation
         if: steps.filter.outputs.changed == 'true'
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config
-          job="genai-eval-manual-${GITHUB_SHA:0:40}"
-          kubectl delete job "$job" -n aidan --ignore-not-found
-          kubectl apply -n aidan -f - <<EOF
-          apiVersion: batch/v1
-          kind: Job
-          metadata: {name: $job}
-          spec:
-            backoffLimit: 0
-            ttlSecondsAfterFinished: 3600
-            template:
-              spec:
-                restartPolicy: Never
-                imagePullSecrets: [{name: ghcr-pull-secret}]
-                containers:
-                  - name: evaluator
-                    image: ${{ env.IMAGE_PREFIX }}/genai:${{ steps.image.outputs.tag }}
-                    command: ["python", "-m", "evals.run", "--output-dir", "/tmp/eval", "--emit-candidate-baseline"]
-                    envFrom: [{configMapRef: {name: aidan-config}}, {secretRef: {name: aidan-secret}}]
-                    env:
-                      - name: DB_PASS
-                        valueFrom: {secretKeyRef: {name: aidan-secret, key: DB_PASS}}
-                      - name: DATABASE_URL
-                        value: postgresql://postgres:\$(DB_PASS)@postgres-service:5432/courses-data
-          EOF
-          kubectl wait --for=condition=complete "job/$job" -n aidan --timeout=12m || true
-          pod=$(kubectl get pods -n aidan -l job-name="$job" -o jsonpath='{.items[0].metadata.name}')
-          mkdir -p genai-eval-report
-          kubectl exec -n aidan "$pod" -- cat /tmp/eval/results.json > genai-eval-report/results.json
-          kubectl exec -n aidan "$pod" -- cat /tmp/eval/summary.md > genai-eval-report/summary.md
-          kubectl exec -n aidan "$pod" -- cat /tmp/eval/candidate-baseline.json > genai-eval-report/candidate-baseline.json || true
-          cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
-          kubectl get job "$job" -n aidan -o jsonpath='{.status.failed}' | grep -q '^1$' && exit 1 || true
+        working-directory: ./services/genai
+        run: python -m evals.deterministic --output-dir ../../genai-eval-report
+      - name: Append summary
+        if: steps.filter.outputs.changed == 'true'
+        run: cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload evaluation reports
         if: steps.filter.outputs.changed == 'true' && always()
         uses: actions/upload-artifact@v4
