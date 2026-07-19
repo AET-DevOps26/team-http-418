@@ -115,9 +115,13 @@ Data persistence is managed using PostgreSQL, a highly reliable and scalable rel
 
 ### deployment urls
 
-https://aidan.stud.k8s.aet.cit.tum.de/dashboard
+Kubernetes client: https://aidan.stud.k8s.aet.cit.tum.de
 
-https://aidan-monitoring.stud.k8s.aet.cit.tum.de
+Azure client: http://74.248.154.59
+
+Monitoring
+K8s Grafana: https://aidan-monitoring.stud.k8s.aet.cit.tum.de
+Azure Grafana: http://74.248.154.59:3001
 
 ### Test User
 
