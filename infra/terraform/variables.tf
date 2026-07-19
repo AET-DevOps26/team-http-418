@@ -17,13 +17,13 @@ variable "prefix" {
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "germanywestcentral"
+  default     = "polandcentral"
 }
 
 variable "vm_size" {
   description = "Azure VM size"
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_B2als_v2"
 }
 
 variable "admin_username" {
