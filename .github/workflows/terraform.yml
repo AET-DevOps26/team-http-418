@@ -98,10 +98,6 @@ jobs:
     needs: plan
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production-azure-infra
-    concurrency:
-      group: production-azure-infra
-      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write

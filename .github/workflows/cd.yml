@@ -107,11 +107,20 @@ jobs:
           push: true
           set: |
             client.args.API_VERSION=${{ vars.API_VERSION }}
-            server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/server:latest
-            client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/client:latest
-            genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/genai:latest
-            user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/user-profile-service:latest
-            pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/pdf-parser:latest
+            server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.image_tag }}
+            client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.image_tag }}
+            genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.image_tag }}
+            user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.image_tag }}
+            pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.image_tag }}
+
+      - name: Tag latest aliases
+        run: |
+          set -Eeuo pipefail
+          for svc in server client genai user-profile-service pdf-parser; do
+            docker buildx imagetools create \
+              -t "${{ env.IMAGE_PREFIX }}/${svc}:latest" \
+              "${{ env.IMAGE_PREFIX }}/${svc}:${{ steps.meta.outputs.image_tag }}"
+          done
 
   deploy-k8s:
     if: needs.build-images.result == 'success'
