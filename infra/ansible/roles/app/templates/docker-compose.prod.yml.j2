@@ -127,6 +127,7 @@ services:
 
   promtail:
     image: grafana/promtail:3.0.0
+    user: root
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./monitoring/promtail.yml:/etc/promtail/promtail.yml

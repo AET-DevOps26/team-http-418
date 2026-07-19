@@ -181,6 +181,17 @@
 
     - name: Diagnose Promtail
       shell: |
+        echo "=== promtail user ==="
+        docker compose exec -T promtail id
+    
+        echo "=== docker socket permissions as seen by promtail ==="
+        docker compose exec -T promtail ls -la /var/run/docker.sock
+    
+        echo "=== docker socket permissions on host ==="
+        ls -la /var/run/docker.sock
+    
+        echo "=== loaded promtail config ==="
+        docker compose exec -T promtail cat /etc/promtail/promtail.yml
         echo "=== container status ==="
         docker compose ps promtail loki
 
