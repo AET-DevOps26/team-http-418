@@ -134,8 +134,10 @@ metadata:
 data:
   dashboards.yml: |
 {{ .Files.Get "grafana/dashboards/dashboards.yml" | indent 4 }}
-  sample-dashboard.json: |
-{{ .Files.Get "grafana/dashboards/sample-dashboard.json" | indent 4 }}
+  genai.json: |
+{{ .Files.Get "grafana/dashboards/genai.json" | indent 4 }}
+  spring-services.json: |
+{{ .Files.Get "grafana/dashboards/spring-services.json" | indent 4 }}
 ---
 apiVersion: v1
 kind: ConfigMap
