@@ -198,6 +198,14 @@
 
         echo "=== loki logs ==="
         docker compose logs --tail 50 loki
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: promtail_diag
+
+    - name: Show Promtail diagnostics
+      debug:
+        var: promtail_diag.stdout_lines
 
   rescue:
     - name: Capture deployment failure diagnostics
@@ -247,12 +255,3 @@
     - name: Fail the deployment after recovery
       fail:
         msg: "Deployment failed; the previous Compose configuration was restored and restarted."
-
-      args:
-        chdir: /opt/aidan
-      become_user: azureuser
-      register: promtail_diag
-
-    - name: Show Promtail diagnostics
-      debug:
-        var: promtail_diag.stdout_lines
