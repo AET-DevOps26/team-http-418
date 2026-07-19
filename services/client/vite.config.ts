@@ -27,9 +27,6 @@ const config = defineConfig({
 	test: {
 		environment: "jsdom",
 	},
-	build: {
-		sourcemap: true,
-	},
 });
 
 export default config;
