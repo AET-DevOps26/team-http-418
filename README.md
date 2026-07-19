@@ -2,9 +2,9 @@
 
 ### initial codeowners
 
-@quarz12 ge64tap
+@quarz12 ge64tap 03745866
 
-@kirillinoz TODO
+@kirillinoz ge47bip 03756621
 
 /services/client/    @kirillinoz
 
