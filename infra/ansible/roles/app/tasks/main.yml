@@ -178,6 +178,46 @@
       loop:
         - /
         - /health
+
+    - name: Diagnose Promtail
+      shell: |
+        echo "=== promtail user ==="
+        docker compose exec -T promtail id
+    
+        echo "=== docker socket permissions as seen by promtail ==="
+        docker compose exec -T promtail ls -la /var/run/docker.sock
+    
+        echo "=== docker socket permissions on host ==="
+        ls -la /var/run/docker.sock
+    
+        echo "=== loaded promtail config ==="
+        docker compose exec -T promtail cat /etc/promtail/promtail.yml
+        echo "=== container status ==="
+        docker compose ps promtail loki
+
+        echo "=== promtail logs ==="
+        docker compose logs --tail 150 promtail
+
+        echo "=== promtail targets (active scrape targets) ==="
+        docker compose exec -T promtail wget -qO- http://localhost:9080/targets || echo "could not reach promtail metrics endpoint"
+
+        echo "=== promtail service discovery state ==="
+        docker compose exec -T promtail wget -qO- http://localhost:9080/service-discovery || true
+
+        echo "=== container log dir on host ==="
+        ls -la /var/lib/docker/containers | head -20
+
+        echo "=== loki logs ==="
+        docker compose logs --tail 50 loki
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: promtail_diag
+
+    - name: Show Promtail diagnostics
+      debug:
+        var: promtail_diag.stdout_lines
+
   rescue:
     - name: Capture deployment failure diagnostics
       shell: |

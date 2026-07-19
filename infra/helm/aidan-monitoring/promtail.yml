@@ -9,30 +9,45 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: kubernetes-pods
+  - job_name: docker-containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Automatically turns the docker container name into a usable label
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      # Optional: Grabs the image name too
+      - source_labels: ['__meta_docker_container_image']
+        target_label: 'image'
 
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: kubernetes-pods
-          __path__: /var/log/pods/*/*/*.log
+  - job_name: kubernetes-pods
+    # 1. This enables TRUE K8s Auto-Discovery
+    kubernetes_sd_configs:
+      - role: pod
 
     relabel_configs:
-      - source_labels: ['__path__']
-        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+      # 2. Tell Promtail which node it is currently running on (so it only scrapes its own node's logs)
+      - source_labels: ['__meta_kubernetes_pod_node_name']
+        target_label: '__host__'
+
+      # 3. Automatically map the K8s API log path (Promtail handles the path details behind the scenes)
+      - action: replace
+        source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name']
+        separator: '/'
+        target_label: '__path__'
+        replacement: '/var/log/pods/*$1*/*$2*/*.log'
+
+      # 4. Automatically pull real metadata directly from the Kubernetes API
+      - action: replace
+        source_labels: ['__meta_kubernetes_namespace']
         target_label: namespace
-        replacement: '$1'
 
-      - source_labels: ['__path__']
-        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+      - action: replace
+        source_labels: ['__meta_kubernetes_pod_name']
         target_label: pod
-        replacement: '$2'
 
-      - source_labels: ['__path__']
-        regex: '/var/log/pods/([^_]+)_([^_]+)_([^/]+)/([^/]+)/.*'
+      - action: replace
+        source_labels: ['__meta_kubernetes_pod_container_name']
         target_label: container
-        replacement: '$4'
-
-    pipeline_stages:
-      - cri: {}
