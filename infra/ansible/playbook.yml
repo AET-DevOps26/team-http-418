@@ -2,6 +2,7 @@
 - name: Deploy AIDAN application
   hosts: aidan_vm
   become: true
+  any_errors_fatal: true
   vars:
     db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
     ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') }}"
@@ -15,4 +16,3 @@
   roles:
     - docker
     - app
-

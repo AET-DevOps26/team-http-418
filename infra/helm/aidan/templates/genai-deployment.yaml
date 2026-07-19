@@ -24,7 +24,7 @@ spec:
       initContainers:
         - name: wait-for-postgres
           image: postgres:17
-          command: ["sh", "-c", "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres; sleep 2; done"]
+          command: ["sh", "-c", "timeout 120 sh -c 'until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do sleep 2; done'"]
       containers:
         - name: genai
           image: {{ printf "%s/%s/%s/genai:%s" .Values.image.registry .Values.image.org .Values.image.repo .Values.image.tag }}

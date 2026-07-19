@@ -1,0 +1,399 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Immutable 40-character commit SHA reachable from main
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
+  K8S_URL: https://aidan.stud.k8s.aet.cit.tum.de
+
+jobs:
+  genai-quality-impact:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+          fetch-depth: 0
+      - id: filter
+        uses: ./.github/actions/genai-quality-filter
+        with:
+          base: ${{ github.event.before || github.sha }}
+          ref: ${{ inputs.revision || github.sha }}
+
+  build-images:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+          fetch-depth: 0
+          lfs: true
+
+      - name: Validate the requested deployment revision
+        if: inputs.revision != ''
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$REVISION" =~ ^[0-9a-f]{40}$ ]] || { echo "revision must be a full commit SHA" >&2; exit 1; }
+          git cat-file -e "$REVISION^{commit}"
+          git fetch origin main
+          git merge-base --is-ancestor "$REVISION" origin/main || {
+            echo "revision must be reachable from main" >&2
+            exit 1
+          }
+
+      - name: Verify Git LFS files are not pointers
+        run: |
+          set -Eeuo pipefail
+          git lfs pull
+          for f in infra/db/init/*.sql.gz.data; do
+            head -c 2 "$f" | od -An -tx1 | grep -q '1f 8b' || {
+              echo "::error::$f is not valid gzip — Git LFS download may have failed"
+              head -1 "$f" >&2
+              exit 1
+            }
+          done
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: meta
+        run: |
+          commit=$(git rev-parse HEAD)
+          echo "image_tag=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: Create .env for Docker Compose parsing
+        run: cp .env.example .env
+
+      - name: Build and push db image
+        run: |
+          set -Eeuo pipefail
+          sha_tag="${{ env.IMAGE_PREFIX }}/db:${{ steps.meta.outputs.image_tag }}"
+          latest_tag="${{ env.IMAGE_PREFIX }}/db:latest"
+          docker build -t "$sha_tag" -t "$latest_tag" ./infra/db
+          docker push "$sha_tag"
+          docker push "$latest_tag"
+
+      - name: Build and push service images
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.yml
+          targets: server,client,genai,user-profile-service,pdf-parser
+          push: true
+          set: |
+            client.args.API_VERSION=${{ vars.API_VERSION }}
+            server.tags=${{ env.IMAGE_PREFIX }}/server:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/server:latest
+            client.tags=${{ env.IMAGE_PREFIX }}/client:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/client:latest
+            genai.tags=${{ env.IMAGE_PREFIX }}/genai:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/genai:latest
+            user-profile-service.tags=${{ env.IMAGE_PREFIX }}/user-profile-service:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/user-profile-service:latest
+            pdf-parser.tags=${{ env.IMAGE_PREFIX }}/pdf-parser:${{ steps.meta.outputs.image_tag }},${{ env.IMAGE_PREFIX }}/pdf-parser:latest
+
+  deploy-k8s:
+    if: needs.build-images.result == 'success'
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: production-k8s
+    concurrency:
+      group: production-k8s
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+
+      - uses: azure/setup-helm@v4
+
+      - name: Write kubeconfig
+        run: |
+          set -Eeuo pipefail
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Apply namespace manifests and registry credentials
+        run: |
+          set -Eeuo pipefail
+          kubectl apply -f infra/k8s/namespace.yml
+          for ns in aidan aidan-monitoring; do
+            kubectl create secret docker-registry ghcr-pull-secret \
+              --docker-server=ghcr.io \
+              --docker-username=${{ github.actor }} \
+              --docker-password=${{ secrets.GHCR_PULL_TOKEN }} \
+              --namespace="$ns" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - name: Reset stuck Helm release
+        run: |
+          STATUS=$(helm status aidan -n aidan -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
+          case "$STATUS" in
+            pending-install|pending-upgrade|pending-rollback)
+              echo "Helm release stuck in $STATUS — uninstalling to allow clean install"
+              helm uninstall aidan -n aidan --no-hooks || true
+              ;;
+            failed)
+              echo "Helm release in failed state — upgrade --install will handle this"
+              ;;
+          esac
+
+          MSTATUS=$(helm status aidan-monitoring -n aidan-monitoring -o json 2>/dev/null | jq -r '.info.status' 2>/dev/null || echo "not-found")
+          case "$MSTATUS" in
+            pending-install|pending-upgrade|pending-rollback)
+              echo "Monitoring Helm release stuck in $MSTATUS — uninstalling to allow clean install"
+              helm uninstall aidan-monitoring -n aidan-monitoring --no-hooks || true
+              ;;
+            failed)
+              echo "Monitoring Helm release in failed state — upgrade --install will handle this"
+              ;;
+          esac
+
+      - name: Clean up failed Helm hook jobs and stuck pods
+        run: |
+          kubectl delete job aidan-courses-seed -n aidan --ignore-not-found
+          kubectl delete pods -n aidan --field-selector=status.phase==Failed --ignore-not-found
+          for pod in $(kubectl get pods -n aidan -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
+            kubectl delete pod "$pod" -n aidan --force --grace-period=0 || true
+          done
+
+          kubectl delete pods -n aidan-monitoring --field-selector=status.phase==Failed --ignore-not-found
+          for pod in $(kubectl get pods -n aidan-monitoring -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}'); do
+            kubectl delete pod "$pod" -n aidan-monitoring --force --grace-period=0 || true
+          done
+
+      - name: Expand PostgreSQL storage if needed
+        run: |
+          set -Eeuo pipefail
+          if ! kubectl get pvc postgres-pvc -n aidan >/dev/null 2>&1; then
+            echo "No existing PostgreSQL PVC; skipping expansion."
+            exit 0
+          fi
+
+          CURRENT=$(kubectl get pvc postgres-pvc -n aidan -o jsonpath='{.status.capacity.storage}')
+          DESIRED="5Gi"
+          if [ "$CURRENT" = "$DESIRED" ]; then
+            echo "PVC already at $DESIRED; skipping expansion."
+            exit 0
+          fi
+
+          echo "PVC is $CURRENT, expanding to $DESIRED"
+          storage_class=$(kubectl get pvc postgres-pvc -n aidan -o jsonpath='{.spec.storageClassName}')
+          [ -n "$storage_class" ] || { echo "postgres-pvc has no storage class" >&2; exit 1; }
+          [ "$(kubectl get storageclass "$storage_class" -o jsonpath='{.allowVolumeExpansion}')" = "true" ] || {
+            echo "StorageClass $storage_class does not allow volume expansion" >&2; exit 1;
+          }
+
+          kubectl patch pvc postgres-pvc -n aidan --type merge -p "{\"spec\":{\"resources\":{\"requests\":{\"storage\":\"$DESIRED\"}}}}"
+          kubectl wait --for=jsonpath='{.status.capacity.storage}'=$DESIRED pvc/postgres-pvc -n aidan --timeout=10m
+
+          if kubectl get pvc postgres-pvc -n aidan -o jsonpath='{range .status.conditions[?(@.type=="FileSystemResizePending")]}{.status}{end}' | grep -q True; then
+            echo "Filesystem resize pending — bouncing postgres"
+            kubectl rollout restart deployment/postgres -n aidan
+            kubectl rollout status deployment/postgres -n aidan --timeout=10m
+          fi
+
+      - name: Deploy application via Helm
+        run: |
+          set -Eeuo pipefail
+          helm upgrade --install aidan ./infra/helm/aidan \
+            -f ./infra/helm/aidan/values-prod.yaml \
+            --set image.tag=${{ needs.build-images.outputs.image_tag }} \
+            --set postgres.image=${{ env.IMAGE_PREFIX }}/db:${{ needs.build-images.outputs.image_tag }} \
+            --set postgres.password=${{ secrets.DB_PASSWORD }} \
+            --set jwt.secret=${{ secrets.APP_JWT_SECRET }} \
+            --set genai.logosApiKey=${{ secrets.LOGOS_API_KEY }} \
+            --namespace aidan \
+            --wait \
+            --timeout 25m
+          helm upgrade --install aidan-monitoring ./infra/helm/aidan-monitoring \
+            -f ./infra/helm/aidan-monitoring/values-prod.yaml \
+            --set grafana.adminUser=${{ secrets.GF_SECURITY_ADMIN_USER }} \
+            --set grafana.adminPassword=${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} \
+            --set postgresExporter.password=${{ secrets.DB_PASSWORD }} \
+            --namespace aidan-monitoring \
+            --wait \
+            --timeout 5m
+
+      - name: Smoke-test the Kubernetes deployment
+        run: |
+          set -Eeuo pipefail
+          for path in / /health; do
+            curl --fail --show-error --silent --retry 6 --retry-all-errors \
+              --connect-timeout 10 "${K8S_URL}${path}" >/dev/null
+          done
+
+      - name: Debug Kubernetes deployment failure
+        if: failure()
+        run: |
+          echo "=== Helm release status ==="
+          helm status aidan -n aidan 2>&1 || true
+          helm history aidan -n aidan 2>&1 || true
+
+          echo "=== Pod overview ==="
+          kubectl get pods -n aidan -o wide
+          echo "=== Pod container statuses ==="
+          kubectl get pods -n aidan -o jsonpath='{range .items[*]}{"pod: "}{.metadata.name}{"\n"}{range .status.containerStatuses[*]}{"  "}{.name}{" ready="}{.ready}{" restarts="}{.restartCount}{" state="}{.state}{"\n"}{end}{end}' 2>/dev/null || true
+
+          echo "=== PVC status ==="
+          kubectl get pvc -n aidan -o wide
+
+          echo "=== Events (last 50) ==="
+          kubectl get events -n aidan --sort-by='.lastTimestamp' | tail -50
+
+          echo "=== Describe pods ==="
+          kubectl describe pods -n aidan
+
+          echo "=== Node resources ==="
+          kubectl top nodes 2>/dev/null || true
+          kubectl describe nodes | grep -A8 'Allocated resources' || true
+
+          echo "=== Pod logs ==="
+          for app in postgres client server genai user-profile-service pdf-parser; do
+            echo "--- $app ---"
+            kubectl logs -l app=$app -n aidan --tail=80 --all-containers 2>/dev/null || true
+          done
+          echo "--- courses-seed job ---"
+          kubectl logs -n aidan job/aidan-courses-seed --tail=200 2>/dev/null || true
+
+          echo "=== Monitoring namespace ==="
+          kubectl get pods -n aidan-monitoring -o wide
+          kubectl get events -n aidan-monitoring --sort-by='.lastTimestamp' | tail -20
+          kubectl describe pods -n aidan-monitoring
+
+  deploy-azure:
+    if: needs.build-images.result == 'success'
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: production-azure
+    concurrency:
+      group: production-azure
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+
+      - name: Install pinned Ansible
+        run: python -m pip install 'ansible-core==2.18.7'
+
+      - name: Validate deployment configuration and prepare SSH
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          AZURE_URL: ${{ vars.AZURE_PREVIEW_URL }}
+        run: |
+          set -Eeuo pipefail
+          [ -n "$VM_IP" ] || { echo "AZURE_VM_IP is required" >&2; exit 1; }
+          [ -n "$SSH_PRIVATE_KEY" ] || { echo "AZURE_SSH_PRIVATE_KEY is required" >&2; exit 1; }
+          [[ "$AZURE_URL" =~ ^https?://[^/]+$ ]] || {
+            echo "AZURE_PREVIEW_URL must be a public http(s) base URL without a trailing slash" >&2
+            exit 1
+          }
+          python - <<'PY'
+          import ipaddress
+          import os
+          ipaddress.IPv4Address(os.environ["VM_IP"])
+          PY
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%b\n' "$SSH_PRIVATE_KEY" > ~/.ssh/aidan_azure
+          chmod 600 ~/.ssh/aidan_azure
+
+      - name: Render and validate exactly one Azure inventory host
+        env:
+          VM_IP: ${{ secrets.AZURE_VM_IP }}
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: |
+          set -Eeuo pipefail
+          sed "s/PLACEHOLDER_VM_IP/$VM_IP/" infra/ansible/inventory.ini > infra/ansible/inventory.rendered.ini
+          inventory=$(ansible-inventory -i infra/ansible/inventory.rendered.ini --list)
+          jq -e '._meta.hostvars | keys == ["aidan_vm"]' <<< "$inventory" >/dev/null || {
+            echo "Inventory must resolve exactly one host named aidan_vm" >&2
+            exit 1
+          }
+
+      - name: Verify Ansible connectivity before deployment
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: ansible aidan_vm -i infra/ansible/inventory.rendered.ini --private-key ~/.ssh/aidan_azure -m ping
+
+      - name: Deploy via Ansible
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          LOGOS_API_KEY: ${{ secrets.LOGOS_API_KEY }}
+          APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
+          GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
+        run: ansible-playbook -i infra/ansible/inventory.rendered.ini infra/ansible/playbook.yml --private-key ~/.ssh/aidan_azure
+
+      - name: Smoke-test the Azure deployment
+        env:
+          AZURE_URL: ${{ vars.AZURE_PREVIEW_URL }}
+        run: |
+          set -Eeuo pipefail
+          for path in / /health; do
+            curl --fail --show-error --silent --retry 6 --retry-all-errors \
+              --connect-timeout 10 "${AZURE_URL}${path}" >/dev/null
+          done
+
+  genai-golden-evaluation:
+    needs: [genai-quality-impact]
+    if: needs.genai-quality-impact.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install GenAI dependencies
+        working-directory: ./services/genai
+        run: pip install -r requirements.txt
+      - name: Run deterministic evaluation
+        working-directory: ./services/genai
+        run: python -m evals.deterministic --output-dir ../../genai-eval-report
+      - name: Append summary
+        run: cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genai-golden-evaluation-${{ github.sha }}
+          path: genai-eval-report
+          retention-days: 30
