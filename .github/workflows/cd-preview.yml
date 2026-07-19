@@ -8,6 +8,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/aet-devops26/team-http-418
   K8S_PREVIEW_URL: https://aidan.stud.k8s.aet.cit.tum.de
+  K8S_MONITORING_URL: https://aidan-monitoring.stud.k8s.aet.cit.tum.de
 
 jobs:
   genai-quality-impact:
@@ -402,6 +403,7 @@ jobs:
           IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
           COMMIT: ${{ needs.build-images.outputs.commit || github.event.pull_request.head.sha }}
           K8S_URL: ${{ env.K8S_PREVIEW_URL }}
+          K8S_MONITORING_URL: ${{ env.K8S_MONITORING_URL }}
           AZURE_URL: ${{ vars.AZURE_PREVIEW_URL }}
         with:
           script: |
@@ -425,6 +427,10 @@ jobs:
             - Kubernetes health: ${process.env.K8S_URL}/api/health
             - Azure client: ${process.env.AZURE_URL || 'AZURE_PREVIEW_URL is not configured'}
             - Azure health: ${process.env.AZURE_URL ? `${process.env.AZURE_URL}/api/health` : 'AZURE_PREVIEW_URL is not configured'}
+
+            ### Monitoring
+            - K8s Grafana: ${process.env.K8S_MONITORING_URL}
+            - Azure Grafana: ${process.env.AZURE_URL ? `${process.env.AZURE_URL}:3001` : 'AZURE_PREVIEW_URL is not configured'}
 
             ⚠️ Both previews replace shared environments. A later preview or a deployment from \`main\` replaces them; removing the label or closing this PR does not restore \`main\`.`;
             const comments = await github.paginate(github.rest.issues.listComments, {
