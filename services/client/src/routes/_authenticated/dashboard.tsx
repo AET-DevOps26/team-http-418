@@ -262,7 +262,7 @@ function Dashboard() {
 						recommendations={recommendations?.recommendations}
 						isLoading={recommendationsQuery.isLoading}
 						hasGoalsOrInterests={hasGoalsOrInterests}
-						onGenerate={() => generateRecs({})}
+						onGenerate={() => generateRecs()}
 					/>
 				</div>
 

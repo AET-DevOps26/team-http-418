@@ -3,6 +3,11 @@ variable "subscription_id" {
   type        = string
 }
 
+variable "tenant_id" {
+  description = "Microsoft Entra tenant ID used by the GitHub OIDC identities"
+  type        = string
+}
+
 variable "prefix" {
   description = "Prefix for all resource names"
   type        = string
@@ -27,8 +32,13 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
-variable "ssh_public_key_path" {
-  description = "Path to SSH public key file"
+variable "ssh_public_key" {
+  description = "SSH public key content (e.g. 'ssh-rsa AAAA...')"
   type        = string
-  default     = "~/.ssh/aidan_azure.pub"
+  sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.ssh_public_key)) > 0
+    error_message = "ssh_public_key must not be empty — set the SSH_PUBLIC_KEY GitHub secret."
+  }
 }

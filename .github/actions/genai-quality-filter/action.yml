@@ -1,0 +1,16 @@
+name: GenAI quality impact filter
+description: Determines whether a diff can affect GenAI inputs, prompts, embeddings, or catalog data.
+inputs:
+  base:
+    required: true
+  ref:
+    required: true
+outputs:
+  changed:
+    value: ${{ steps.filter.outputs.changed }}
+runs:
+  using: composite
+  steps:
+    - id: filter
+      shell: bash
+      run: echo "changed=$(bash scripts/genai-quality-changed.sh '${{ inputs.base }}' '${{ inputs.ref }}')" >> "$GITHUB_OUTPUT"

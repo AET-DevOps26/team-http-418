@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Slf4j
@@ -164,93 +165,20 @@ public class DataSourceConfig {
 			logger.error("Could not connect to database", e);
 			throw new RuntimeException("Could not connect to database 'security'");
 		}
-
-		jdbcTemplate.execute("""
-				    CREATE TABLE IF NOT EXISTS credentials (
-				        username TEXT PRIMARY KEY,
-				        password TEXT NOT NULL
-				    )
-				""");
-
-		jdbcTemplate.execute("""
-				    CREATE TABLE IF NOT EXISTS user_authorities (
-				        username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
-				        authority TEXT NOT NULL,
-				        PRIMARY KEY (username, authority)
-				    )
-				""");
-
-			jdbcTemplate.execute("""
-					CREATE TABLE IF NOT EXISTS student_completed_courses (
-					    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-					    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
-				    course_id BIGINT,
-				    grade NUMERIC(2,1) CHECK (grade >= 0),
-				    credits INT NOT NULL DEFAULT 0 CHECK (credits >= 0),
-				    semester_key TEXT,
-				    category TEXT,
-				    status TEXT NOT NULL DEFAULT 'confirmed',
-				    module_id TEXT,
-					    module_title TEXT
-					)
-					""");
-			jdbcTemplate.execute("ALTER TABLE student_completed_courses ALTER COLUMN course_id DROP NOT NULL");
-			jdbcTemplate.execute(
-					"ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'confirmed'");
-			jdbcTemplate.execute("ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS module_id TEXT");
-			jdbcTemplate.execute("ALTER TABLE student_completed_courses ADD COLUMN IF NOT EXISTS module_title TEXT");
-			jdbcTemplate.execute("""
-					CREATE UNIQUE INDEX IF NOT EXISTS uq_completed_course
-					    ON student_completed_courses (username, course_id) WHERE course_id IS NOT NULL
-					""");
-		jdbcTemplate.execute("""
-				CREATE UNIQUE INDEX IF NOT EXISTS uq_unmatched_module
-				    ON student_completed_courses (username, module_id)
-				    WHERE module_id IS NOT NULL AND course_id IS NULL
-				""");
-
-		jdbcTemplate.execute("""
-				CREATE TABLE IF NOT EXISTS student_enrolled_courses (
-				    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-				    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
-				    course_id BIGINT NOT NULL,
-				    semester_key TEXT,
-				    UNIQUE (username, course_id)
-				)
-				""");
-
-		jdbcTemplate.execute("""
-				CREATE TABLE IF NOT EXISTS advisor_conversations (
-				    id TEXT PRIMARY KEY,
-				    username TEXT NOT NULL REFERENCES credentials(username) ON DELETE CASCADE,
-				    title TEXT NOT NULL DEFAULT 'New Conversation',
-				    created_at TIMESTAMP DEFAULT now(),
-				    updated_at TIMESTAMP DEFAULT now()
-				)
-				""");
-
-		jdbcTemplate.execute("""
-				CREATE TABLE IF NOT EXISTS advisor_messages (
-				    id TEXT PRIMARY KEY,
-				    conversation_id TEXT NOT NULL REFERENCES advisor_conversations(id) ON DELETE CASCADE,
-				    role TEXT NOT NULL,
-				    content TEXT NOT NULL,
-				    referenced_courses TEXT DEFAULT '[]',
-				    created_at TIMESTAMP DEFAULT now()
-				)
-				""");
-
-		jdbcTemplate.execute("""
-				CREATE TABLE IF NOT EXISTS student_roadmaps (
-				    username TEXT PRIMARY KEY REFERENCES credentials(username) ON DELETE CASCADE,
-				    roadmap_json TEXT NOT NULL,
-				    status TEXT NOT NULL DEFAULT 'EMPTY',
-				    created_at TIMESTAMP DEFAULT now(),
-				    updated_at TIMESTAMP DEFAULT now()
-				)
-				""");
-
 		return dataSource;
+	}
+
+	@Bean
+	@Profile("!test")
+	public Flyway securityFlyway(@Qualifier("securityDataSource") DataSource dataSource) {
+		final Flyway flyway = Flyway.configure()
+				.dataSource(dataSource)
+				.locations("classpath:db/migration/security")
+				.baselineOnMigrate(true)
+				.baselineVersion("0")
+				.load();
+		flyway.migrate();
+		return flyway;
 	}
 
 	@Bean

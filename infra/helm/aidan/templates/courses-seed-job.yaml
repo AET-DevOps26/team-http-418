@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-courses-seed
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+  labels:
+    app: courses-seed
+    {{- include "aidan.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: courses-seed
+        {{- include "aidan.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgres.image }}
+          command: ['sh', '-c', 'timeout 120 sh -c "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres...; sleep 3; done"']
+      containers:
+        - name: seed-courses
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["seed-courses"]
+          env:
+            - name: DB_HOST
+              value: postgres-service
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: aidan-config
+                  key: DB_PORT
+            - name: COURSES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: aidan-config
+                  key: COURSES_DB_NAME
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: aidan-config
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: aidan-secret
+                  key: DB_PASS

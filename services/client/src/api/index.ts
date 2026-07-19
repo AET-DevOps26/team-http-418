@@ -26,6 +26,7 @@ export {
 	checkPrerequisites,
 	getCourse,
 	getCoursePrerequisites,
+	getCoursePrerequisitesBatch,
 	getCourses,
 } from "#/api/courses";
 export { getProfile, updateProfile } from "#/api/profile";
@@ -42,24 +43,11 @@ export {
 	uploadTranscript,
 } from "#/api/progress";
 export { queryClient } from "#/api/query-client";
-export {
-	generateRecommendations,
-	getRecommendations,
-} from "#/api/recommendations";
-export {
-	addCourseToSemester,
-	generateRoadmap,
-	getRoadmap,
-	getSemester,
-	getSemesters,
-	removeCourseFromSemester,
-	updateRoadmap,
-	updateSemester,
-} from "#/api/roadmap";
+export { getRecommendations } from "#/api/recommendations";
+export { generateRoadmap, getRoadmap } from "#/api/roadmap";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
-	AddCourseRequest,
 	AdvisorSSEEvent,
 	AiMatchModule,
 	AiMatchResponse,
@@ -84,8 +72,6 @@ export type {
 	Department,
 	EnrollCourseRequest,
 	EnrolledCourse,
-	GenerateRecommendationsBody,
-	GenerateRoadmapRequest,
 	ImportError,
 	ImportedCourse,
 	Instructor,
@@ -96,6 +82,7 @@ export type {
 	Page,
 	PlannedCourse,
 	PreferredSemester,
+	PrerequisiteBatchResponse,
 	PrerequisiteCheck,
 	PrerequisiteCheckRef,
 	PrerequisiteNode,

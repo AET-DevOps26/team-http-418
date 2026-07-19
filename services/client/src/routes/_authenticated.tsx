@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { isAuthenticated } from "#/api";
 import { Sidebar } from "#/components/layout/Sidebar";
-import { Topbar } from "#/components/layout/Topbar";
 import { ToastProvider } from "#/components/ui/Toast";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -35,7 +34,6 @@ function AuthenticatedLayout() {
 		<div className={`app${collapsed ? " app--sidebar-collapsed" : ""}`}>
 			<Sidebar collapsed={collapsed} onToggle={toggleSidebar} />
 			<main className="main">
-				<Topbar />
 				<ToastProvider>
 					<Outlet />
 				</ToastProvider>

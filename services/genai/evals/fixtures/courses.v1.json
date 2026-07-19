@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "courses": [
+    {"courseId": 1, "courseCode": "IN0001", "courseName": "Introduction to Informatics", "credits": 6, "category": "Foundations", "semester": "W", "description": "Programming, algorithms and computer science foundations."},
+    {"courseId": 2, "courseCode": "IN0002", "courseName": "Linear Algebra", "credits": 6, "category": "Foundations", "semester": "W", "description": "Vectors, matrices and linear transformations for machine learning."},
+    {"courseId": 3, "courseCode": "IN0003", "courseName": "Probability and Statistics", "credits": 6, "category": "Foundations", "semester": "S", "description": "Probability, statistical inference and data analysis."},
+    {"courseId": 4, "courseCode": "IN1001", "courseName": "Introduction to Machine Learning", "credits": 6, "category": "AI", "semester": "W", "description": "Supervised learning, classification, regression and model evaluation."},
+    {"courseId": 5, "courseCode": "IN1002", "courseName": "Deep Learning", "credits": 6, "category": "AI", "semester": "S", "description": "Neural networks, representation learning and deep learning systems."},
+    {"courseId": 6, "courseCode": "IN1003", "courseName": "Computer Vision", "credits": 6, "category": "AI", "semester": "W", "description": "Image analysis, convolutional neural networks and visual recognition."},
+    {"courseId": 7, "courseCode": "IN2001", "courseName": "Distributed Systems", "credits": 6, "category": "Systems", "semester": "W", "description": "Distributed algorithms, fault tolerance, consistency and scalable services."},
+    {"courseId": 8, "courseCode": "IN2002", "courseName": "Cloud Computing", "credits": 6, "category": "Systems", "semester": "S", "description": "Cloud platforms, containers, microservices and reliable deployment."},
+    {"courseId": 9, "courseCode": "IN2003", "courseName": "Operating Systems", "credits": 6, "category": "Systems", "semester": "W", "description": "Processes, memory, scheduling and operating system design."},
+    {"courseId": 10, "courseCode": "IN3001", "courseName": "Database Systems", "credits": 6, "category": "Data", "semester": "W", "description": "Relational databases, SQL, transactions and query optimization."},
+    {"courseId": 11, "courseCode": "IN3002", "courseName": "Data Engineering", "credits": 6, "category": "Data", "semester": "S", "description": "Data pipelines, warehousing and scalable data processing."},
+    {"courseId": 12, "courseCode": "IN3003", "courseName": "Information Retrieval", "credits": 6, "category": "Data", "semester": "S", "description": "Search engines, ranking, retrieval evaluation and text indexing."},
+    {"courseId": 13, "courseCode": "IN4001", "courseName": "Software Engineering", "credits": 6, "category": "Engineering", "semester": "W", "description": "Software design, testing, teamwork and maintainable systems."},
+    {"courseId": 14, "courseCode": "IN4002", "courseName": "Web Application Engineering", "credits": 6, "category": "Engineering", "semester": "S", "description": "Web applications, APIs, security and frontend-backend architecture."},
+    {"courseId": 15, "courseCode": "IN4003", "courseName": "Cybersecurity", "credits": 6, "category": "Engineering", "semester": "W", "description": "Secure systems, cryptography, threats and defensive engineering."},
+    {"courseId": 16, "courseCode": "IN5001", "courseName": "Human Computer Interaction", "credits": 5, "category": "Elective", "semester": "S", "description": "User research, interaction design and usability evaluation."},
+    {"courseId": 17, "courseCode": "IN5002", "courseName": "Entrepreneurship for Engineers", "credits": 5, "category": "Elective", "semester": "W", "description": "Innovation, product strategy and technology ventures."},
+    {"courseId": 18, "courseCode": "IN5003", "courseName": "Ethics of AI", "credits": 5, "category": "Elective", "semester": "S", "description": "Responsible AI, fairness, accountability and societal impact."},
+    {"courseId": 19, "courseCode": "IN6001", "courseName": "Advanced Machine Learning", "credits": 6, "category": "AI", "semester": "W", "description": "Probabilistic models, representation learning and advanced machine learning."},
+    {"courseId": 20, "courseCode": "IN6002", "courseName": "Computer Vision Lab", "credits": 6, "category": "AI", "semester": "S", "description": "Practical deep learning for image recognition and computer vision."},
+    {"courseId": 21, "courseCode": "IN6003", "courseName": "Large Scale Data Management", "credits": 6, "category": "Data", "semester": "W", "description": "Distributed databases, storage systems and data management at scale."},
+    {"courseId": 22, "courseCode": "IN6004", "courseName": "Networked Applications", "credits": 6, "category": "Systems", "semester": "S", "description": "Network protocols, services and distributed application development."},
+    {"courseId": 23, "courseCode": "IN7001", "courseName": "Bachelor Thesis", "credits": 12, "category": "Thesis", "semester": "W", "description": "Independent supervised research project."},
+    {"courseId": 24, "courseCode": "IN8001", "courseName": "Master Thesis", "credits": 30, "category": "Thesis", "semester": "S", "description": "Independent advanced research project."}
+  ]
+}

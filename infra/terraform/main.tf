@@ -1,4 +1,6 @@
 terraform {
+  backend "azurerm" {}
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -9,7 +11,8 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id                = var.subscription_id
+  subscription_id                 = var.subscription_id
+  tenant_id                       = var.tenant_id
   resource_provider_registrations = "none"
 }
 
@@ -84,6 +87,17 @@ resource "azurerm_network_security_group" "aidan" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+  security_rule {
+    name                       = "Grafana"
+    priority                   = 1005
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3001"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_public_ip" "aidan" {
@@ -125,7 +139,7 @@ resource "azurerm_linux_virtual_machine" "aidan" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file(var.ssh_public_key_path)
+    public_key = var.ssh_public_key
   }
 
   os_disk {

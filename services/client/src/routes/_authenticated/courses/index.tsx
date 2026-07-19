@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { CourseSearchParams } from "#/api/types";
 import { CourseCard } from "#/components/courses/CourseCard";
 import { CourseDetailSheet } from "#/components/courses/CourseDetailSheet";
 import { FilterPanel } from "#/components/courses/FilterPanel";
 import { SearchBar } from "#/components/courses/SearchBar";
-import { GenerateForm } from "#/components/recommendations/GenerateForm";
 import { RecommendationCard } from "#/components/recommendations/RecommendationCard";
 import { RecommendationFilters } from "#/components/recommendations/RecommendationFilters";
 import { useCourses } from "#/hooks/useCourses";
@@ -84,7 +83,6 @@ function SkeletonCard() {
 }
 
 function ForYouView() {
-	const [showForm, setShowForm] = useState(false);
 	const [filters, setFilters] = useState({ category: "", semester: "" });
 
 	const params = {
@@ -152,20 +150,30 @@ function ForYouView() {
 				}}
 			>
 				<p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>
-					Personalised suggestions based on your degree progress and goals
+					Personalised suggestions based on your{" "}
+					<Link to="/profile" style={{ color: "var(--accent)" }}>
+						profile goals &amp; interests
+					</Link>
 				</p>
 				<button
 					type="button"
 					className="btn btn-ghost"
 					style={{ flexShrink: 0 }}
-					onClick={() => setShowForm((v) => !v)}
+					disabled={mutation.isPending}
+					onClick={() => mutation.mutate()}
 				>
-					<Sparkles size={14} strokeWidth={2} />
-					{showForm ? "Hide form" : "Refresh with context"}
+					{mutation.isPending ? (
+						<Loader2
+							size={14}
+							strokeWidth={2}
+							style={{ animation: "spin 0.8s linear infinite" }}
+						/>
+					) : (
+						<RefreshCw size={14} strokeWidth={2} />
+					)}
+					{mutation.isPending ? "Generating…" : "Refresh"}
 				</button>
 			</div>
-
-			{showForm && <GenerateForm mutation={mutation} />}
 
 			<RecommendationFilters filters={filters} onChange={setFilters} />
 
@@ -234,7 +242,10 @@ function CoursesPage() {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	function setSearch(patch: Partial<SearchSchema>) {
-		navigate({ search: (prev) => cleanSearch({ ...prev, ...patch }) });
+		navigate({
+			search: (prev) => cleanSearch({ ...prev, ...patch }),
+			resetScroll: false,
+		});
 	}
 
 	const allCourses = data?.pages.flatMap((p) => p.content) ?? [];
@@ -352,7 +363,7 @@ function CoursesPage() {
 					{isEmpty && (
 						<div style={{ textAlign: "center", marginTop: 48 }}>
 							<p style={{ color: "var(--muted)", fontSize: 14 }}>
-								No courses found.
+								Not available in TUMOnline
 							</p>
 						</div>
 					)}

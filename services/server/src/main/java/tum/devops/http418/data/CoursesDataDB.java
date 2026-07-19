@@ -153,11 +153,7 @@ public class CoursesDataDB {
 	}
 
 	public @Nullable CourseMatchResult findCourseMatchByTitle(String normalizedTitleEn, String normalizedTitleDe,
-			String studyProgram, String moduleId) {
-		String modulePattern = null;
-		if (moduleId != null && !moduleId.isBlank()) {
-			modulePattern = "%" + moduleId.replace("%", "\\%").replace("_", "\\_") + "%";
-		}
+			String studyProgram) {
 		int studyProgramInt = 0;
 		try {
 			studyProgramInt = Integer.parseInt(studyProgram);
@@ -171,7 +167,6 @@ public class CoursesDataDB {
 				LEFT JOIN program_area_courses pac ON pac.course_id = c.id AND pac.stp_id = :studyProgramInt
 				WHERE LOWER(TRIM(c.title_en)) = :titleEn
 				   OR LOWER(TRIM(c.title_ger)) = :titleDe
-				   OR (:modulePattern IS NOT NULL AND ct."key" ILIKE :modulePattern)
 				ORDER BY
 				    CASE WHEN pac.stp_id IS NOT NULL THEN 0 ELSE 1 END,
 				    c.id ASC
@@ -180,8 +175,7 @@ public class CoursesDataDB {
 		final MapSqlParameterSource params = new MapSqlParameterSource()
 				.addValue("titleEn", normalizedTitleEn)
 				.addValue("titleDe", normalizedTitleDe)
-				.addValue("studyProgramInt", studyProgramInt)
-				.addValue("modulePattern", modulePattern);
+				.addValue("studyProgramInt", studyProgramInt);
 		final List<CourseMatchResult> results = template.query(query, params,
 				new DataClassRowMapper<>(CourseMatchResult.class));
 		return results.isEmpty() ? null : results.getFirst();
@@ -216,6 +210,69 @@ public class CoursesDataDB {
 				JOIN program_area_courses pac ON pac.course_id = c.id \
 				WHERE pac.stp_id = CAST(:studyId AS INT) ORDER BY c.title_en""",
 				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(CourseDataRow.class));
+	}
+
+	public record RichCourseRow(long id, String titleEn, String key, int sws, Integer ects, String areaName,
+			String semesterKey, boolean hasPrerequisites) {
+	}
+
+	public List<RichCourseRow> getCoursesByStudyProgramRich(String studyId) {
+		if (studyId == null || studyId.isBlank())
+			return List.of();
+		return template.query("""
+				SELECT DISTINCT ON (c.id) c.id, c.title_en AS titleEn, ct."key",
+					COALESCE(c.sws, 0) AS sws,
+					pac.ects,
+					pac.area_name AS areaName,
+					sem.semester_key AS semesterKey,
+					(c.previous_knowledge_en IS NOT NULL AND c.previous_knowledge_en != '') AS hasPrerequisites
+				FROM courses c
+				JOIN course_types ct ON c.course_type_id = ct.id
+				JOIN program_area_courses pac ON pac.course_id = c.id
+				JOIN semesters sem ON c.semester_id = sem.id
+				WHERE pac.stp_id = CAST(:studyId AS INT)
+				ORDER BY c.id, pac.area_name""",
+				new MapSqlParameterSource("studyId", studyId), new DataClassRowMapper<>(RichCourseRow.class));
+	}
+
+	public record ProgramRequirementRow(String areaName, Integer ects) {
+	}
+
+	public List<ProgramRequirementRow> getProgramRequirementAreas(String studyId) {
+		if (studyId == null || studyId.isBlank())
+			return List.of();
+		return template.query("""
+				SELECT area_name AS areaName, ects FROM program_requirement_areas \
+				WHERE stp_id = CAST(:studyId AS INT) ORDER BY sort_order""",
+				new MapSqlParameterSource("studyId", studyId),
+				new DataClassRowMapper<>(ProgramRequirementRow.class));
+	}
+
+	public Integer getStudyProgramTotalEcts(String studyId) {
+		if (studyId == null || studyId.isBlank())
+			return null;
+		List<Integer> results = template.queryForList(
+				"SELECT total_ects FROM study_programs WHERE stp_id = CAST(:studyId AS INT)",
+				new MapSqlParameterSource("studyId", studyId), Integer.class);
+		return results.isEmpty() ? null : results.getFirst();
+	}
+
+	public Map<Long, Integer> getEctsForCourses(@Nullable String studyId, List<Long> courseIds) {
+		if (courseIds.isEmpty())
+			return Map.of();
+		MapSqlParameterSource params = new MapSqlParameterSource("ids", courseIds);
+		String sql;
+		if (studyId != null && !studyId.isBlank()) {
+			sql = "SELECT course_id, ects FROM program_area_courses WHERE stp_id = CAST(:studyId AS INT) AND course_id IN (:ids) AND ects IS NOT NULL";
+			params.addValue("studyId", studyId);
+		} else {
+			sql = "SELECT DISTINCT ON (course_id) course_id, ects FROM program_area_courses WHERE course_id IN (:ids) AND ects IS NOT NULL";
+		}
+		List<java.util.Map<String, Object>> rows = template.queryForList(sql, params);
+		return rows.stream().collect(Collectors.toMap(
+				r -> ((Number) r.get("course_id")).longValue(),
+				r -> ((Number) r.get("ects")).intValue(),
+				(a, b) -> a));
 	}
 
 	public String getCourseTitleEn(long courseId) {

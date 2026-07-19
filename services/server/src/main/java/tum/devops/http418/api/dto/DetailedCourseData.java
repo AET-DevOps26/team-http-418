@@ -11,7 +11,7 @@ public class DetailedCourseData {
 	int id;
 	String title_ger;
 	String title_en;
-	int sws;
+	Integer sws;
 	String description_ger;
 	String description_en;
 	String previous_knowledge_ger;

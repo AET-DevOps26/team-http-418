@@ -5,7 +5,7 @@ class StudentProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
     study_program: str | None = Field(default="no study program", alias="studyProgramName")
-    study_program_id: str | None = Field(default="invalid id", alias="studyProgramId")
+    study_program_id: int | None = Field(default="0", alias="studyProgramId")
     semester: int
     career_goals: list[str] = Field(default=[], alias="careerGoals")
     interests: list[str] = Field(default=[], alias="interests")
@@ -23,6 +23,7 @@ class CourseRef(BaseModel):
     course_name: str = Field(alias="courseName")
     credits: int
     description: str | None = None
+    category: str | None = None
 
 
 class RecommendationItem(BaseModel):
@@ -41,6 +42,17 @@ class RecommendationsResponse(BaseModel):
     generated_at: str = Field(alias="generatedAt")
 
 
+class RecommendationSelection(BaseModel):
+    """The strict contract expected from the recommendation model."""
+
+    model_config = {"populate_by_name": True, "extra": "forbid"}
+
+    course_id: int = Field(alias="courseId")
+    relevance_score: float = Field(alias="relevanceScore", ge=0, le=1)
+    reason: str = Field(min_length=1)
+    tags: list[str] = Field(default=[])
+
+
 class RecommendationsRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
@@ -49,8 +61,6 @@ class RecommendationsRequest(BaseModel):
     enrolled_courses: list[str] = Field(default=[], alias="enrolledCourses")
     available_courses: list[str] = Field(default=[], alias="availableCourses")
     limit: int = 10
-    override_goals: list[str] | None = Field(default=None, alias="overrideGoals")
-    override_interests: list[str] | None = Field(default=None, alias="overrideInterests")
     exclude_course_ids: list[int] | None = Field(default=None, alias="excludeCourseIds")
     category: str | None = None
     current_semester_key: str | None = None

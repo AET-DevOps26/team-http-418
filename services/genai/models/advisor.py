@@ -12,7 +12,7 @@ class MessageRole(StrEnum):
 class StudentAdvisorProfile(BaseModel):
     model_config = {"populate_by_name": True}
 
-    study_program_id: Annotated[str, Field(default="invalid study id", alias="studyProgramId")]
+    study_program_id: Annotated[int, Field(default="0", alias="studyProgramId")]
     study_program: Annotated[str, Field(default="no study field", alias="studyProgramName")]
     semester: int
     career_goals: Annotated[list[str], Field(default=[], alias="careerGoals")]
@@ -52,7 +52,8 @@ class AdvisorRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     student: StudentAdvisorProfile
-    completed_courses: Annotated[list[CompletedCourseRef], Field(default=[], alias="completedCourses")]
+    completed_courses: Annotated[list[CompletedCourseRef | str], Field(default=[], alias="completedCourses")]
+    enrolled_courses: Annotated[list[str], Field(default=[], alias="enrolledCourses")]
 
     conversation_history: Annotated[list[ConversationMessage], Field(default=[], alias="conversationHistory")]
 

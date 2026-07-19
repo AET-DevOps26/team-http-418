@@ -2,26 +2,40 @@ import json
 import logging
 import os
 from collections.abc import AsyncGenerator
-from pathlib import Path
 
 from fastapi import HTTPException
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from llm.embeddings import get_embeddings
 from llm.provider import get_llm
-from models.advisor import AdvisorRequest, MessageRole
+from models.advisor import AdvisorRequest, CompletedCourseRef, MessageRole
 from models.recommendations import CourseRef
+from prompt_config import get_spec
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
 
 logger = logging.getLogger("genai")
 
 ADVISOR_CONTEXT_WINDOW = int(os.getenv("ADVISOR_CONTEXT_WINDOW", "10"))
-_ADVISOR_PROMPT = (Path(__file__).parent.parent / "prompts" / "advisor.txt").read_text()
+
+
+def _format_completed_courses(courses: list) -> str:
+    if not courses:
+        return "none"
+    parts = []
+    for c in courses:
+        if isinstance(c, CompletedCourseRef):
+            parts.append(f"{c.course_name} ({c.course_code}, {c.credits} ECTS)")
+        else:
+            parts.append(str(c))
+    return ", ".join(parts)
 
 
 def _build_messages(request: AdvisorRequest) -> list:
-    system_prompt = _ADVISOR_PROMPT.format(
+    completed_text = _format_completed_courses(request.completed_courses)
+    enrolled_text = ", ".join(request.enrolled_courses) if request.enrolled_courses else "none"
+
+    system_prompt = get_spec("advisor").render(
         study_program=request.student.study_program or "not specified",
         semester=request.student.semester or "not specified",
         career_goals=", ".join(request.student.career_goals) or "not specified",
@@ -32,7 +46,8 @@ def _build_messages(request: AdvisorRequest) -> list:
         credits_required=request.student.total_credits_required
         if request.student.total_credits_required is not None
         else "not specified",
-        completed_courses=request.completed_courses or "none",
+        completed_courses=completed_text,
+        enrolled_courses=enrolled_text,
     )
 
     messages: list = [SystemMessage(content=system_prompt)]
@@ -47,7 +62,21 @@ def _build_messages(request: AdvisorRequest) -> list:
     return messages
 
 
-async def do_thinking(messages):
+def _append_course_context(messages: list, courses: list[tuple[CourseRef, float]]) -> list:
+    """Attach retrieval results in one place so production and golden evals share it."""
+    courses_text = "\n".join(
+        f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
+        + (f" | {course.description}" if course.description else "")
+        for course, score in courses
+    )
+    if courses_text:
+        messages.append(SystemMessage(content=get_spec("advisor_rag_has_data").render(courses_text=courses_text)))
+    else:
+        messages.append(SystemMessage(content=get_spec("advisor_rag_no_data").render()))
+    return messages
+
+
+async def do_thinking(messages, study_program_id: int):
     """
     allows the model to do a semantic search for courses
     """
@@ -69,25 +98,13 @@ async def do_thinking(messages):
         try:
             embeddings = get_embeddings()
             query_vector = await embeddings.aembed_query(llm_query.get("query"))
-            course_ids = find_similar_courses(query_vector, [], 30)
+            course_ids = find_similar_courses(query_vector, [], 50, study_program_id)
             logger.info("advisor | fournd %d courses", len(course_ids))
         except Exception as e:
             logger.warning("advisor | semantic search failed: %s", e)
         courses = get_course_refs(course_ids)
 
-    courses_text = "\n".join(
-        f"- courseId={course.course_id} | {course.course_name} | score={score:.3f}"
-        + (f" | {course.description}" if course.description else "")
-        for course, score in courses
-    )
-    if courses_text:
-        messages.append(
-            SystemMessage(content=courses_text + "\nThis is your query response. now reply to the user prompt")
-        )
-    else:
-        messages.append(
-            SystemMessage(content="No additional course data available. Proceed to answer the user's question.")
-        )
+    _append_course_context(messages, courses)
     logger.info("advisor | messages_count=%d", len(messages))
     return messages
 
@@ -105,7 +122,7 @@ async def stream_advisor_response(request: AdvisorRequest, conversation_id: str)
 
     full_content = ""
     try:
-        messages = await do_thinking(messages)
+        messages = await do_thinking(messages, request.student.study_program_id)
         async for chunk in llm.astream(messages):
             token = chunk.content
             if token:
@@ -123,7 +140,7 @@ async def get_advisor_response(request: AdvisorRequest) -> dict:
     try:
         llm = get_llm()
         messages = _build_messages(request)
-        messages = await do_thinking(messages)
+        messages = await do_thinking(messages, request.student.study_program_id)
         result = await llm.ainvoke(messages)
         return {"content": result.content, "referencedCourses": []}
     except TimeoutError as e:

@@ -1,0 +1,53 @@
+name: GenAI Golden Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: PR branch, tag, or SHA to evaluate
+        required: true
+      base_ref:
+        description: Base ref used to decide whether the GenAI surface changed
+        required: true
+        default: main
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Verify GenAI-relevant diff
+        id: filter
+        run: |
+          git fetch origin "${{ inputs.base_ref }}" --depth=1
+          echo "changed=$(bash scripts/genai-quality-changed.sh FETCH_HEAD HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Stop for an unrelated ref
+        if: steps.filter.outputs.changed != 'true'
+        run: echo 'No GenAI quality input changed; evaluation skipped.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-python@v5
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          python-version: '3.13'
+      - name: Install GenAI dependencies
+        if: steps.filter.outputs.changed == 'true'
+        working-directory: ./services/genai
+        run: pip install -r requirements.txt
+      - name: Run deterministic evaluation
+        if: steps.filter.outputs.changed == 'true'
+        working-directory: ./services/genai
+        run: python -m evals.deterministic --output-dir ../../genai-eval-report
+      - name: Append summary
+        if: steps.filter.outputs.changed == 'true' && always()
+        run: cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload evaluation reports
+        if: steps.filter.outputs.changed == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genai-golden-evaluation-manual-${{ github.sha }}
+          path: genai-eval-report
+          retention-days: 30

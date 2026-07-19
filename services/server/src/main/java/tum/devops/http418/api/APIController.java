@@ -6,10 +6,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import tum.devops.http418.api.dto.*;
 import tum.devops.http418.data.CoursesDataDB;
 import tum.devops.http418.data.StudentDataDB;
@@ -26,6 +28,8 @@ public class APIController {
 
 	private final CoursesDataDB coursesDataDB;
 	private final StudentDataDB studentDataDB;
+	private final ExternalServices externalServices;
+	private final ObjectMapper objectMapper;
 	private final Logger logger = LoggerFactory.getLogger(APIController.class);
 
 	@GetMapping("/hello")
@@ -51,7 +55,7 @@ public class APIController {
 
 		if (ai) {
 			try {
-				final List<GenAICourseResponse> aiResponse = restClient.get() //TODO this does not work
+				final List<GenAICourseResponse> aiResponse = restClient.get()
 						.uri(uriBuilder -> uriBuilder
 								.path(GENAI_PATH + "/courses")
 								.queryParamIfPresent("query", Optional.ofNullable(query))
@@ -97,6 +101,12 @@ public class APIController {
 		} catch (EmptyResultDataAccessException ex) {
 			return ResponseEntity.notFound().build();
 		}
+	}
+
+	@PostMapping("/courses/prerequisites/batch")
+	public ResponseEntity<PrerequisiteBatchResponse> getCoursePrerequisitesBatch(
+			@RequestBody PrerequisiteBatchRequest request) {
+		return ResponseEntity.ok(buildPrerequisiteBatch(request.courseIds()));
 	}
 
 	@GetMapping("/courses/{id}/prerequisites/check")
@@ -157,14 +167,39 @@ public class APIController {
 	}
 
 	private PrerequisiteTree buildPrerequisiteTree(int id) {
-		final DetailedCourseData course = coursesDataDB.getById(id);
-		final String code = String.valueOf(course.getId());
+		final PrerequisiteBatchResponse response = buildPrerequisiteBatch(List.of((long) id));
+		if (!response.missingCourseIds().isEmpty()) {
+			throw new EmptyResultDataAccessException(1);
+		}
+		return response.trees().getFirst();
+	}
 
-		if (course.getPrevious_knowledge_en() == null || course.getPrevious_knowledge_en().isBlank()) {
-			return new PrerequisiteTree(course.getId(), code, course.getTitle_en(), List.of());
+	private PrerequisiteBatchResponse buildPrerequisiteBatch(List<Long> requestedIds) {
+		final List<Long> courseIds = requestedIds == null ? List.of()
+				: requestedIds.stream().filter(Objects::nonNull).distinct().toList();
+		final List<Long> missingCourseIds = new ArrayList<>();
+		final List<DetailedCourseData> validCourses = new ArrayList<>();
+		for (Long courseId : courseIds) {
+			try {
+				validCourses.add(coursesDataDB.getById(Math.toIntExact(courseId)));
+			} catch (EmptyResultDataAccessException | ArithmeticException e) {
+				missingCourseIds.add(courseId);
+			}
 		}
 
-		final List<Map<String, Object>> availableCourses = coursesDataDB.getAllCourseNames().stream()
+		final Map<Long, PrerequisiteTree> treesByCourseId = new HashMap<>();
+		final List<DetailedCourseData> coursesForExtraction = validCourses.stream()
+				.filter(course -> course.getPrevious_knowledge_en() != null
+						&& !course.getPrevious_knowledge_en().isBlank())
+				.toList();
+		for (DetailedCourseData course : validCourses) {
+			if (!coursesForExtraction.contains(course)) {
+				treesByCourseId.put((long) course.getId(), emptyPrerequisiteTree(course));
+			}
+		}
+
+		if (!coursesForExtraction.isEmpty()) {
+			final List<Map<String, Object>> availableCourses = coursesDataDB.getAllCourseNames().stream()
 				.map(row -> {
 					final Map<String, Object> m = new HashMap<>();
 					m.put("courseId", row.id());
@@ -172,24 +207,49 @@ public class APIController {
 					return m;
 				})
 				.toList();
-
-		final Map<String, Object> payload = new HashMap<>();
-		payload.put("courseId", (long) course.getId());
-		payload.put("courseName", course.getTitle_en());
-		payload.put("previousKnowledgeText", course.getPrevious_knowledge_en());
-		payload.put("availableCourses", availableCourses);
-
-		try {
-			final PrerequisiteTree tree = restClient.post()
-					.uri(GENAI_PATH + "/prerequisites/extract")
-					.contentType(MediaType.APPLICATION_JSON)
-					.body(payload)
-					.retrieve()
-					.body(PrerequisiteTree.class);
-			return tree != null ? tree : new PrerequisiteTree(course.getId(), code, course.getTitle_en(), List.of());
-		} catch (Exception e) {
-			return new PrerequisiteTree(course.getId(), code, course.getTitle_en(), List.of());
+			final Map<String, Object> payload = new HashMap<>();
+			payload.put("courses", coursesForExtraction.stream().map(course -> {
+				final Map<String, Object> coursePayload = new HashMap<>();
+				coursePayload.put("courseId", (long) course.getId());
+				coursePayload.put("courseName", course.getTitle_en());
+				coursePayload.put("previousKnowledgeText", course.getPrevious_knowledge_en());
+				return coursePayload;
+			}).toList());
+			payload.put("availableCourses", availableCourses);
+			try {
+				final String response = externalServices.callGenAiPost("/prerequisites/extract/batch", payload,
+						"prerequisite extraction for courses " + courseIds);
+				final Map<String, Object> body = objectMapper.readValue(response,
+						new TypeReference<Map<String, Object>>() {
+						});
+				final String treesJson = objectMapper.writeValueAsString(body.get("trees"));
+				final List<PrerequisiteTree> extracted = objectMapper.readValue(treesJson,
+						new TypeReference<List<PrerequisiteTree>>() {
+						});
+				if (extracted.size() != coursesForExtraction.size()) {
+					throw new IllegalArgumentException("GenAI returned an incomplete prerequisite batch");
+				}
+				for (PrerequisiteTree tree : extracted) {
+					treesByCourseId.put(tree.courseId(), tree);
+				}
+				if (!coursesForExtraction.stream().allMatch(course -> treesByCourseId.containsKey((long) course.getId()))) {
+					throw new IllegalArgumentException("GenAI returned a malformed prerequisite batch");
+				}
+			} catch (Exception e) {
+				logger.error("prerequisite extraction failed for courseIds={}: {}", courseIds, e.getMessage(), e);
+				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+						"Prerequisite extraction service is unavailable", e);
+			}
 		}
+
+		return new PrerequisiteBatchResponse(validCourses.stream()
+				.map(course -> treesByCourseId.get((long) course.getId()))
+				.filter(Objects::nonNull)
+				.toList(), missingCourseIds);
+	}
+
+	private static PrerequisiteTree emptyPrerequisiteTree(DetailedCourseData course) {
+		return new PrerequisiteTree(course.getId(), String.valueOf(course.getId()), course.getTitle_en(), List.of());
 	}
 
 	public static List<PrerequisiteTree.PrerequisiteNode> flattenPrerequisiteNodes(

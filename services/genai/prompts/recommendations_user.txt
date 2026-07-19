@@ -1,0 +1,1 @@
+Select the best courses for this student and return the JSON array.

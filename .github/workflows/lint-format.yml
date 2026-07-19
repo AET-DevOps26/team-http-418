@@ -164,3 +164,26 @@ jobs:
 
       - name: Check lint
         run: ruff check .
+
+  lint-gate:
+    # This job deliberately runs when component jobs are skipped, so it is safe
+    # to make it a required check for every pull request.
+    if: always()
+    needs:
+      - changes
+      - lint-client
+      - lint-server
+      - lint-scraper
+      - lint-genai
+      - lint-pdf-parser
+      - lint-user-profile-service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when a lint job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          case ",$RESULTS," in
+            *,failure,*|*,cancelled,*) exit 1 ;;
+            *) echo "Lint gate passed: $RESULTS" ;;
+          esac

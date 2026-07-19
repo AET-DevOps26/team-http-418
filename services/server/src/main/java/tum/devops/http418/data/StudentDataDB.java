@@ -165,7 +165,10 @@ public class StudentDataDB {
 				"UPDATE student_completed_courses SET status = 'confirmed' WHERE username = :username AND status = 'pending'",
 				params);
 		template.update(
-				"DELETE FROM student_completed_courses WHERE username = :username AND status IN ('unmatched', 'skipped')",
+				"UPDATE student_completed_courses SET status = 'confirmed' WHERE username = :username AND status = 'unmatched'",
+				params);
+		template.update(
+				"DELETE FROM student_completed_courses WHERE username = :username AND status = 'skipped'",
 				params);
 		return confirmed;
 	}
@@ -392,6 +395,19 @@ public class StudentDataDB {
 		}
 	}
 
+	public void updateRoadmapStatus(String username, String status) {
+		template.update(
+				"UPDATE student_roadmaps SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE username = :username",
+				new MapSqlParameterSource()
+						.addValue("username", username)
+						.addValue("status", status));
+	}
+
+	public void markStrandedRoadmapsAsError() {
+		template.update("UPDATE student_roadmaps SET status = 'ERROR', updated_at = CURRENT_TIMESTAMP WHERE status = 'GENERATING'",
+				new MapSqlParameterSource());
+	}
+
 	// --- Progress helpers ---
 
 	public int sumCredits(String username) {
@@ -419,7 +435,7 @@ public class StudentDataDB {
 	}
 
 	public List<Long> getCompletedCourseIds(String username) {
-		return template.queryForList("SELECT course_id FROM student_completed_courses WHERE username = :username AND status = 'confirmed'",
+		return template.queryForList("SELECT course_id FROM student_completed_courses WHERE username = :username AND status = 'confirmed' AND course_id IS NOT NULL",
 				new MapSqlParameterSource("username", username), Long.class);
 	}
 

@@ -40,6 +40,11 @@ spec:
                   key: DB_PASS
             - name: POSTGRES_DB
               value: {{ .Values.postgres.database | quote }}
+            - name: COURSES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: aidan-config
+                  key: COURSES_DB_NAME
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data

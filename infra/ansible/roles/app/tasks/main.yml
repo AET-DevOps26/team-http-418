@@ -1,8 +1,36 @@
----
 - name: Create app directory
   file:
     path: /opt/aidan
     state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+
+- name: Create monitoring directory
+  file:
+    path: /opt/aidan/monitoring
+    state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+
+- name: Copy monitoring configuration files
+  copy:
+    src: "{{ playbook_dir }}/../../infra/helm/aidan-monitoring/{{ item }}"
+    dest: "/opt/aidan/monitoring/{{ item }}"
+    owner: azureuser
+    group: azureuser
+    mode: '0644'
+  loop:
+    - prometheus.yml
+    - prometheus-rules.yml
+    - loki-config.yaml
+    - promtail.yml
+
+- name: Copy Grafana provisioning directory
+  copy:
+    src: "{{ playbook_dir }}/../../infra/helm/aidan-monitoring/grafana/"
+    dest: "/opt/aidan/monitoring/grafana/"
     owner: azureuser
     group: azureuser
     mode: '0755'
@@ -12,30 +40,189 @@
   become_user: azureuser
   no_log: true
 
-- name: Template docker-compose.prod.yml
-  template:
-    src: docker-compose.prod.yml.j2
-    dest: /opt/aidan/docker-compose.yml
-    owner: azureuser
-    group: azureuser
-    mode: '0644'
+- name: Deploy application with a recoverable Compose configuration
+  block:
+    - name: Check for an existing Compose configuration
+      stat:
+        path: /opt/aidan/docker-compose.yml
+      register: existing_compose
 
-- name: Template .env file
-  template:
-    src: .env.j2
-    dest: /opt/aidan/.env
-    owner: azureuser
-    group: azureuser
-    mode: '0600'
+    - name: Preserve the current Compose configuration
+      copy:
+        src: /opt/aidan/docker-compose.yml
+        dest: /opt/aidan/docker-compose.previous.yml
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: '0644'
+      when: existing_compose.stat.exists
 
-- name: Pull latest images
-  shell: docker compose pull
-  args:
-    chdir: /opt/aidan
-  become_user: azureuser
+    - name: Preserve the current environment file
+      copy:
+        src: /opt/aidan/.env
+        dest: /opt/aidan/.env.previous
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: '0600'
+      when: existing_compose.stat.exists
 
-- name: Start application
-  shell: docker compose up -d --remove-orphans
-  args:
-    chdir: /opt/aidan
-  become_user: azureuser
+    - name: Render the candidate Compose configuration
+      template:
+        src: docker-compose.prod.yml.j2
+        dest: /opt/aidan/docker-compose.candidate.yml
+        owner: azureuser
+        group: azureuser
+        mode: '0644'
+
+    - name: Template .env file before Compose validation
+      template:
+        src: .env.j2
+        dest: /opt/aidan/.env
+        owner: azureuser
+        group: azureuser
+        mode: '0600'
+
+    - name: Validate the candidate Compose configuration before changing services
+      command: docker compose -f docker-compose.candidate.yml config -q
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+
+    - name: Activate the validated Compose configuration
+      copy:
+        src: /opt/aidan/docker-compose.candidate.yml
+        dest: /opt/aidan/docker-compose.yml
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: '0644'
+
+    - name: Prune unused Docker images to free disk space
+      command: docker image prune -a -f
+      become_user: azureuser
+
+    - name: Pull the validated application images
+      command: docker compose pull
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+
+    - name: Stop application services for course migration
+      command: docker compose stop server client user-profile-service pdf-parser genai
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: application_stop
+      failed_when: application_stop.rc not in [0, 1]
+
+    - name: Start PostgreSQL for course migration
+      command: docker compose up -d db
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+
+    - name: Wait for PostgreSQL
+      command: docker compose exec -T db pg_isready -U postgres
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: postgres_ready
+      retries: 30
+      delay: 2
+      until: postgres_ready.rc == 0
+
+    - name: Seed courses database
+      command: docker compose run --rm db-seed
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+
+    - name: Start all services and wait for health checks
+      command: docker compose up -d --wait --wait-timeout 180 --remove-orphans
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+
+    - name: Verify all critical services are running
+      command: docker compose ps --status running --services
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: running_services
+      changed_when: false
+
+    - name: Require every critical service to be running
+      assert:
+        that:
+          - "item in running_services.stdout_lines"
+        fail_msg: "Critical Compose service {{ item }} is not running."
+      loop:
+        - db
+        - server
+        - client
+        - user-profile-service
+        - pdf-parser
+        - genai
+        - prometheus
+        - grafana
+        - promtail
+        - loki
+        - postgres-exporter
+        - cadvisor
+
+    - name: Smoke-test the client and proxied API before accepting the deployment
+      command: "curl --fail --show-error --silent --retry 3 http://127.0.0.1{{ item }}"
+      become_user: azureuser
+      changed_when: false
+      loop:
+        - /
+        - /health
+  rescue:
+    - name: Capture deployment failure diagnostics
+      shell: |
+        echo "=== Container status ==="
+        docker compose ps -a 2>&1 || true
+        echo ""
+        echo "=== Recent logs (last 30 lines per service) ==="
+        docker compose logs --tail 30 2>&1 || true
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      register: failure_diagnostics
+      ignore_errors: true
+
+    - name: Show deployment failure diagnostics
+      debug:
+        var: failure_diagnostics.stdout_lines
+
+    - name: Restore the previous Compose configuration
+      copy:
+        src: /opt/aidan/docker-compose.previous.yml
+        dest: /opt/aidan/docker-compose.yml
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: '0644'
+      when: existing_compose.stat.exists | default(false)
+
+    - name: Restore the previous environment file
+      copy:
+        src: /opt/aidan/.env.previous
+        dest: /opt/aidan/.env
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: '0600'
+      when: existing_compose.stat.exists | default(false)
+
+    - name: Restart the previous application after a failed deployment
+      command: docker compose up -d --remove-orphans
+      args:
+        chdir: /opt/aidan
+      become_user: azureuser
+      when: existing_compose.stat.exists | default(false)
+
+    - name: Fail the deployment after recovery
+      fail:
+        msg: "Deployment failed; the previous Compose configuration was restored and restarted."

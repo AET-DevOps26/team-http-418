@@ -57,7 +57,7 @@ class RoadmapEndpointsTest extends BaseTest {
 
 		mockMvc.perform(put("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON).content(roadmapJson)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("ACTIVE"))
+				.andExpect(jsonPath("$.status").value("READY"))
 				.andExpect(jsonPath("$.totalPlannedCredits").value(5))
 				.andExpect(jsonPath("$.estimatedGraduation").value("25S"))
 				.andExpect(jsonPath("$.semesters[0].label").value("Summer 2025"))
@@ -69,7 +69,7 @@ class RoadmapEndpointsTest extends BaseTest {
 		mockMvc.perform(
 				get("/api/" + API_VERSION + "/me/roadmap").header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("ACTIVE"))
+				.andExpect(jsonPath("$.status").value("READY"))
 				.andExpect(jsonPath("$.semesters[0].semesterKey").value("25S"))
 				.andExpect(jsonPath("$.totalPlannedCredits").value(5))
 				.andExpect(jsonPath("$.estimatedGraduation").value("25S"));
@@ -109,9 +109,9 @@ class RoadmapEndpointsTest extends BaseTest {
 				.andExpect(jsonPath("$.courses[0].courseId").value(100))
 				.andExpect(jsonPath("$.courses[0].courseCode").isNotEmpty())
 				.andExpect(jsonPath("$.courses[0].courseName").value("Introduction to Computer Science"))
-				.andExpect(jsonPath("$.courses[0].credits").value(4))
+				.andExpect(jsonPath("$.courses[0].credits").value(6))
 				.andExpect(jsonPath("$.courses[0].status").value("PLANNED"))
-				.andExpect(jsonPath("$.totalCredits").value(4));
+				.andExpect(jsonPath("$.totalCredits").value(6));
 
 		mockMvc.perform(delete("/api/" + API_VERSION + "/me/roadmap/semesters/25S/courses/100")
 				.header("Authorization", "Bearer " + token)).andExpect(status().isNoContent());

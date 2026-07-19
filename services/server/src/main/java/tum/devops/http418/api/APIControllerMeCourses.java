@@ -27,9 +27,15 @@ public class APIControllerMeCourses {
 				size);
 		final int total = studentDataDB.countCompletedCourses(tumid);
 		final List<CompletedCourseDTO> dtos = rows.stream().map(row -> {
-			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
-			return new CompletedCourseDTO(row.courseId(), String.valueOf(row.courseId()),
-					name != null ? name : "Unknown",
+			if (row.courseId() != null) {
+				final String name = coursesDataDB.getCourseTitleEn(row.courseId());
+				return new CompletedCourseDTO(row.courseId(), String.valueOf(row.courseId()),
+						name != null ? name : "Unknown",
+						row.grade(), row.credits(), row.semesterKey(), row.category());
+			}
+			return new CompletedCourseDTO(null,
+					row.moduleId() != null ? row.moduleId() : "—",
+					row.moduleTitle() != null ? row.moduleTitle() : "Unknown",
 					row.grade(), row.credits(), row.semesterKey(), row.category());
 		}).toList();
 		return ResponseEntity.ok(PageDTO.of(dtos, normalizedPage, size, total));

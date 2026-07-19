@@ -33,22 +33,31 @@ public class ExternalServices {
 	}
 
 	public String callTranscriptMatch(Object body) {
+		return callGenAiPost("/transcript/match", body, "transcript match");
+	}
+
+	/**
+	 * Sends JSON to GenAI through the shared HTTP/1.1 client. Keeping serialization and
+	 * error handling here avoids subtly different behaviour between GenAI integrations.
+	 */
+	public String callGenAiPost(String path, Object body, String operation) {
 		try {
 			final String json = objectMapper.writeValueAsString(body);
 			final HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create(GENAI_PATH + "/transcript/match"))
+					.uri(URI.create(GENAI_PATH + path))
 					.header("Content-Type", "application/json")
 					.POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
 					.build();
 			final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			if (response.statusCode() >= 400) {
-				throw new RuntimeException(response.statusCode() + " " + response.body());
+			if (response.statusCode() < 200 || response.statusCode() >= 300) {
+				throw new RuntimeException("GenAI " + operation + " failed with HTTP " + response.statusCode()
+						+ ": " + response.body());
 			}
 			return response.body();
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new RuntimeException("Transcript match request failed", e);
+			throw new RuntimeException("GenAI " + operation + " request failed", e);
 		}
 	}
 

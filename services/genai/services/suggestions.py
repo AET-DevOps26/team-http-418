@@ -1,13 +1,11 @@
 import json
 import logging
-from pathlib import Path
 
 from fastapi import HTTPException
 
 from llm.provider import get_llm
 from models.advisor import AdvisorPromptSuggestionsRequest
-
-_SUGGESTIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "suggestions.txt").read_text()
+from prompt_config import get_spec
 
 logger = logging.getLogger("genai")
 
@@ -15,7 +13,7 @@ logger = logging.getLogger("genai")
 def _build_prompt(request: AdvisorPromptSuggestionsRequest) -> str:
     student = request.student
     completed = ", ".join(f"{c.course_name} ({c.course_code})" for c in request.completed_courses) or "none"
-    return _SUGGESTIONS_PROMPT.format(
+    return get_spec("suggestions").render(
         study_program=student.study_program,
         semester=student.semester,
         current_semester=request.current_semester or "not specified",

@@ -16,7 +16,7 @@ type EditState = {
 export function ImportedTable({ imported }: Props) {
 	const queryClient = useQueryClient();
 	const [editing, setEditing] = useState<EditState | null>(null);
-	const [loadingId, setLoadingId] = useState<string | null>(null);
+	const [loadingId, setLoadingId] = useState<number | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	function startEdit(course: ReviewableCourse) {
@@ -35,11 +35,11 @@ export function ImportedTable({ imported }: Props) {
 			setError("Invalid grade value.");
 			return;
 		}
-		setLoadingId(course.courseId ?? null);
+		setLoadingId(course.rowId);
 		setError(null);
 		try {
 			await updateImportGrade(course.rowId, newGrade);
-			queryClient.invalidateQueries({ queryKey: ["importState"] });
+			await queryClient.refetchQueries({ queryKey: ["importState"] });
 			setEditing(null);
 		} catch {
 			setError("Save failed. Try again.");
@@ -49,11 +49,11 @@ export function ImportedTable({ imported }: Props) {
 	}
 
 	async function handleUnmatch(course: ReviewableCourse) {
-		setLoadingId(course.courseId ?? null);
+		setLoadingId(course.rowId);
 		setError(null);
 		try {
 			await unresolveImportCourse(course.rowId);
-			queryClient.invalidateQueries({ queryKey: ["importState"] });
+			await queryClient.refetchQueries({ queryKey: ["importState"] });
 		} catch {
 			setError("Unmatch failed. Try again.");
 		} finally {
@@ -100,7 +100,7 @@ export function ImportedTable({ imported }: Props) {
 					{imported.map((c) => {
 						const key = c.rowId;
 						const isEditing = editing?.rowId === c.rowId;
-						const isLoading = loadingId === c.courseId;
+						const isLoading = loadingId === c.rowId;
 						return (
 							<tr key={key}>
 								<td>{c.titleEn ?? c.titleDe ?? c.moduleId ?? "—"}</td>

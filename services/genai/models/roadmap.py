@@ -22,8 +22,9 @@ class RoadmapPreferences(BaseModel):
 class CourseRef(BaseModel):
     model_config = {"populate_by_name": True}
 
-    course_id: int = Field(alias="courseId")
+    course_id: int | None = Field(alias="courseId")
     course_code: str = Field(alias="courseCode")
+    course_name: str | None = Field(default=None, alias="courseName")
     credits: int
     category: str | None = None
     semester: str | None = None
@@ -36,6 +37,7 @@ class AvailableCourseRef(BaseModel):
     course_code: str = Field(alias="courseCode")
     course_name: str = Field(alias="courseName")
     credits: int
+    category: str | None = None
     preferred_semester: str | None = Field(default=None, alias="preferredSemester")
     has_prerequisites: bool = Field(default=False, alias="hasPrerequisites")
 
@@ -66,6 +68,29 @@ class RoadmapRequest(BaseModel):
     degree_requirements: DegreeRequirements = Field(alias="degreeRequirements")
     available_courses: list[AvailableCourseRef] = Field(alias="availableCourses")
     current_semester_key: str = Field(alias="currentSemesterKey")
+
+
+class RoadmapCourseSelection(BaseModel):
+    model_config = {"populate_by_name": True, "extra": "forbid"}
+
+    course_id: int = Field(alias="courseId")
+    course_code: str = Field(alias="courseCode", min_length=1)
+    reason: str = Field(min_length=1)
+
+
+class RoadmapSemesterSelection(BaseModel):
+    model_config = {"populate_by_name": True, "extra": "forbid"}
+
+    semester_key: str = Field(alias="semesterKey", min_length=3)
+    total_credits: int = Field(alias="totalCredits", ge=0)
+    courses: list[RoadmapCourseSelection]
+
+
+class RoadmapGeneration(BaseModel):
+    model_config = {"extra": "forbid"}
+
+    semesters: list[RoadmapSemesterSelection]
+    summary: str = ""
 
 
 StudentRoadmapProfile.model_rebuild()

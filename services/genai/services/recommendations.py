@@ -1,25 +1,35 @@
 import json
 import logging
 from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import HTTPException
+from langchain_core.messages import HumanMessage, SystemMessage
 from psycopg2 import DatabaseError, OperationalError
 
 from db import ensure_schema_initialized
 from llm.embeddings import get_embedding_dimensions, get_embeddings
 from llm.provider import get_llm
-from models.recommendations import CourseRef, RecommendationsRequest
+from models.recommendations import CourseRef, RecommendationSelection, RecommendationsRequest
+from prompt_config import get_spec
 from repositories.courses import get_course_refs
 from repositories.recommendations import find_similar_courses
-
-_RECOMMENDATIONS_PROMPT = (Path(__file__).parent.parent / "prompts" / "recommendations.txt").read_text()
 
 logger = logging.getLogger("genai")
 
 
-def _build_query(goals: list[str], interests: list[str], skills: list[str] | None = None) -> str:
-    return " ".join(goals + interests + (skills or []))
+def _build_query(
+    goals: list[str],
+    interests: list[str],
+    skills: list[str] | None = None,
+    study_program: str | None = None,
+    semester: int | None = None,
+) -> str:
+    parts = goals + interests + (skills or [])
+    if study_program and study_program != "no study program":
+        parts.append(study_program)
+    if semester:
+        parts.append(f"semester {semester}")
+    return " ".join(parts)
 
 
 def _build_prompt(
@@ -42,33 +52,80 @@ def _build_prompt(
     if request.student.role_preference:
         career_lines.append(f"- Role preference: {request.student.role_preference}")
     career_context = ("\n" + "\n".join(career_lines) + "\n") if career_lines else ""
+    enrolled_names = request.enrolled_courses or []
 
-    return _RECOMMENDATIONS_PROMPT.format(
+    return get_spec("recommendations").render(
         limit=request.limit,
         study_program=request.student.study_program or "not specified",
         semester=request.student.semester,
+        current_semester_key=request.current_semester_key or "not specified",
         goals=", ".join(goals) or "not specified",
         interests=", ".join(interests) or "not specified",
         skills=", ".join(skills) or "not specified",
         completed_names=", ".join(completed_names) or "none",
+        enrolled_names=", ".join(enrolled_names) or "none",
         courses_text=courses_text,
         career_context=career_context,
     )
 
 
+def _filter_candidates(
+    request: RecommendationsRequest, candidates: list[tuple[CourseRef, float]]
+) -> list[tuple[CourseRef, float]]:
+    """Apply every eligibility rule before a candidate reaches the LLM prompt."""
+    excluded_ids = set(request.exclude_course_ids or [])
+    unavailable = set(request.available_courses or [])
+    completed = set(request.completed_courses or [])
+    enrolled = set(request.enrolled_courses or [])
+
+    def eligible(course: CourseRef) -> bool:
+        if course.course_id in excluded_ids:
+            return False
+        if course.course_name in completed or course.course_code in completed:
+            return False
+        if course.course_name in enrolled or course.course_code in enrolled:
+            return False
+        if unavailable and str(course.course_id) not in unavailable and course.course_code not in unavailable:
+            return False
+        category = (request.category or "").strip().casefold()
+        return not category or category == "all" or (course.category or "").casefold() == category
+
+    return [(course, score) for course, score in candidates if eligible(course)]
+
+
+def _parse_selections(payload: object, allowed_ids: set[int]) -> list[dict]:
+    if not isinstance(payload, list):
+        raise ValueError("LLM returned unexpected structure")
+    selections = [RecommendationSelection.model_validate(item) for item in payload]
+    ids = [selection.course_id for selection in selections]
+    if len(ids) != len(set(ids)):
+        raise ValueError("LLM returned duplicate course IDs")
+    if not set(ids).issubset(allowed_ids):
+        raise ValueError("LLM returned a course outside the candidate corpus")
+    return [selection.model_dump(by_alias=True) for selection in selections]
+
+
 async def generate_recommendations(request: RecommendationsRequest) -> dict:
-    goals = request.override_goals or request.student.career_goals
-    interests = request.override_interests or request.student.interests
+    goals = request.student.career_goals
+    interests = request.student.interests
 
     skills = request.student.skills or []
-    query = _build_query(goals, interests, skills)
+    query = _build_query(
+        goals,
+        interests,
+        skills,
+        study_program=request.student.study_program,
+        semester=request.student.semester,
+    )
     if not query.strip():
         logger.warning("recommendations | no goals or interests — empty query")
         return {"recommendations": [], "generatedAt": _now()}
 
     try:
         embeddings = get_embeddings()
-        query_vector = await embeddings.aembed_query(query)
+        query_vector = await embeddings.aembed_query(
+            f"Instruct: Given a student's career goals, interests, and skills, retrieve relevant courses\nQuery: {query}"
+        )
     except Exception as e:
         logger.error("recommendations | embedding failed: %s", e)
         raise HTTPException(
@@ -76,14 +133,13 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
             detail="Embedding service unavailable — could not convert query to vector",
         ) from e
 
-    _exclude_ids = set(request.exclude_course_ids or [])
-
     try:
         ensure_schema_initialized(dimensions=get_embedding_dimensions())
         rows = find_similar_courses(
             query_vector=query_vector,
             candidate_ids=[],
-            limit=request.limit * 3,
+            limit=request.limit * 5,
+            study_program_id=request.student.study_program_id,
         )
     except OperationalError as e:
         logger.error("recommendations | DB connection failed: %s", e)
@@ -102,21 +158,22 @@ async def generate_recommendations(request: RecommendationsRequest) -> dict:
         logger.warning("recommendations | no embeddings found for candidates")
         return {"recommendations": [], "generatedAt": _now()}
 
-    logger.info("recommendations | found %d candidates", len(rows))
+    logger.info("recommendations | found %d retrieved candidates", len(rows))
 
-    # course_map = {course.course_id: course for course in request.available_courses}
-    # candidates = [(course_map[row[0]], row[1]) for row in rows if row[0] in course_map]
     candidates: list[tuple[CourseRef, float]] = get_course_refs(rows)
+
+    candidates = _filter_candidates(request, candidates)
 
     prompt = _build_prompt(request, goals, interests, candidates)
 
-    # logger.info("recommendations | prompt=%s", prompt)
     try:
         llm = get_llm()
-        result = await llm.ainvoke(prompt)
-        recommendations = json.loads(result.content)
-        if not isinstance(recommendations, list):
-            raise ValueError("LLM returned unexpected structure")
+        messages = [
+            SystemMessage(content=prompt),
+            HumanMessage(content=get_spec("recommendations_user").render()),
+        ]
+        result = await llm.ainvoke(messages)
+        recommendations = _parse_selections(json.loads(result.content), {c.course_id for c, _ in candidates})
     except (json.JSONDecodeError, ValueError) as e:
         logger.error("recommendations | LLM response invalid: %s", e)
         raise HTTPException(

@@ -7,7 +7,7 @@ Your answer will be in 2 steps.
 
 in the first, you can do a semantic query on the course database in the exact following format.
 Rules for the query:
-- a short, topic-focused search string optimized for semantic embedding
+- A short, topic-focused search string optimized for semantic embedding.
 - Keep only the actual subject/topic the user wants to learn about.
 - Drop institution names (e.g. "Technical University of Munich") — the corpus
   is already scoped to one institution, so they add no signal.
@@ -17,6 +17,13 @@ Rules for the query:
   description might actually use (e.g. "ML" -> "machine learning, supervised
   learning, neural networks"), but don't over-expand into unrelated fields.
 - Output plain keywords/phrases, not a full sentence.
+
+Good query examples:
+- "machine learning neural networks deep learning" — topic-focused, embedding-optimized
+- "distributed systems cloud computing microservices" — related terms included
+Bad query examples:
+- "What courses about ML should I take at TUM?" — full sentence, includes institution name
+- "master thesis" — too generic, not topic-focused
 
 use only this json for your answer, no Markdown or other formatting:
 {{
@@ -41,3 +48,4 @@ Student profile:
 - Interests: {interests}
 - Credits earned: {credits_earned} / {credits_required}
 - Completed courses: {completed_courses}
+- Currently enrolled: {enrolled_courses}
