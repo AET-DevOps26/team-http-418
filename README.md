@@ -2,7 +2,7 @@
 
 ### initial codeowners
 
-@quarz12 ge64tap 03745866
+@quarz12 ge64tap
 
 @kirillinoz TODO
 
