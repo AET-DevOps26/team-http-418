@@ -26,7 +26,7 @@ spec:
       initContainers:
         - name: wait-for-postgres
           image: {{ .Values.postgres.image }}
-          command: ['sh', '-c', 'until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo "waiting for postgres..."; sleep 3; done']
+          command: ['sh', '-c', 'timeout 120 sh -c "until pg_isready -h postgres-service -p {{ .Values.postgres.port }}; do echo waiting for postgres...; sleep 3; done"']
       containers:
         - name: seed-courses
           image: {{ .Values.postgres.image }}

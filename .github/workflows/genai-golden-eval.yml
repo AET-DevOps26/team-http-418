@@ -42,7 +42,7 @@ jobs:
         working-directory: ./services/genai
         run: python -m evals.deterministic --output-dir ../../genai-eval-report
       - name: Append summary
-        if: steps.filter.outputs.changed == 'true'
+        if: steps.filter.outputs.changed == 'true' && always()
         run: cat genai-eval-report/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload evaluation reports
         if: steps.filter.outputs.changed == 'true' && always()
