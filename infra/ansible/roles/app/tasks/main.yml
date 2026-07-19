@@ -174,7 +174,6 @@
       loop:
         - /
         - /health
-        - :3001/api/health
   rescue:
     - name: Capture deployment failure diagnostics
       shell: |
