@@ -355,25 +355,4 @@ public class APIControllerMe {
 				.contentType(MediaType.APPLICATION_JSON).body(newProfile).retrieve().body(String.class));
 	}
 
-	@GetMapping("/schedule")
-	public ResponseEntity<WeeklyScheduleDTO> getSchedule(@AuthenticationPrincipal String tumid,
-			@RequestParam(required = false) String semester) {
-		final List<StudentDataDB.EnrolledCourseRow> enrolledRows = studentDataDB.getEnrolledCourses(tumid, 0, 100)
-				.stream()
-				.filter(row -> semester == null || semester.equals(row.semesterKey()))
-				.toList();
-		final List<ScheduleEventDTO> events = new ArrayList<>();
-
-		for (final StudentDataDB.EnrolledCourseRow row : enrolledRows) {
-			final String name = coursesDataDB.getCourseTitleEn(row.courseId());
-			final List<Appointment> appointments = coursesDataDB.getAppointments((int) row.courseId());
-			for (final Appointment apt : appointments) {
-				events.add(new ScheduleEventDTO(row.courseId(), name != null ? name : "Unknown", apt.weekday_key(),
-						apt.time_from(), apt.time_to(), apt.place()));
-			}
-		}
-
-		return ResponseEntity
-				.ok(new WeeklyScheduleDTO(semester != null ? semester : "current", events));
-	}
 }

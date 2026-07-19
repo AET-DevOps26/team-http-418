@@ -28,6 +28,7 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
 	compileOnly("org.projectlombok:lombok:1.18.46")
 	annotationProcessor("org.projectlombok:lombok:1.18.46")

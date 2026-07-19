@@ -90,22 +90,6 @@ Injection: vector similarity search (goals + interests &rarr; embedding query &r
 
 Injection: system prompt interpolation (`prompts/roadmap.txt`).
 
-### Plan validation (currently unwired)
-
-| Layer | Path |
-|---|---|
-| Client | (no server caller wired) |
-| Server | (no caller &mdash; genai endpoint exists) |
-| GenAI | `POST /v1/me/plan/validate` |
-
-| Data category | Fields | Source |
-|---|---|---|
-| User-input | semester, careerGoals, preferences (maxCreditsPerSemester, blockedTimeSlots, preferNoBackToBack) | Would come from profile |
-| User-analyzed | completedCourses (courseCode, courseName) | Would come from `StudentDataDB` |
-| Feature-specific | semesterPlan (semesterKey, totalCredits, courses with schedules) | Would come from client request |
-
-Injection: system prompt interpolation (`prompts/plan_validate.txt`).
-
 ### Prerequisites extraction
 
 | Layer | Path |
@@ -167,5 +151,4 @@ Writes to `course_embeddings` table in courses-data DB.
 ## 4. Known gaps
 
 - **`profiles` table caches stale copies.** The `profiles.completed_courses` / `profiles.enrolled_courses` fields are copies populated by the profile service. The authoritative rows live in `security.student_completed_courses` / `security.student_enrolled_courses`. The recommendations flow reads from the profile cache; other features (advisor, roadmap) read from the security DB directly.
-- **Plan validation has no server caller.** GenAI exposes `POST /v1/me/plan/validate` but no Spring Boot controller calls it.
 - **Embedding refresh is manual.** After the scraper updates courses, embeddings must be regenerated via the `/v1/embeddings/courses` endpoint. There is no automatic trigger.

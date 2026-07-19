@@ -3,7 +3,6 @@ import type { AcademicProgress } from "#/api/types";
 type Props = {
 	progress: AcademicProgress;
 	creditsRequired: number;
-	semesterCredits?: number;
 };
 
 type KpiCardProps = {
@@ -56,11 +55,7 @@ function KpiCard({ label, value, sub, ai }: KpiCardProps) {
 	);
 }
 
-export function KpiStrip({
-	progress,
-	creditsRequired,
-	semesterCredits,
-}: Props) {
+export function KpiStrip({ progress, creditsRequired }: Props) {
 	const { totalCreditsEarned, gpa, enrolledCourseCount } = progress;
 	const remaining = Math.max(0, creditsRequired - totalCreditsEarned);
 
@@ -73,8 +68,8 @@ export function KpiStrip({
 			/>
 			<KpiCard
 				label="This Semester"
-				value={semesterCredits ?? enrolledCourseCount}
-				sub={semesterCredits != null ? "ECTS enrolled" : "courses enrolled"}
+				value={enrolledCourseCount}
+				sub="courses enrolled"
 			/>
 			<KpiCard
 				label="GPA"

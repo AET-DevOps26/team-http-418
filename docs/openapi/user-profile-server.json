@@ -1,0 +1,205 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8060",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/v1/upsert/{id}": {
+      "post": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "updateProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/get/{id}": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/Student"
+          },
+          "completedCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enrolledCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availableCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "type": "string"
+          },
+          "semesterKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "student"
+        ]
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "studyProgramId": {
+            "type": "string"
+          },
+          "studyProgramName": {
+            "type": "string"
+          },
+          "semester": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "careerGoals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "interests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkload": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsEarned": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expectedGraduation": {
+            "type": "string"
+          },
+          "industryPreference": {
+            "type": "string"
+          },
+          "rolePreference": {
+            "type": "string"
+          },
+          "onboardingCompleted": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

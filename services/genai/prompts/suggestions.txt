@@ -13,18 +13,18 @@ Student profile:
 
 Categories available:
 - RECOMMENDATIONS — course selection, what to take next
-- SCHEDULE — graduation timeline, semester planning, credit progress
+- PROGRESS — graduation timeline and credit progress
 - PREREQUISITES — missing prerequisites, course unlocks
 
 Guidelines:
-- Student near graduation (few credits remaining) → focus on SCHEDULE chips ("Am I on track to graduate?")
+- Student near graduation (few credits remaining) → focus on PROGRESS chips ("Am I on track to graduate?")
 - Student in early semesters → focus on RECOMMENDATIONS chips ("What core modules should I start with?")
 - Always make chips feel specific to this student, not generic
 - Each chip should be a natural question a student would actually ask
 
 Return ONLY a valid JSON array. No explanation, no markdown, just JSON:
 [
-  {{"text": "<question the student would click>", "category": "<RECOMMENDATIONS|SCHEDULE|PREREQUISITES>"}},
+  {{"text": "<question the student would click>", "category": "<RECOMMENDATIONS|PROGRESS|PREREQUISITES>"}},
   {{"text": "<question>", "category": "<category>"}},
   {{"text": "<question>", "category": "<category>"}},
   {{"text": "<question>", "category": "<category>"}}

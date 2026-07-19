@@ -44,7 +44,7 @@ Client dev server runs on `:3000` (or next available port like `:3001`). Vite pr
 Three PostgreSQL databases in one container:
 - **courses-data** — course catalog (read-only from server, populated by scraper)
 - **security** — credentials, completed/enrolled courses, conversations, roadmaps
-- **profiles** — user profile cache (managed by user-profile-service)
+- **profiles** — persistent user profiles (managed by user-profile-service)
 
 `student_completed_courses` has a `status` column: `confirmed | pending | unmatched | skipped`. Dashboard/progress queries filter `WHERE status = 'confirmed'`. Import flow uses pending/unmatched states.
 

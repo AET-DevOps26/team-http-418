@@ -1,18 +1,37 @@
 {
   "id": "f769472f-e6a3-449a-8f1c-338f7a576332",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "title": "Component Diagram",
   "type": "ComponentDiagram",
   "nodes": [
+    {
+      "id": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "width": 1230,
+      "height": 1325,
+      "type": "componentSubsystem",
+      "position": {
+        "x": 205,
+        "y": 335
+      },
+      "data": {
+        "name": "Server",
+        "isComponentSubsystemHeaderShown": true
+      },
+      "measured": {
+        "width": 1230,
+        "height": 1325
+      }
+    },
     {
       "id": "bde62538-e722-4449-9659-7241314fbe0e",
       "width": 180,
       "height": 120,
       "type": "component",
       "position": {
-        "x": 920,
-        "y": 370
+        "x": 470,
+        "y": 65
       },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
         "name": "Client",
         "isComponentHeaderShown": true
@@ -28,9 +47,10 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 1240,
-        "y": 470
+        "x": 975,
+        "y": 175
       },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
         "name": "Academic Advisor Service"
       },
@@ -40,31 +60,13 @@
       }
     },
     {
-      "id": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
-      "width": 1030,
-      "height": 760,
-      "type": "componentSubsystem",
-      "position": {
-        "x": 450,
-        "y": 580
-      },
-      "data": {
-        "name": "Server",
-        "isComponentSubsystemHeaderShown": true
-      },
-      "measured": {
-        "width": 1030,
-        "height": 760
-      }
-    },
-    {
       "id": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
       "width": 180,
       "height": 120,
       "type": "component",
       "position": {
-        "x": 710,
-        "y": 90
+        "x": 900,
+        "y": 330
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -82,12 +84,12 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 130,
-        "y": 70
+        "x": 310,
+        "y": 330
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "Student Service",
+        "name": "User Profile Service",
         "isComponentHeaderShown": true
       },
       "measured": {
@@ -101,8 +103,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 130,
-        "y": 220
+        "x": 490,
+        "y": 490
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -120,8 +122,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 300,
-        "y": 510
+        "x": 50,
+        "y": 890
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -139,8 +141,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 630,
-        "y": 550
+        "x": 960,
+        "y": 915
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -153,54 +155,17 @@
       }
     },
     {
-      "id": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
-      "width": 530,
-      "height": 340,
-      "type": "componentSubsystem",
-      "position": {
-        "x": 590,
-        "y": 1490
-      },
-      "data": {
-        "name": "Database",
-        "isComponentSubsystemHeaderShown": true
-      },
-      "measured": {
-        "width": 530,
-        "height": 340
-      }
-    },
-    {
       "id": "0a68bb4c-2e06-4d78-947e-bb752dbeba52",
       "width": 180,
       "height": 120,
       "type": "component",
       "position": {
-        "x": 40,
-        "y": 130
+        "x": 550,
+        "y": 1165
       },
-      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "Relational DB",
-        "isComponentHeaderShown": true
-      },
-      "measured": {
-        "width": 180,
-        "height": 120
-      }
-    },
-    {
-      "id": "3b1c6cef-4f17-42b1-8d04-55899a29cc50",
-      "width": 180,
-      "height": 120,
-      "type": "component",
-      "position": {
-        "x": 320,
-        "y": 130
-      },
-      "parentId": "3f4f5d2f-8b4d-4259-89b4-706e446fa8ee",
-      "data": {
-        "name": "Vector DB",
+        "name": "Database",
         "isComponentHeaderShown": true
       },
       "measured": {
@@ -214,12 +179,12 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 470,
-        "y": 130
+        "x": 565,
+        "y": 375
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "Internal Student API"
+        "name": "Internal Profile API"
       },
       "measured": {
         "width": 30,
@@ -232,8 +197,8 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 480,
-        "y": 290
+        "x": 765,
+        "y": 535
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -250,12 +215,12 @@
       "height": 30,
       "type": "componentInterface",
       "position": {
-        "x": 220,
-        "y": 420
+        "x": 565,
+        "y": 715
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
-        "name": "AI Service"
+        "name": "AI Recommendations/ \nRoadmap/ Advisor API"
       },
       "measured": {
         "width": 30,
@@ -268,29 +233,11 @@
       "height": 120,
       "type": "componentSubsystem",
       "position": {
-        "x": 1550,
-        "y": 970
+        "x": 1585,
+        "y": 1145
       },
       "data": {
         "name": "TUMonline",
-        "isComponentSubsystemHeaderShown": true
-      },
-      "measured": {
-        "width": 180,
-        "height": 120
-      }
-    },
-    {
-      "id": "a98892b1-d2e4-435f-8637-b16c5ca078e2",
-      "width": 180,
-      "height": 120,
-      "type": "componentSubsystem",
-      "position": {
-        "x": 1550,
-        "y": 1230
-      },
-      "data": {
-        "name": "Chair Website",
         "isComponentSubsystemHeaderShown": true
       },
       "measured": {
@@ -308,7 +255,7 @@
         "y": 1420
       },
       "data": {
-        "name": "Memory Service"
+        "name": "SQL"
       },
       "measured": {
         "width": 30,
@@ -321,8 +268,8 @@
       "height": 120,
       "type": "component",
       "position": {
-        "x": 720,
-        "y": 340
+        "x": 905,
+        "y": 585
       },
       "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
       "data": {
@@ -332,6 +279,78 @@
       "measured": {
         "width": 180,
         "height": 120
+      }
+    },
+    {
+      "id": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": 960,
+        "y": 740
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Pdf-Parser Service",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 810,
+        "y": 785
+      },
+      "parentId": "c710a3c2-1a60-4042-aff5-1dda114d93f7",
+      "data": {
+        "name": "Data Extraction API"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
+      }
+    },
+    {
+      "id": "4f9e73aa-c02a-4d28-a8a5-c0a84bd472ec",
+      "width": 180,
+      "height": 120,
+      "type": "component",
+      "position": {
+        "x": -220,
+        "y": 1225
+      },
+      "data": {
+        "name": "LLM",
+        "isComponentHeaderShown": true
+      },
+      "measured": {
+        "width": 180,
+        "height": 120
+      }
+    },
+    {
+      "id": "71da068d-37ed-42d7-b777-ac9e9efc185a",
+      "width": 30,
+      "height": 30,
+      "type": "componentInterface",
+      "position": {
+        "x": 110,
+        "y": 1270
+      },
+      "data": {
+        "name": "Inference"
+      },
+      "measured": {
+        "width": 30,
+        "height": 30
       }
     }
   ],
@@ -430,9 +449,13 @@
       "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
       "type": "ComponentProvidedInterface",
       "sourceHandle": "top",
-      "targetHandle": "left",
+      "targetHandle": "bottom",
       "data": {
-        "points": []
+        "points": [],
+        "targetAnchor": {
+          "side": "bottom",
+          "ratio": 0.5
+        }
       }
     },
     {
@@ -454,7 +477,24 @@
       "sourceHandle": "bottom",
       "targetHandle": "top",
       "data": {
-        "points": []
+        "points": [
+          {
+            "x": 785,
+            "y": 1081
+          },
+          {
+            "x": 785,
+            "y": 1194
+          },
+          {
+            "x": 345,
+            "y": 1194
+          },
+          {
+            "x": 345,
+            "y": 1224
+          }
+        ]
       }
     },
     {
@@ -467,20 +507,20 @@
       "data": {
         "points": [
           {
-            "x": 579,
-            "y": 710
+            "x": 514,
+            "y": 725
           },
           {
-            "x": 549,
-            "y": 710
+            "x": 484,
+            "y": 725
           },
           {
-            "x": 549,
-            "y": 1313.83203125
+            "x": 484,
+            "y": 1314
           },
           {
             "x": 845,
-            "y": 1313.83203125
+            "y": 1314
           },
           {
             "x": 845,
@@ -499,20 +539,20 @@
       "data": {
         "points": [
           {
-            "x": 579,
-            "y": 860
+            "x": 694,
+            "y": 885
           },
           {
-            "x": 549,
-            "y": 860
+            "x": 664,
+            "y": 885
           },
           {
-            "x": 549,
-            "y": 1312.55859375
+            "x": 664,
+            "y": 1315
           },
           {
             "x": 845,
-            "y": 1312.55859375
+            "y": 1315
           },
           {
             "x": 845,
@@ -537,27 +577,27 @@
       "source": "4fb24552-2fa2-4ac0-b35f-dca50fc7cc36",
       "target": "a6aaa892-8284-4321-bb47-0f46f54cb33b",
       "type": "ComponentRequiredInterface",
-      "sourceHandle": "bottom",
+      "sourceHandle": "left",
       "targetHandle": "top",
       "data": {
         "points": [
           {
-            "x": 1170,
-            "y": 1251
-          },
-          {
-            "x": 1170,
-            "y": 1313.62890625
+            "x": 1165,
+            "y": 1315
           },
           {
             "x": 845,
-            "y": 1313.62890625
+            "y": 1315
           },
           {
             "x": 845,
             "y": 1415
           }
-        ]
+        ],
+        "sourceAnchor": {
+          "side": "left",
+          "ratio": 0.5416666666666666
+        }
       }
     },
     {
@@ -589,6 +629,121 @@
       "type": "ComponentRequiredInterface",
       "sourceHandle": "bottom",
       "targetHandle": "top",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "fd0bfce3-1640-4bcb-a03a-1d83d726cdfa",
+      "source": "8abf8464-8553-485f-b295-fc0b3936fab7",
+      "target": "653f1935-e71a-4e16-9bb1-f1124632846b",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "top",
+      "targetHandle": "bottom",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "0406b639-fa94-478a-9860-f7587838612c",
+      "source": "7d6795f3-8a38-4550-9d91-5fa04c3ea0c0",
+      "target": "c23aa4ef-f171-4404-b5cb-c94dc9b00424",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "right",
+      "data": {
+        "points": [
+          {
+            "x": 1105,
+            "y": 765
+          },
+          {
+            "x": 990,
+            "y": 765
+          },
+          {
+            "x": 990,
+            "y": 1065
+          },
+          {
+            "x": 805,
+            "y": 1065
+          }
+        ],
+        "sourceAnchor": {
+          "side": "left",
+          "ratio": 0.8333333333333334
+        }
+      }
+    },
+    {
+      "id": "d6888053-c522-4c1f-90aa-9f2a2e609361",
+      "source": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "target": "eb9057e5-00bf-44d4-b74a-0c16a661773f",
+      "type": "ComponentDependency",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "99d6334c-c8b9-4028-b52a-23f3f3653ef8",
+      "source": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "target": "d088d4ca-c9c0-4657-953c-4102a8b03f31",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "right",
+      "targetHandle": "left-between-mid-bottom-center",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "5e92a18c-7982-4c47-ab56-8ea66307417d",
+      "source": "208ce8d6-8442-4adb-baf0-d29ad6de2cf7",
+      "target": "bb6b9834-12dd-4dbb-a53d-4664a33d9a2f",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "bottom",
+      "targetHandle": "left",
+      "data": {
+        "targetAnchor": {
+          "side": "left",
+          "ratio": 0.5
+        },
+        "points": [
+          {
+            "x": 605,
+            "y": 786
+          },
+          {
+            "x": 605,
+            "y": 1135
+          },
+          {
+            "x": 1015,
+            "y": 1135
+          }
+        ]
+      }
+    },
+    {
+      "id": "419d0566-3e54-41c3-b8fe-e70cc6961645",
+      "source": "71da068d-37ed-42d7-b777-ac9e9efc185a",
+      "target": "4f9e73aa-c02a-4d28-a8a5-c0a84bd472ec",
+      "type": "ComponentProvidedInterface",
+      "sourceHandle": "left",
+      "targetHandle": "right-between-mid-top-center",
+      "data": {
+        "points": []
+      }
+    },
+    {
+      "id": "33515935-1c9a-46c5-ace6-0c4a484ad27d",
+      "source": "258f605d-40bd-4ec5-b182-275cb0795c64",
+      "target": "71da068d-37ed-42d7-b777-ac9e9efc185a",
+      "type": "ComponentRequiredInterface",
+      "sourceHandle": "left",
+      "targetHandle": "right",
       "data": {
         "points": []
       }

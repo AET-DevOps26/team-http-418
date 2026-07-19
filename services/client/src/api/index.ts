@@ -45,7 +45,6 @@ export {
 export { queryClient } from "#/api/query-client";
 export { getRecommendations } from "#/api/recommendations";
 export { generateRoadmap, getRoadmap } from "#/api/roadmap";
-export { getSchedule } from "#/api/schedule";
 export type {
 	AcademicProgress,
 	AddCompletedCourseRequest,
@@ -63,7 +62,6 @@ export type {
 	CourseDetail,
 	CourseLevel,
 	CoursePrerequisiteRef,
-	CourseScheduleEntry,
 	CourseSearchParams,
 	CourseSession,
 	CourseStatus,
@@ -100,9 +98,6 @@ export type {
 	RequirementCourse,
 	Roadmap,
 	RoadmapStatus,
-	ScheduleConflict,
-	ScheduleEvent,
-	ScheduleEventType,
 	ScheduleSlot,
 	ScheduleType,
 	SemesterKey,
@@ -113,5 +108,4 @@ export type {
 	SuggestedPrompt,
 	TranscriptImportResult,
 	UpcomingCourse,
-	WeeklySchedule,
 } from "#/api/types";

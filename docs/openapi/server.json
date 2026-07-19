@@ -1,0 +1,2529 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/api/v1/me/transcript/import/{id}/unskip": {
+      "put": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "unskipImportCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/import/{id}/unresolve": {
+      "put": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "unresolveImportCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/import/{id}/skip": {
+      "put": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "skipImportCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/import/{id}/resolve": {
+      "put": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "resolveImportCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/import/{id}/grade": {
+      "put": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "updateImportGrade",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap": {
+      "get": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "getRoadmap",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoadmapDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "updateRoadmap",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoadmapDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap/semesters/{key}": {
+      "get": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "getSemester",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "updateSemester",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "upsertProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/upload": {
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "uploadTranscript",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptImportResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/confirm": {
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "confirmImport",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/cancel": {
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "cancelImport",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/ai-match": {
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "aiMatchTranscript",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiMatchRequestDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiMatchResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap/semesters/{key}/courses": {
+      "post": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "addCourseToSemester",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCourseToSemesterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap/generate": {
+      "post": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "generateRoadmap",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoadmapDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/recommendations": {
+      "get": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getRecommendations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getRecommendations_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostRecommendationsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/courses/enrolled": {
+      "get": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "getEnrolled",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDTOEnrolledCourseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "addEnrolled",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollCourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrolledCourseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/courses/completed": {
+      "get": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "getCompleted",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDTOCompletedCourseDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "addCompleted",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCompletedCourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletedCourseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/advisor/conversations": {
+      "get": {
+        "tags": [
+          "api-controller-me-advisor"
+        ],
+        "operationId": "getConversations",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDTOConversationSummaryDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-controller-me-advisor"
+        ],
+        "operationId": "createConversation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/advisor/conversations/{id}/messages": {
+      "post": {
+        "tags": [
+          "api-controller-me-advisor"
+        ],
+        "operationId": "sendMessage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseEmitter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health-controller"
+        ],
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/study-programs": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getStudyPrograms",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudyProgram"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/study-programs/{id}": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getStudyProgram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyProgram"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/study-programs/{id}/courses": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getStudyProgramCourses",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SimpleCourseData"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/transcript/import-state": {
+      "get": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getImportState",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportStateDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap/semesters": {
+      "get": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "getSemesters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/requirements": {
+      "get": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getRequirements",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DegreeRequirementsDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/progress": {
+      "get": {
+        "tags": [
+          "api-controller-me"
+        ],
+        "operationId": "getProgress",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcademicProgressDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/advisor/suggestions": {
+      "get": {
+        "tags": [
+          "api-controller-me-advisor"
+        ],
+        "operationId": "getSuggestions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/advisor/conversations/{id}": {
+      "get": {
+        "tags": [
+          "api-controller-me-advisor"
+        ],
+        "operationId": "getConversation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hello": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "sayHello",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/departments": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getDepartments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Department"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getCourses",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentID",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "credits_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "semester",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "credits_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "studyProgramId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SimpleCourseData"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{id}": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getCourseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedCourseData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{id}/prerequisites": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "getCoursePrerequisites",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrerequisiteTree"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{id}/prerequisites/check": {
+      "get": {
+        "tags": [
+          "api-controller"
+        ],
+        "operationId": "checkCoursePrerequisites",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrerequisiteCheck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/roadmap/semesters/{key}/courses/{courseId}": {
+      "delete": {
+        "tags": [
+          "api-controller-me-roadmap"
+        ],
+        "operationId": "removeCourseFromSemester",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/courses/enrolled/{courseId}": {
+      "delete": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "deleteEnrolled",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/me/courses/completed/{courseId}": {
+      "delete": {
+        "tags": [
+          "api-controller-me-courses"
+        ],
+        "operationId": "deleteCompleted",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResolveImportRequest": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      },
+      "PlannedCourseDTO": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "RoadmapDTO": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "semesters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SemesterPlanDetailDTO"
+            }
+          },
+          "totalPlannedCredits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estimatedGraduation": {
+            "type": "string"
+          }
+        }
+      },
+      "SemesterPlanDetailDTO": {
+        "type": "object",
+        "properties": {
+          "semesterKey": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "totalCredits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlannedCourseDTO"
+            }
+          },
+          "isCurrent": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/Student"
+          },
+          "completedCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enrolledCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availableCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "type": "string"
+          },
+          "semesterKey": {
+            "type": "string"
+          }
+        }
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "studyProgramId": {
+            "type": "string"
+          },
+          "studyProgramName": {
+            "type": "string"
+          },
+          "semester": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "careerGoals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "interests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkload": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsEarned": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expectedGraduation": {
+            "type": "string"
+          },
+          "industryPreference": {
+            "type": "string"
+          },
+          "rolePreference": {
+            "type": "string"
+          },
+          "onboardingCompleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ImportedCourse": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "titleDe": {
+            "type": "string"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TranscriptImportResultDTO": {
+        "type": "object",
+        "properties": {
+          "importedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skippedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "importedCourses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportedCourse"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unmatchedModules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnmatchedModule"
+            }
+          }
+        }
+      },
+      "UnmatchedModule": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "titleDe": {
+            "type": "string"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AiMatchRequestDTO": {
+        "type": "object",
+        "properties": {
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Module"
+            }
+          }
+        }
+      },
+      "Module": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "titleDe": {
+            "type": "string"
+          }
+        }
+      },
+      "AiMatchResponseDTO": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Match"
+            }
+          },
+          "unmatched": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Match": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string"
+          },
+          "courseId": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AddCourseToSemesterRequest": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PostRecommendationsBody": {
+        "type": "object",
+        "properties": {
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "interests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludeCourseIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EnrollCourseRequest": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "semester": {
+            "type": "string"
+          }
+        }
+      },
+      "EnrolledCourseDTO": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "semester": {
+            "type": "string"
+          }
+        }
+      },
+      "AddCompletedCourseRequest": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "grade": {
+            "type": "number"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "semester": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      },
+      "CompletedCourseDTO": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "number"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "semester": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateConversationRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          }
+        }
+      },
+      "ConversationDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessageDTO"
+            }
+          }
+        }
+      },
+      "ConversationMessageDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "referencedCourses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SimpleCourseData"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "SimpleCourseData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title_ger": {
+            "type": "string"
+          },
+          "title_en": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "semester_key": {
+            "type": "string"
+          }
+        }
+      },
+      "SendMessageRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 10000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "SseEmitter": {
+        "type": "object",
+        "properties": {
+          "timeout": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "tumId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "password",
+          "tumId"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "StudyProgram": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameGer": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "moduleId": {
+            "type": "string"
+          },
+          "moduleTitle": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "number"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportStateDTO": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "pending": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            }
+          },
+          "unmatched": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            }
+          }
+        }
+      },
+      "CreditsByCategory": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DegreeRequirementsDTO": {
+        "type": "object",
+        "properties": {
+          "totalCredits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsByCategory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditsByCategory"
+            }
+          },
+          "completedCourses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseDTO"
+            }
+          }
+        }
+      },
+      "AcademicProgressDTO": {
+        "type": "object",
+        "properties": {
+          "totalCredits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gpa": {
+            "type": "number"
+          },
+          "completedCourses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enrolledCourses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditsByCategory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditsByCategory"
+            }
+          }
+        }
+      },
+      "PageDTOEnrolledCourseDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnrolledCourseDTO"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageDTOCompletedCourseDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseDTO"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ConversationSummaryDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "PageDTOConversationSummaryDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversationSummaryDTO"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Department": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Appointment": {
+        "type": "object",
+        "properties": {
+          "weekday_key": {
+            "type": "string"
+          },
+          "time_from": {
+            "type": "string"
+          },
+          "time_to": {
+            "type": "string"
+          },
+          "place": {
+            "type": "string"
+          },
+          "is_series": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CurriculumConnections": {
+        "type": "object",
+        "properties": {
+          "study_name_ger": {
+            "type": "string"
+          },
+          "study_name_en": {
+            "type": "string"
+          },
+          "subject_type": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "DetailedCourseData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title_ger": {
+            "type": "string"
+          },
+          "title_en": {
+            "type": "string"
+          },
+          "sws": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description_ger": {
+            "type": "string"
+          },
+          "description_en": {
+            "type": "string"
+          },
+          "previous_knowledge_ger": {
+            "type": "string"
+          },
+          "previous_knowledge_en": {
+            "type": "string"
+          },
+          "course_objective_en": {
+            "type": "string"
+          },
+          "course_objective_ger": {
+            "type": "string"
+          },
+          "teaching_method_en": {
+            "type": "string"
+          },
+          "teaching_method_ger": {
+            "type": "string"
+          },
+          "registration_info": {
+            "type": "string"
+          },
+          "course_type": {
+            "type": "string"
+          },
+          "semester_key": {
+            "type": "string"
+          },
+          "org_name_ger": {
+            "type": "string"
+          },
+          "org_name_en": {
+            "type": "string"
+          },
+          "org_url": {
+            "type": "string"
+          },
+          "appointments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Appointment"
+            }
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Person"
+            }
+          },
+          "curriculumConnections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurriculumConnections"
+            }
+          }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "teaching_function": {
+            "type": "string"
+          }
+        }
+      },
+      "PrerequisiteNode": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "PrerequisiteTree": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteNode"
+            }
+          }
+        }
+      },
+      "PrerequisiteCheck": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "unmetPrerequisites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteCheckRef"
+            }
+          },
+          "metPrerequisites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteCheckRef"
+            }
+          }
+        }
+      },
+      "PrerequisiteCheckRef": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

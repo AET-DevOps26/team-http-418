@@ -27,7 +27,7 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("io.micrometer:micrometer-registry-prometheus")
-
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 	implementation("org.apache.logging.log4j:log4j-bom:2.26.0")
 	implementation("org.postgresql:postgresql")
 	implementation("org.flywaydb:flyway-core")

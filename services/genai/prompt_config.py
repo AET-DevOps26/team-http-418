@@ -60,21 +60,6 @@ PROMPT_SPECS: dict[str, PromptSpec] = {
         ],
         description="Generate personalized prompt chips for the advisor chat",
     ),
-    "plan_validate": PromptSpec(
-        template_file="plan_validate.txt",
-        placeholders=[
-            "semester",
-            "career_goals",
-            "max_credits_per_semester",
-            "prefer_no_back_to_back",
-            "blocked_time_slots",
-            "semester_key",
-            "total_credits",
-            "courses_text",
-            "completed_courses",
-        ],
-        description="Validate a semester plan for soft conflicts",
-    ),
     "prerequisites": PromptSpec(
         template_file="prerequisites.txt",
         placeholders=["course_name", "previous_knowledge_text", "available_courses_text"],

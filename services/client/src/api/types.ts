@@ -81,35 +81,6 @@ export type UpcomingCourse = {
 	nextSession: CourseSession;
 };
 
-export type ScheduleEventType = "LECTURE" | "TUTORIAL" | "LAB" | "EXAM";
-
-export type ScheduleEvent = {
-	courseId: string;
-	courseCode: string;
-	courseName: string;
-	type: ScheduleEventType;
-	day: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY";
-	startTime: string;
-	endTime: string;
-	room: string;
-	instructor: string;
-	color: string;
-};
-
-export type ScheduleConflict = {
-	type: "TIME_OVERLAP" | "WORKLOAD_EXCEEDED" | "PREREQUISITE_UNMET";
-	severity: "ERROR" | "WARNING";
-	message: string;
-	involvedCourses: string[];
-};
-
-export type WeeklySchedule = {
-	semester: SemesterKey;
-	events: ScheduleEvent[];
-	totalCredits: number;
-	conflicts: ScheduleConflict[];
-};
-
 export type MessageRole = "USER" | "ASSISTANT";
 
 export type ReferencedCourse = {
@@ -231,21 +202,11 @@ export type CompletedCourse = {
 	category: string;
 };
 
-export type CourseScheduleEntry = {
-	day: string;
-	startTime: string;
-	endTime: string;
-	room: string;
-	type: string;
-};
-
 export type EnrolledCourse = {
 	courseId: string;
 	courseCode: string;
 	courseName: string;
-	credits: number;
 	semester: SemesterKey;
-	schedule: CourseScheduleEntry[];
 };
 
 export type CourseStatus = "COMPLETED" | "ENROLLED" | "MISSING" | "PLANNED";

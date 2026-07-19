@@ -114,9 +114,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoints: `GET /me/recommendations` and `POST /me/recommendations` (Planning Service) → both call this single GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/recommendations` | `{ student, completedCourses, enrolledCourses, availableCourses, limit, overrideGoals?, overrideInterests?, excludeCourseIds? }` | 200 | Generate personalized course recommendations from student context | Planning Service |
 
 **Always POST to GenAI** — both client-facing GET and POST flow here. GET sends complex student context as body (query params insufficient for arrays). POST adds optional override fields.
 
@@ -196,9 +196,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoint: `POST /me/roadmap/generate` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/roadmap/generate` | `{ student, completedCourses, enrolledCourses, degreeRequirements, availableCourses }` | 200 | Generate semester-by-semester academic roadmap from student context | Planning Service |
 
 **Async**: Spring Boot returns `202 Accepted` to client immediately, calls this endpoint in background. Client polls a status URL to retrieve the result when ready.
 
@@ -265,9 +265,9 @@ GET /courses?query=machine+learning+for+robotics&limit=20&department=Informatics
 
 > Spring Boot endpoint: `POST /me/advisor/conversations/{id}/messages` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/advisor/conversations/{conversationId}/messages` | `{ student, completedCourses, conversationHistory, newMessage }` | 200 / SSE | Generate streaming chat response from conversation history + student context | Planning Service |
 
 **Streaming**: GenAI streams SSE tokens back to Spring Boot, which forwards the stream to the client. After stream ends, Spring Boot saves the completed assistant message to DB.
 
@@ -324,9 +324,9 @@ data: {"done": true, "fullContent": "Based on your completed ML courses..."}
 
 > Spring Boot endpoint: `GET /me/advisor/suggestions` (Planning Service) → calls this GenAI endpoint:
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/me/advisor/suggestions` | `{ student, completedCourses }` | 200 | Generate personalized prompt chip suggestions based on student context | Planning Service |
 
 Sync JSON — no streaming. Shown on advisor page before student types anything.
 
@@ -354,7 +354,7 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 ```json
 [
   { "text": "What electives should I take next semester?", "category": "RECOMMENDATIONS" },
-  { "text": "Am I on track to graduate by 26S?", "category": "SCHEDULE" },
+  { "text": "Am I on track to graduate by 26S?", "category": "PROGRESS" },
   { "text": "What prerequisites am I still missing for my goals?", "category": "PREREQUISITES" },
   { "text": "Show me courses related to computer vision I haven't taken yet.", "category": "RECOMMENDATIONS" }
 ]
@@ -406,82 +406,13 @@ Sync JSON — no streaming. Shown on advisor page before student types anything.
 
 ---
 
-### Plan Validation
-
-> Spring Boot endpoint: `GET /me/schedule/conflicts` (Planning Service) → calls this GenAI endpoint:
-
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/me/plan/validate` | `{ student, semesterPlan, completedCourses }` | 200 | Holistic workload + conflict analysis beyond rule-based time overlap | Planning Service |
-
-Spring Boot runs rule-based time overlap checks independently. This endpoint adds AI-powered soft warnings (unrealistic workload, risky course combinations, scheduling preference violations). Spring Boot merges both result sets before returning `ConflictList` to client.
-
-<details>
-<summary>Request / response schemas</summary>
-
-**Request**
-```json
-{
-  "student": {
-    "semester": 5,
-    "careerGoals": ["AI researcher"],
-    "preferences": {
-      "maxCreditsPerSemester": 30,
-      "blockedTimeSlots": [
-        { "day": "MONDAY", "startTime": "08:00", "endTime": "10:00" }
-      ],
-      "preferNoBackToBack": true
-    }
-  },
-  "semesterPlan": {
-    "semesterKey": "25S",
-    "totalCredits": 42,
-    "courses": [
-      {
-        "courseId": "uuid",
-        "courseCode": "IN2349",
-        "courseName": "Advanced Deep Learning",
-        "credits": 6,
-        "schedule": [
-          { "day": "MONDAY", "startTime": "10:00", "endTime": "12:00", "type": "LECTURE" }
-        ]
-      }
-    ]
-  },
-  "completedCourses": [
-    { "courseCode": "IN2346", "courseName": "Introduction to Deep Learning" }
-  ]
-}
-```
-
-**Response**
-```json
-{
-  "warnings": [
-    {
-      "type": "WORKLOAD_EXCEEDED",
-      "severity": "WARNING",
-      "message": "42 ECTS in one semester is above your stated maximum of 30"
-    },
-    {
-      "type": "SCHEDULING_PREFERENCE",
-      "severity": "INFO",
-      "message": "IN2349 lecture on Monday 10:00 is close to your blocked morning slot"
-    }
-  ]
-}
-```
-</details>
-
----
-
 ### Batch Course Embedding
 
 > **Internal pipeline only** — not triggered by client. Called by Scraper after ingestion or by Catalog Service on demand. Client has no knowledge of this endpoint.
 
-| Impl | Method | Endpoint | Body | Status | Description | Called by |
-| :---: | :---: | :--- | :--- | :---: | :--- | :--- |
-| [ ] | `POST` | `/v1/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors in Vector DB | Catalog Service / Scraper trigger |
+| Impl  | Method | Endpoint | Body | Status | Description | Called by |
+|:-----:| :---: | :--- | :--- | :---: | :--- | :--- |
+| [ x ] | `POST` | `/v1/embeddings/courses` | `{ courses, mode }` | 200 | Embed course descriptions and store vectors with pgvector in PostgreSQL | Catalog Service / Scraper trigger |
 
 Triggered after scraper ingestion adds or updates courses. Also run on first setup (bulk embed all courses). Required for semantic search and recommendations to work.
 
@@ -525,10 +456,9 @@ Triggered after scraper ingestion adds or updates courses. Also run on first set
 
 | # | Question | Impact |
 | :--- | :--- | :--- |
-| 1 | Vector DB: **pgvector** (simpler, one DB) vs **Weaviate** (dedicated, bonus points per course spec) | Affects `/embeddings/courses` and `/courses` search implementation |
-| 2 | Chat **context window size** — last N messages sent in conversation history | Affects cost and coherence of advisor responses |
-| 3 | Transcript fuzzy matching confidence **threshold** for auto-import vs manual review | Affects `/me/transcript/upload` usage |
-| 4 | **Embedding model** — OpenAI `text-embedding-3-small` (cloud) vs local alternative | Affects all vector search quality |
+| 1 | Chat **context window size** — last N messages sent in conversation history | Affects cost and coherence of advisor responses |
+| 2 | Transcript fuzzy matching confidence **threshold** for auto-import vs manual review | Affects `/me/transcript/upload` usage |
+| 3 | **Embedding model** — OpenAI `text-embedding-3-small` (cloud) vs local alternative | Affects all vector search quality |
 
 ---
 

@@ -14,7 +14,6 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedRecommendationsRouteImport } from './routes/_authenticated/recommendations'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -48,11 +47,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRecommendationsRoute =
   AuthenticatedRecommendationsRouteImport.update({
@@ -115,7 +109,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/recommendations': typeof AuthenticatedRecommendationsRoute
-  '/schedule': typeof AuthenticatedScheduleRoute
   '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/advisor/': typeof AuthenticatedAdvisorIndexRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -130,7 +123,6 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/recommendations': typeof AuthenticatedRecommendationsRoute
-  '/schedule': typeof AuthenticatedScheduleRoute
   '/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/advisor': typeof AuthenticatedAdvisorIndexRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
@@ -148,7 +140,6 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/recommendations': typeof AuthenticatedRecommendationsRoute
-  '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/advisor/$conversationId': typeof AuthenticatedAdvisorConversationIdRoute
   '/_authenticated/advisor/': typeof AuthenticatedAdvisorIndexRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -166,7 +157,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/recommendations'
-    | '/schedule'
     | '/advisor/$conversationId'
     | '/advisor/'
     | '/courses/'
@@ -181,7 +171,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/recommendations'
-    | '/schedule'
     | '/advisor/$conversationId'
     | '/advisor'
     | '/courses'
@@ -198,7 +187,6 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/progress'
     | '/_authenticated/recommendations'
-    | '/_authenticated/schedule'
     | '/_authenticated/advisor/$conversationId'
     | '/_authenticated/advisor/'
     | '/_authenticated/courses/'
@@ -248,13 +236,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/schedule': {
-      id: '/_authenticated/schedule'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof AuthenticatedScheduleRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/recommendations': {
       id: '/_authenticated/recommendations'
@@ -343,7 +324,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedRecommendationsRoute: typeof AuthenticatedRecommendationsRoute
-  AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
@@ -354,7 +334,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedRecommendationsRoute: AuthenticatedRecommendationsRoute,
-  AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
 

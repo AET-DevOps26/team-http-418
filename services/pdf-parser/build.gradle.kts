@@ -26,6 +26,7 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
 	implementation("technology.tabula:tabula:1.0.5"){
 		exclude(group = "org.slf4j", module = "slf4j-simple")
