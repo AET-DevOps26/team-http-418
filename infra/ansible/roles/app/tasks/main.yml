@@ -98,6 +98,10 @@
         group: azureuser
         mode: '0644'
 
+    - name: Prune unused Docker images to free disk space
+      command: docker image prune -a -f
+      become_user: azureuser
+
     - name: Pull the validated application images
       command: docker compose pull
       args:
